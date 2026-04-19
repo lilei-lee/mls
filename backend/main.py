@@ -19,6 +19,12 @@ from listings import (
     ensure_indexes,
     list_my_listings,
     count_my_listings,
+    list_shared_listings,
+    count_shared_listings,
+    get_listing_by_id,
+    update_listing,
+    offline_listing,
+    reactivate_listing,
 )
 
 
@@ -448,3 +454,78 @@ def get_my_listings_api(
     items = list_my_listings(agent["_id"], skip=skip, limit=limit)
     total = count_my_listings(agent["_id"])
     return ListingListResponse(success=True, total=total, items=items)
+
+@app.get("/api/v1/listings/shared", response_model=ListingListResponse)
+def get_shared_listings_api(
+    skip: int = 0,
+    limit: int = 20,
+    agent: dict = Depends(get_current_agent),
+):
+    """
+    获取共享房源库(匿名):其他经纪人录入的在售房源
+    - 自动过滤掉登录者自己的房源
+    - 不返回任何录入人身份信息(浏览阶段匿名)
+    """
+    items = list_shared_listings(agent["_id"], skip=skip, limit=limit)
+    total = count_shared_listings(agent["_id"])
+    return ListingListResponse(success=True, total=total, items=items)
+
+# ==================== 单条房源接口 ====================
+
+class UpdateListingRequest(BaseModel):
+    """
+    更新房源请求 - 只允许修改这些字段
+    全部 Optional:前端可以只传想改的字段,不传的字段保持原值
+    """
+    layout: str | None = None
+    floor: int | None = None
+    total_floor: int | None = None
+    orientation: str | None = None
+    price_wan: float | None = None
+    remarks: str | None = None
+
+
+@app.get("/api/v1/listings/{listing_id}")
+def get_listing_api(
+    listing_id: str,
+    agent: dict = Depends(get_current_agent),
+):
+    """获取单条房源详情"""
+    doc = get_listing_by_id(listing_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="房源不存在")
+    return {"success": True, "data": doc}
+
+
+@app.patch("/api/v1/listings/{listing_id}")
+def update_listing_api(
+    listing_id: str,
+    req: UpdateListingRequest,
+    agent: dict = Depends(get_current_agent),
+):
+    """更新房源(仅本人)"""
+    update_fields = req.model_dump(exclude_unset=True)  # 只取前端真的传了的字段
+    doc = update_listing(listing_id, update_fields, agent["_id"])
+    print(f"\n✏️  房源更新: {doc['community']} {doc['building']}-{doc['unit']}-{doc['room_no']} by {agent['name']}")
+    return {"success": True, "data": doc}
+
+
+@app.delete("/api/v1/listings/{listing_id}")
+def offline_listing_api(
+    listing_id: str,
+    agent: dict = Depends(get_current_agent),
+):
+    """下架房源(软删除,仅本人)"""
+    doc = offline_listing(listing_id, agent["_id"])
+    print(f"\n🚫 房源下架: {doc['community']} {doc['building']}-{doc['unit']}-{doc['room_no']} by {agent['name']}")
+    return {"success": True, "data": doc}
+
+@app.post("/api/v1/listings/{listing_id}/reactivate")
+def reactivate_listing_api(
+    listing_id: str,
+    agent: dict = Depends(get_current_agent),
+):
+    """重新上架(把 offline 状态改回 on_sale)"""
+    doc = reactivate_listing(listing_id, agent["_id"])
+    print(f"\n♻️  房源重新上架: {doc['community']} {doc['building']}-{doc['unit']}-{doc['room_no']} by {agent['name']}")
+    return {"success": True, "data": doc}

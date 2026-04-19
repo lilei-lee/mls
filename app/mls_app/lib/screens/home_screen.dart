@@ -135,16 +135,30 @@ class _HomeScreenState extends State<HomeScreen> {
               InfoCard(label: '角色', value: _roleLabel(me['role'])),
               InfoCard(label: '状态', value: _statusLabel(me['status'])),
               const SizedBox(height: 32),
-              SizedBox(
-                height: 56,
-                child: ElevatedButton.icon(
-                  onPressed: () => context.push('/listings/mine'),
-                  icon: const Icon(Icons.home_work),
-                  label: const Text(
-                    '我的房源',
-                    style: TextStyle(fontSize: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 56,
+                      child: ElevatedButton.icon(
+                        onPressed: () => context.push('/listings/mine'),
+                        icon: const Icon(Icons.home_work),
+                        label: const Text('我的房源'),
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SizedBox(
+                      height: 56,
+                      child: OutlinedButton.icon(
+                        onPressed: () => context.push('/listings/shared'),
+                        icon: const Icon(Icons.share),
+                        label: const Text('共享房源库'),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
             ],

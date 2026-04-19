@@ -174,3 +174,187 @@ def _format_listing(doc: dict) -> dict:
         "created_at": doc["created_at"].isoformat(),
         "updated_at": doc["updated_at"].isoformat(),
     }
+
+# ==================== 共享房源库(匿名) ====================
+
+def list_shared_listings(
+    current_agent_id: ObjectId,
+    skip: int = 0,
+    limit: int = 20,
+) -> list:
+    """
+    查询共享房源库:其他经纪人录入的在售房源(不含自己的)
+    - 匿名展示:不返回录入经纪人的身份信息
+    - 只展示 status='on_sale' 的房源
+    - 按创建时间倒序
+    """
+    cursor = (
+        listings_collection.find({
+            "status": "on_sale",
+            "owner_agent_id": {"$ne": current_agent_id},  # 排除自己的
+        })
+        .sort("created_at", -1)
+        .skip(skip)
+        .limit(limit)
+    )
+    results = []
+    for doc in cursor:
+        results.append(_format_listing_anonymous(doc))
+    return results
+
+
+def count_shared_listings(current_agent_id: ObjectId) -> int:
+    """统计共享库房源总数(不含自己)"""
+    return listings_collection.count_documents({
+        "status": "on_sale",
+        "owner_agent_id": {"$ne": current_agent_id},
+    })
+
+
+def _format_listing_anonymous(doc: dict) -> dict:
+    """
+    匿名版格式化 - 不返回 owner 相关字段
+    这是一个关键的安全设计:在浏览阶段,经纪人不应该看到对方是谁
+    """
+    return {
+        "listing_id": str(doc["_id"]),
+        "house_code": doc["house_code"],
+        "community": doc["community"],
+        "building": doc["building"],
+        "unit": doc["unit"],
+        "room_no": doc["room_no"],
+        "area_sqm": doc["area_sqm"],
+        "layout": doc["layout"],
+        "floor": doc["floor"],
+        "total_floor": doc["total_floor"],
+        "orientation": doc["orientation"],
+        "price_wan": doc["price_wan"],
+        "remarks": doc.get("remarks", ""),
+        "status": doc.get("status", "on_sale"),
+        # 注意:不返回 owner_agent_id、owner_agent_name、owner_agent_phone
+        "created_at": doc["created_at"].isoformat(),
+    }
+
+# ==================== 单条查询 / 更新 / 下架 ====================
+
+def get_listing_by_id(listing_id: str) -> dict | None:
+    """根据 ID 查询单条房源"""
+    try:
+        doc = listings_collection.find_one({"_id": ObjectId(listing_id)})
+    except Exception:
+        return None
+    if not doc:
+        return None
+    return _format_listing(doc)
+
+
+def update_listing(
+    listing_id: str,
+    update_fields: dict,
+    current_agent_id: ObjectId,
+) -> dict:
+    """
+    更新房源(仅限本人录入的)
+    - 只允许更新这些字段:layout, floor, total_floor, orientation, price_wan, remarks
+    - 地址类字段不能改(community, building, unit, room_no)——改了相当于换了一套房,应该重录
+    """
+    from fastapi import HTTPException
+
+    try:
+        oid = ObjectId(listing_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的房源ID")
+
+    # 1. 查房源
+    doc = listings_collection.find_one({"_id": oid})
+    if not doc:
+        raise HTTPException(status_code=404, detail="房源不存在")
+
+    # 2. 检查归属
+    if doc["owner_agent_id"] != current_agent_id:
+        raise HTTPException(status_code=403, detail="无权修改他人的房源")
+
+    # 3. 检查状态 — 已下架的不能再编辑
+    if doc.get("status") == "offline":
+        raise HTTPException(status_code=400, detail="已下架的房源不能编辑")
+
+    # 4. 白名单字段过滤(只允许这些字段被更新)
+    allowed = {"layout", "floor", "total_floor", "orientation", "price_wan", "remarks"}
+    clean_fields = {k: v for k, v in update_fields.items() if k in allowed and v is not None}
+
+    if not clean_fields:
+        raise HTTPException(status_code=400, detail="没有有效的更新字段")
+
+    clean_fields["updated_at"] = datetime.now()
+
+    # 5. 执行更新
+    listings_collection.update_one({"_id": oid}, {"$set": clean_fields})
+
+    # 6. 返回最新数据
+    new_doc = listings_collection.find_one({"_id": oid})
+    return _format_listing(new_doc)
+
+
+def offline_listing(listing_id: str, current_agent_id: ObjectId) -> dict:
+    """
+    下架房源(软删除)
+    - 只是把 status 改成 offline,数据保留
+    - 只能下架本人录入的
+    """
+    from fastapi import HTTPException
+
+    try:
+        oid = ObjectId(listing_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的房源ID")
+
+    doc = listings_collection.find_one({"_id": oid})
+    if not doc:
+        raise HTTPException(status_code=404, detail="房源不存在")
+
+    if doc["owner_agent_id"] != current_agent_id:
+        raise HTTPException(status_code=403, detail="无权下架他人的房源")
+
+    if doc.get("status") == "offline":
+        raise HTTPException(status_code=400, detail="房源已下架")
+
+    listings_collection.update_one(
+        {"_id": oid},
+        {"$set": {"status": "offline", "updated_at": datetime.now()}},
+    )
+
+    new_doc = listings_collection.find_one({"_id": oid})
+    return _format_listing(new_doc)
+
+# ==================== 重新上架 ====================
+
+def reactivate_listing(listing_id: str, current_agent_id: ObjectId) -> dict:
+    """
+    把已下架的房源重新上架(status: offline -> on_sale)
+    - 只能操作本人的
+    - 只能对 offline 状态的使用
+    """
+    from fastapi import HTTPException
+
+    try:
+        oid = ObjectId(listing_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的房源ID")
+
+    doc = listings_collection.find_one({"_id": oid})
+    if not doc:
+        raise HTTPException(status_code=404, detail="房源不存在")
+
+    if doc["owner_agent_id"] != current_agent_id:
+        raise HTTPException(status_code=403, detail="无权操作他人的房源")
+
+    if doc.get("status") != "offline":
+        raise HTTPException(status_code=400, detail="只有已下架的房源可以重新上架")
+
+    listings_collection.update_one(
+        {"_id": oid},
+        {"$set": {"status": "on_sale", "updated_at": datetime.now()}},
+    )
+
+    new_doc = listings_collection.find_one({"_id": oid})
+    return _format_listing(new_doc)
