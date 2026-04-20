@@ -522,6 +522,9 @@ class UpdateListingRequest(BaseModel):
     orientation: str | None = None
     price_wan: float | None = None
     remarks: str | None = None
+    # 段 8 新增:照片字段
+    cover_thumbnail: str | None = None
+    photos: list | None = None
 
 
 @app.get("/api/v1/listings/{listing_id}")

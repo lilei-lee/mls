@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../models/listing_filters.dart';
 import '../services/api_client.dart';
+import '../widgets/base64_image.dart';
+import '../widgets/filter_sheet.dart';
 
-/// 共享房源库(带搜索 + 排序,匿名浏览)
+/// 共享房源库(搜索 + 排序 + 筛选,匿名浏览)
 class ListingSharedScreen extends StatefulWidget {
   const ListingSharedScreen({super.key});
 
@@ -17,6 +21,8 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
   String _keyword = '';
 
   String _sortKey = 'newest';
+
+  ListingFilters _filters = ListingFilters.empty;
 
   @override
   void initState() {
@@ -58,28 +64,45 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
     });
   }
 
+  Future<void> _openFilterSheet() async {
+    final result = await showModalBottomSheet<ListingFilters>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => FilterSheet(initial: _filters),
+    );
+    if (result != null) {
+      setState(() => _filters = result);
+    }
+  }
+
   List<Map<String, dynamic>> _processItems(List<Map<String, dynamic>> items) {
     final filtered = items.where((item) {
       if (_keyword.isNotEmpty) {
         final community = (item['community'] ?? '').toString();
         if (!community.contains(_keyword)) return false;
       }
+      if (!_filters.matches(item)) return false;
       return true;
     }).toList();
 
     switch (_sortKey) {
       case 'price_desc':
-        filtered.sort((a, b) => (b['price_wan'] as num).compareTo(a['price_wan'] as num));
+        filtered.sort((a, b) =>
+            (b['price_wan'] as num).compareTo(a['price_wan'] as num));
         break;
       case 'price_asc':
-        filtered.sort((a, b) => (a['price_wan'] as num).compareTo(b['price_wan'] as num));
+        filtered.sort((a, b) =>
+            (a['price_wan'] as num).compareTo(b['price_wan'] as num));
         break;
       case 'area_desc':
-        filtered.sort((a, b) => (b['area_sqm'] as num).compareTo(a['area_sqm'] as num));
+        filtered.sort((a, b) =>
+            (b['area_sqm'] as num).compareTo(a['area_sqm'] as num));
         break;
       case 'newest':
       default:
-        filtered.sort((a, b) => (b['created_at'] as String).compareTo(a['created_at'] as String));
+        filtered.sort((a, b) =>
+            (b['created_at'] as String).compareTo(a['created_at'] as String));
     }
 
     return filtered;
@@ -88,7 +111,8 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final appBarTextColor = theme.appBarTheme.foregroundColor ?? theme.colorScheme.onSurface;
+    final appBarTextColor =
+        theme.appBarTheme.foregroundColor ?? theme.colorScheme.onSurface;
 
     return Scaffold(
       appBar: AppBar(
@@ -100,7 +124,8 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
                 cursorColor: appBarTextColor,
                 decoration: InputDecoration(
                   hintText: '搜索小区名',
-                  hintStyle: TextStyle(color: appBarTextColor.withValues(alpha: 0.5)),
+                  hintStyle:
+                      TextStyle(color: appBarTextColor.withValues(alpha: 0.5)),
                   border: InputBorder.none,
                 ),
               )
@@ -110,6 +135,29 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
             icon: Icon(_searchMode ? Icons.close : Icons.search),
             tooltip: _searchMode ? '关闭搜索' : '搜索',
             onPressed: _toggleSearch,
+          ),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.tune),
+                tooltip: '筛选',
+                onPressed: _openFilterSheet,
+              ),
+              if (_filters.isActive)
+                Positioned(
+                  right: 10,
+                  top: 10,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Colors.orange,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.sort),
@@ -159,25 +207,33 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
               itemBuilder: (context, index) {
                 if (index == 0) {
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 4, vertical: 8),
                     child: Row(
                       children: [
                         Text(
                           _headerText(processed.length, allItems.length),
-                          style: const TextStyle(color: Colors.grey, fontSize: 13),
+                          style: const TextStyle(
+                              color: Colors.grey, fontSize: 13),
                         ),
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
                             color: Colors.blue.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: const Text(
                             '匿名浏览',
-                            style: TextStyle(color: Colors.blue, fontSize: 11),
+                            style:
+                                TextStyle(color: Colors.blue, fontSize: 11),
                           ),
                         ),
+                        if (_filters.isActive) ...[
+                          const SizedBox(width: 6),
+                          _filterBadge(),
+                        ],
                       ],
                     ),
                   );
@@ -190,7 +246,35 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
       ),
     );
   }
-  PopupMenuItem<String> _sortMenuItem(String value, String label, IconData icon) {
+
+  Widget _filterBadge() {
+    return GestureDetector(
+      onTap: () {
+        setState(() => _filters = ListingFilters.empty);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.orange.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '已筛选 ${_filters.activeDimensionCount} 项',
+              style: const TextStyle(color: Colors.orange, fontSize: 11),
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.close, color: Colors.orange, size: 12),
+          ],
+        ),
+      ),
+    );
+  }
+
+  PopupMenuItem<String> _sortMenuItem(
+      String value, String label, IconData icon) {
     final selected = _sortKey == value;
     return PopupMenuItem<String>(
       value: value,
@@ -211,7 +295,9 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
   }
 
   String _headerText(int shown, int total) {
-    if (_keyword.isNotEmpty) return '找到 $shown 套(共 $total 套)';
+    if (_keyword.isNotEmpty || _filters.isActive) {
+      return '找到 $shown 套(共 $total 套)';
+    }
     return '共 $shown 套在售房源';
   }
 
@@ -221,9 +307,9 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
     if (totallyEmpty) {
       title = '暂无其他经纪人的共享房源';
       subtitle = '当其他经纪人录入房源后,这里会展示';
-    } else if (_keyword.isNotEmpty) {
-      title = '没有匹配「$_keyword」的房源';
-      subtitle = '试试换个关键字';
+    } else if (_filters.isActive || _keyword.isNotEmpty) {
+      title = '没有符合条件的房源';
+      subtitle = '试试调整筛选条件或搜索关键字';
     } else {
       title = '没有房源';
     }
@@ -237,7 +323,8 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
           Text(title, style: const TextStyle(color: Colors.grey, fontSize: 16)),
           if (subtitle != null) ...[
             const SizedBox(height: 6),
-            Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+            Text(subtitle,
+                style: const TextStyle(color: Colors.grey, fontSize: 13)),
           ],
         ],
       ),
@@ -260,69 +347,249 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
   }
 }
 
-/// 共享库房源卡片(匿名)
 class _SharedListingCard extends StatelessWidget {
   final Map<String, dynamic> item;
   const _SharedListingCard({required this.item});
 
+  String _relativeTime(String? iso) {
+    if (iso == null) return '';
+    try {
+      final t = DateTime.parse(iso);
+      final diff = DateTime.now().difference(t);
+      if (diff.inDays > 30) return '${(diff.inDays / 30).floor()} 个月前';
+      if (diff.inDays > 0) return '${diff.inDays} 天前';
+      if (diff.inHours > 0) return '${diff.inHours} 小时前';
+      if (diff.inMinutes > 0) return '${diff.inMinutes} 分钟前';
+      return '刚刚';
+    } catch (_) {
+      return '';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final addr = '${item['community']} ${item['building']}号楼${item['unit']}单元${item['room_no']}';
+    final district = (item['district'] ?? '').toString();
+    final community = item['community'] ?? '';
+    final building = item['building'] ?? '';
+    final unit = item['unit'] ?? '';
+    final roomNo = item['room_no'] ?? '';
+    final layout = item['layout'] ?? '';
+    final area = (item['area_sqm'] as num?)?.toDouble() ?? 0;
+    final floor = item['floor'];
+    final totalFloor = item['total_floor'];
+    final orientation = item['orientation'] ?? '';
+    final priceWan = (item['price_wan'] as num?)?.toDouble() ?? 0;
+    final remarks = (item['remarks'] ?? '').toString();
+    final createdAt = item['created_at'] as String?;
+    final cover = item['cover_thumbnail'] as String?;
+    final photoCount = (item['photo_count'] as num?)?.toInt() ?? 0;
+
+    final unitPrice = area > 0 ? (priceWan * 10000 / area).round() : 0;
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              addr,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${item['layout']} · ${item['area_sqm']}㎡ · ${item['floor']}/${item['total_floor']}层 · ${item['orientation']}',
-              style: const TextStyle(color: Colors.grey, fontSize: 13),
-            ),
-            if ((item['remarks'] as String?)?.isNotEmpty ?? false) ...[
-              const SizedBox(height: 6),
-              Text(
-                item['remarks'],
-                style: const TextStyle(color: Colors.grey, fontSize: 12),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-            const SizedBox(height: 10),
-            Row(
+      child: InkWell(
+        onTap: () {},
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '¥${item['price_wan']}',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                const Text('万', style: TextStyle(color: Colors.red, fontSize: 12)),
-                const Spacer(),
-                OutlinedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('申请带客功能将在模块四上线'),
-                        duration: Duration(seconds: 2),
+                Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Base64Image(
+                        dataUrl: cover,
+                        width: 110,
+                        height: 110,
+                        fit: BoxFit.cover,
                       ),
-                    );
-                  },
-                  icon: const Icon(Icons.person_add, size: 16),
-                  label: const Text('申请带客'),
+                    ),
+                    if (photoCount > 0)
+                      Positioned(
+                        right: 4,
+                        bottom: 4,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.image,
+                                  size: 10, color: Colors.white),
+                              const SizedBox(width: 2),
+                              Text(
+                                '$photoCount',
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 10),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (district.isNotEmpty) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 5, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                              child: Text(
+                                district,
+                                style: const TextStyle(
+                                    color: Colors.blue, fontSize: 10),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                          ],
+                          Expanded(
+                            child: Text(
+                              '$community $building-$unit-$roomNo',
+                              style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 4,
+                        runSpacing: 3,
+                        children: [
+                          _tag(layout, bold: true),
+                          _tag('${area.toStringAsFixed(0)}㎡'),
+                          if (floor != null && totalFloor != null)
+                            _tag('$floor/$totalFloor层'),
+                          if (orientation.isNotEmpty) _tag(orientation),
+                        ],
+                      ),
+                      if (remarks.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          remarks,
+                          style: const TextStyle(
+                              color: Colors.grey, fontSize: 11),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                      const SizedBox(height: 6),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.baseline,
+                                textBaseline: TextBaseline.alphabetic,
+                                children: [
+                                  Text(
+                                    '¥${priceWan.toStringAsFixed(priceWan == priceWan.roundToDouble() ? 0 : 1)}',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 2),
+                                  const Text('万',
+                                      style: TextStyle(
+                                          color: Colors.red, fontSize: 11)),
+                                ],
+                              ),
+                              if (unitPrice > 0)
+                                Text(
+                                  '$unitPrice 元/㎡',
+                                  style: const TextStyle(
+                                      color: Colors.grey, fontSize: 10),
+                                ),
+                            ],
+                          ),
+                          const Spacer(),
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              context.push(
+                                '/showing-request/new',
+                                extra: {
+                                  'listing_id': item['listing_id'],
+                                  'snapshot': {
+                                    'community': community,
+                                    'building': building,
+                                    'unit': unit,
+                                    'room_no': roomNo,
+                                    'layout': layout,
+                                    'area_sqm': area,
+                                    'price_wan': priceWan,
+                                  },
+                                },
+                              );
+                            },
+                            icon: const Icon(Icons.person_add, size: 14),
+                            label: const Text('申请带客',
+                                style: TextStyle(fontSize: 12)),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
+                              minimumSize: const Size(0, 32),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (createdAt != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          _relativeTime(createdAt),
+                          style: const TextStyle(
+                              color: Colors.grey, fontSize: 10),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ],
             ),
-          ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _tag(String text, {bool bold = false}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+      decoration: BoxDecoration(
+        color: Colors.grey.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(3),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 11,
+          color: Colors.grey.shade700,
+          fontWeight: bold ? FontWeight.bold : FontWeight.normal,
         ),
       ),
     );

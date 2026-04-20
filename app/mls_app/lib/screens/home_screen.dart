@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import '../services/api_client.dart';
+import '../services/showing_request_service.dart';
 import '../widgets/info_card.dart';
 
 /// 登录后的工作台
@@ -17,16 +18,28 @@ class _HomeScreenState extends State<HomeScreen> {
   static const _storage = FlutterSecureStorage();
 
   late Future<Map<String, dynamic>> _meFuture;
+  int _pendingCount = 0;
 
   @override
   void initState() {
     super.initState();
     _meFuture = _fetchMe();
+    _refreshPendingCount();
   }
 
   Future<Map<String, dynamic>> _fetchMe() async {
     final response = await ApiClient.instance.dio.get('/me');
     return response.data as Map<String, dynamic>;
+  }
+
+  /// 拉取待审批的带客申请数(静默,失败不弹错)
+  Future<void> _refreshPendingCount() async {
+    try {
+      final count = await ShowingRequestService.instance.pendingCount();
+      if (mounted) setState(() => _pendingCount = count);
+    } catch (_) {
+      // 静默
+    }
   }
 
   Future<void> _logout() async {
@@ -73,6 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
               setState(() {
                 _meFuture = _fetchMe();
               });
+              _refreshPendingCount();
             },
           ),
           IconButton(
@@ -135,6 +149,8 @@ class _HomeScreenState extends State<HomeScreen> {
               InfoCard(label: '角色', value: _roleLabel(me['role'])),
               InfoCard(label: '状态', value: _statusLabel(me['status'])),
               const SizedBox(height: 32),
+
+              // 房源两个主入口
               Row(
                 children: [
                   Expanded(
@@ -155,6 +171,39 @@ class _HomeScreenState extends State<HomeScreen> {
                         onPressed: () => context.push('/listings/shared'),
                         icon: const Icon(Icons.share),
                         label: const Text('共享房源库'),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // 带客协作两个入口
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 56,
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          await context.push('/showing-requests/sent');
+                          _refreshPendingCount();
+                        },
+                        icon: const Icon(Icons.send_outlined),
+                        label: const Text('我发出的申请'),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SizedBox(
+                      height: 56,
+                      child: _ReceivedButton(
+                        pendingCount: _pendingCount,
+                        onTap: () async {
+                          await context.push('/showing-requests/received');
+                          _refreshPendingCount();
+                        },
                       ),
                     ),
                   ),
@@ -194,5 +243,53 @@ class _HomeScreenState extends State<HomeScreen> {
       default:
         return status ?? '-';
     }
+  }
+}
+
+/// "待我审批"按钮(带红点角标)
+class _ReceivedButton extends StatelessWidget {
+  final int pendingCount;
+  final VoidCallback onTap;
+  const _ReceivedButton({
+    required this.pendingCount,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        SizedBox.expand(
+          child: OutlinedButton.icon(
+            onPressed: onTap,
+            icon: const Icon(Icons.inbox_outlined),
+            label: const Text('待我审批'),
+          ),
+        ),
+        if (pendingCount > 0)
+          Positioned(
+            right: -4,
+            top: -4,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                pendingCount > 99 ? '99+' : '$pendingCount',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }

@@ -3,8 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/api_client.dart';
+import '../widgets/photo_picker.dart';
 
-/// 房源编辑页(仅可编辑部分字段,地址不可改)
+/// 房源编辑页 - 地址和行政区不可改,可以改户型、楼层、报价、照片等
 class ListingEditScreen extends StatefulWidget {
   final String listingId;
   final Map<String, dynamic> original;
@@ -21,12 +22,17 @@ class ListingEditScreen extends StatefulWidget {
 class _ListingEditScreenState extends State<ListingEditScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  late final TextEditingController _layout;
+  late final TextEditingController _rooms;
+  late final TextEditingController _halls;
+  late final TextEditingController _bathrooms;
   late final TextEditingController _floor;
   late final TextEditingController _totalFloor;
   late final TextEditingController _orientation;
   late final TextEditingController _priceWan;
   late final TextEditingController _remarks;
+
+  late List<PickedPhoto> _photos;
+  String? _coverThumbnail;
 
   bool _submitting = false;
 
@@ -34,7 +40,10 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
   void initState() {
     super.initState();
     final o = widget.original;
-    _layout = TextEditingController(text: o['layout']?.toString() ?? '');
+    _rooms = TextEditingController(text: (o['rooms'] ?? 0).toString());
+    _halls = TextEditingController(text: (o['halls'] ?? 0).toString());
+    _bathrooms =
+        TextEditingController(text: (o['bathrooms'] ?? 0).toString());
     _floor = TextEditingController(text: o['floor']?.toString() ?? '');
     _totalFloor =
         TextEditingController(text: o['total_floor']?.toString() ?? '');
@@ -42,11 +51,20 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
         TextEditingController(text: o['orientation']?.toString() ?? '');
     _priceWan = TextEditingController(text: o['price_wan']?.toString() ?? '');
     _remarks = TextEditingController(text: o['remarks']?.toString() ?? '');
+
+    // 段 8:初始化照片列表(从详情里读 photos 数组)
+    final rawPhotos = (o['photos'] as List?) ?? [];
+    _photos = rawPhotos
+        .map((e) => PickedPhoto.fromJson(e as Map<String, dynamic>))
+        .toList();
+    _coverThumbnail = o['cover_thumbnail'] as String?;
   }
 
   @override
   void dispose() {
-    _layout.dispose();
+    _rooms.dispose();
+    _halls.dispose();
+    _bathrooms.dispose();
     _floor.dispose();
     _totalFloor.dispose();
     _orientation.dispose();
@@ -61,17 +79,45 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
     setState(() => _submitting = true);
 
     try {
+      final roomsVal = int.tryParse(_rooms.text.trim());
+      final hallsVal = int.tryParse(_halls.text.trim());
+      final bathroomsVal = int.tryParse(_bathrooms.text.trim());
+      final floorVal = int.tryParse(_floor.text.trim());
+      final totalFloorVal = int.tryParse(_totalFloor.text.trim());
+      final priceVal = double.tryParse(_priceWan.text.trim());
+
+      if (roomsVal == null ||
+          hallsVal == null ||
+          bathroomsVal == null ||
+          floorVal == null ||
+          totalFloorVal == null ||
+          priceVal == null) {
+        setState(() => _submitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('有字段格式不正确,请检查')),
+        );
+        return;
+      }
+
+      final payload = {
+        'rooms': roomsVal,
+        'halls': hallsVal,
+        'bathrooms': bathroomsVal,
+        'floor': floorVal,
+        'total_floor': totalFloorVal,
+        'orientation': _orientation.text.trim(),
+        'price_wan': priceVal,
+        'remarks': _remarks.text.trim(),
+        // 段 8
+        'cover_thumbnail': _coverThumbnail,
+        'photos': _photos.map((p) => p.toJson()).toList(),
+      };
+      
       await ApiClient.instance.dio.patch(
         '/listings/${widget.listingId}',
-        data: {
-          'layout': _layout.text.trim(),
-          'floor': int.parse(_floor.text),
-          'total_floor': int.parse(_totalFloor.text),
-          'orientation': _orientation.text.trim(),
-          'price_wan': double.parse(_priceWan.text),
-          'remarks': _remarks.text.trim(),
-        },
+        data: payload,
       );
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('保存成功')),
@@ -93,6 +139,10 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
   @override
   Widget build(BuildContext context) {
     final o = widget.original;
+    final district = o['district'] ?? '其他';
+    final address =
+        '${o['community']} ${o['building']}号楼${o['unit']}单元${o['room_no']}';
+
     return Scaffold(
       appBar: AppBar(title: const Text('编辑房源')),
       body: Form(
@@ -113,16 +163,51 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
                       color: Colors.orange, size: 18),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
-                      '地址不可修改:${o['community']} ${o['building']}号楼${o['unit']}单元${o['room_no']}',
-                      style: const TextStyle(fontSize: 13),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          '地址信息不可修改',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '$district · $address',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 20),
-            _tf(_layout, '户型', hint: '如:2室1厅1卫'),
+
+            // 段 8:照片选择器(在最前面,用户最关注)
+            PhotoPicker(
+              initialPhotos: _photos,
+              onChanged: (list) => setState(() => _photos = list),
+              onCoverThumbnailChanged: (thumb) {
+                setState(() => _coverThumbnail = thumb);
+              },
+            ),
+            const SizedBox(height: 20),
+
+            _sectionTitle('户型'),
+            Row(
+              children: [
+                Expanded(child: _tf(_rooms, '卧室', numeric: true)),
+                const SizedBox(width: 12),
+                Expanded(child: _tf(_halls, '客厅', numeric: true)),
+                const SizedBox(width: 12),
+                Expanded(child: _tf(_bathrooms, '卫生间', numeric: true)),
+              ],
+            ),
+            const SizedBox(height: 20),
+            _sectionTitle('楼层与朝向'),
             Row(
               children: [
                 Expanded(child: _tf(_floor, '所在楼层', numeric: true)),
@@ -131,7 +216,11 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
               ],
             ),
             _tf(_orientation, '朝向'),
+            const SizedBox(height: 20),
+            _sectionTitle('报价'),
             _tf(_priceWan, '报价(万元)', numeric: true, decimal: true),
+            const SizedBox(height: 20),
+            _sectionTitle('备注'),
             _tf(_remarks, '备注', required: false, maxLines: 3),
             const SizedBox(height: 24),
             SizedBox(
@@ -151,6 +240,20 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionTitle(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12, top: 4),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Colors.grey,
         ),
       ),
     );

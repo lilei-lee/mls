@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../models/listing_filters.dart';
 import '../services/api_client.dart';
+import '../widgets/filter_sheet.dart';
+import '../widgets/base64_image.dart';
 
-/// 我的房源列表页(分类 Tab + 搜索 + 排序)
+/// 我的房源列表页(分类 Tab + 搜索 + 排序 + 筛选)
 class ListingListScreen extends StatefulWidget {
   const ListingListScreen({super.key});
 
@@ -20,6 +23,8 @@ class _ListingListScreenState extends State<ListingListScreen>
   String _keyword = '';
 
   String _sortKey = 'newest';
+
+  ListingFilters _filters = ListingFilters.empty;
 
   @override
   void initState() {
@@ -67,9 +72,19 @@ class _ListingListScreenState extends State<ListingListScreen>
     });
   }
 
-  List<Map<String, dynamic>> _processItems(
-    List<Map<String, dynamic>> items,
-  ) {
+  Future<void> _openFilterSheet() async {
+    final result = await showModalBottomSheet<ListingFilters>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => FilterSheet(initial: _filters),
+    );
+    if (result != null) {
+      setState(() => _filters = result);
+    }
+  }
+
+  List<Map<String, dynamic>> _processItems(List<Map<String, dynamic>> items) {
     final tabIndex = _tabController.index;
     final filtered = items.where((item) {
       final status = item['status'] ?? 'on_sale';
@@ -79,6 +94,7 @@ class _ListingListScreenState extends State<ListingListScreen>
         final community = (item['community'] ?? '').toString();
         if (!community.contains(_keyword)) return false;
       }
+      if (!_filters.matches(item)) return false;
       return true;
     }).toList();
 
@@ -102,7 +118,6 @@ class _ListingListScreenState extends State<ListingListScreen>
 
   @override
   Widget build(BuildContext context) {
-    // 拿主题里 AppBar 文字的颜色,搜索框字色跟它一致,保证可见
     final theme = Theme.of(context);
     final appBarTextColor =
         theme.appBarTheme.foregroundColor ?? theme.colorScheme.onSurface;
@@ -128,6 +143,30 @@ class _ListingListScreenState extends State<ListingListScreen>
             icon: Icon(_searchMode ? Icons.close : Icons.search),
             tooltip: _searchMode ? '关闭搜索' : '搜索',
             onPressed: _toggleSearch,
+          ),
+          // 筛选按钮(带激活徽标)
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.tune),
+                tooltip: '筛选',
+                onPressed: _openFilterSheet,
+              ),
+              if (_filters.isActive)
+                Positioned(
+                  right: 10,
+                  top: 10,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Colors.orange,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.sort),
@@ -187,12 +226,18 @@ class _ListingListScreenState extends State<ListingListScreen>
                   return Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 4, vertical: 8),
-                    child: Text(
-                      _headerText(processed.length, allItems.length),
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 13,
-                      ),
+                    child: Row(
+                      children: [
+                        Text(
+                          _headerText(processed.length, allItems.length),
+                          style: const TextStyle(
+                              color: Colors.grey, fontSize: 13),
+                        ),
+                        if (_filters.isActive) ...[
+                          const SizedBox(width: 8),
+                          _filterBadge(),
+                        ],
+                      ],
                     ),
                   );
                 }
@@ -200,9 +245,8 @@ class _ListingListScreenState extends State<ListingListScreen>
                 return _ListingCard(
                   item: item,
                   onTap: () async {
-                    final changed = await context.push<bool>(
-                      '/listing/${item['listing_id']}',
-                    );
+                    final changed = await context
+                        .push<bool>('/listing/${item['listing_id']}');
                     if (changed == true) _refresh();
                   },
                 );
@@ -218,6 +262,32 @@ class _ListingListScreenState extends State<ListingListScreen>
         },
         icon: const Icon(Icons.add),
         label: const Text('录入房源'),
+      ),
+    );
+  }
+
+  Widget _filterBadge() {
+    return GestureDetector(
+      onTap: () {
+        setState(() => _filters = ListingFilters.empty);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.orange.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '已筛选 ${_filters.activeDimensionCount} 项',
+              style: const TextStyle(color: Colors.orange, fontSize: 11),
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.close, color: Colors.orange, size: 12),
+          ],
+        ),
       ),
     );
   }
@@ -244,7 +314,7 @@ class _ListingListScreenState extends State<ListingListScreen>
   }
 
   String _headerText(int shown, int total) {
-    if (_keyword.isNotEmpty) {
+    if (_keyword.isNotEmpty || _filters.isActive) {
       return '找到 $shown 套(共 $total 套)';
     }
     return '共 $shown 套房源';
@@ -256,20 +326,17 @@ class _ListingListScreenState extends State<ListingListScreen>
     if (totallyEmpty) {
       title = '还没有录入房源';
       subtitle = '点击右下角按钮开始录入';
-    } else if (_keyword.isNotEmpty) {
-      title = '没有匹配「$_keyword」的房源';
-      subtitle = '试试换个关键字';
+    } else if (_filters.isActive || _keyword.isNotEmpty) {
+      title = '没有符合条件的房源';
+      subtitle = '试试调整筛选条件或搜索关键字';
     } else {
       final tabIndex = _tabController.index;
       if (tabIndex == 1) {
         title = '暂无在售房源';
-        subtitle = null;
       } else if (tabIndex == 2) {
         title = '暂无已下架房源';
-        subtitle = null;
       } else {
         title = '没有房源';
-        subtitle = null;
       }
     }
 
@@ -317,6 +384,8 @@ class _ListingCard extends StatelessWidget {
         '${item['community']} ${item['building']}号楼${item['unit']}单元${item['room_no']}';
     final price = item['price_wan'];
     final status = item['status'] ?? 'on_sale';
+    final cover = item['cover_thumbnail'] as String?;
+    final photoCount = (item['photo_count'] as num?)?.toInt() ?? 0;
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
@@ -324,51 +393,114 @@ class _ListingCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      addr,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+          padding: const EdgeInsets.all(12),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 左侧封面(固定 100x100)
+                Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Base64Image(
+                        dataUrl: cover,
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
                       ),
                     ),
+                    if (photoCount > 0)
+                      Positioned(
+                        right: 4,
+                        bottom: 4,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.image,
+                                  size: 10, color: Colors.white),
+                              const SizedBox(width: 2),
+                              Text(
+                                '$photoCount',
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 10),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(width: 12),
+                // 右侧文本(不用 Spacer,靠 mainAxisAlignment 分布)
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  addr,
+                                  style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              _StatusBadge(status: status),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '${item['layout']} · ${item['area_sqm']}㎡ · ${item['floor']}/${item['total_floor']}层',
+                            style: const TextStyle(
+                                color: Colors.grey, fontSize: 12),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '朝向:${item['orientation']}',
+                            style: const TextStyle(
+                                color: Colors.grey, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            '¥$price',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red,
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          const Text('万',
+                              style: TextStyle(
+                                  color: Colors.red, fontSize: 11)),
+                          const Spacer(),
+                          const Icon(Icons.chevron_right,
+                              color: Colors.grey, size: 18),
+                        ],
+                      ),
+                    ],
                   ),
-                  _StatusBadge(status: status),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '${item['layout']} · ${item['area_sqm']}㎡ · ${item['floor']}/${item['total_floor']}层 · ${item['orientation']}',
-                style: const TextStyle(color: Colors.grey, fontSize: 13),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Text(
-                    '¥$price',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Text(
-                    '万',
-                    style: TextStyle(color: Colors.red, fontSize: 12),
-                  ),
-                  const Spacer(),
-                  const Icon(Icons.chevron_right,
-                      color: Colors.grey, size: 20),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -414,10 +546,7 @@ class _StatusBadge extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-          color: color,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-        ),
+            color: color, fontSize: 12, fontWeight: FontWeight.bold),
       ),
     );
   }

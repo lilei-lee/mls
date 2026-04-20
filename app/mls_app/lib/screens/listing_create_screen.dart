@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/api_client.dart';
+import '../services/meta_service.dart';
+import '../widgets/photo_picker.dart';
 
 /// 房源录入页
 class ListingCreateScreen extends StatefulWidget {
@@ -15,20 +17,58 @@ class ListingCreateScreen extends StatefulWidget {
 class _ListingCreateScreenState extends State<ListingCreateScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // 所有字段的输入控制器
+  String? _selectedDistrict;
   final _community = TextEditingController();
   final _building = TextEditingController();
   final _unit = TextEditingController();
   final _roomNo = TextEditingController();
+
   final _areaSqm = TextEditingController();
-  final _layout = TextEditingController();
+
+  final _rooms = TextEditingController(text: '2');
+  final _halls = TextEditingController(text: '1');
+  final _bathrooms = TextEditingController(text: '1');
+
   final _floor = TextEditingController();
   final _totalFloor = TextEditingController();
   final _orientation = TextEditingController(text: '南北通透');
+
   final _priceWan = TextEditingController();
   final _remarks = TextEditingController();
 
+  // 段 8:照片
+  List<PickedPhoto> _photos = [];
+  String? _coverThumbnail;
+
   bool _submitting = false;
+
+  List<String> _districts = [];
+  bool _loadingDistricts = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDistricts();
+  }
+
+  Future<void> _loadDistricts() async {
+    try {
+      final list = await MetaService.instance.getDistricts();
+      if (mounted) {
+        setState(() {
+          _districts = list;
+          _loadingDistricts = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _loadingDistricts = false;
+        });
+        _showSnack('加载行政区失败,请刷新');
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -37,7 +77,9 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
     _unit.dispose();
     _roomNo.dispose();
     _areaSqm.dispose();
-    _layout.dispose();
+    _rooms.dispose();
+    _halls.dispose();
+    _bathrooms.dispose();
     _floor.dispose();
     _totalFloor.dispose();
     _orientation.dispose();
@@ -47,6 +89,10 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
   }
 
   Future<void> _submit() async {
+    if (_selectedDistrict == null) {
+      _showSnack('请选择行政区');
+      return;
+    }
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _submitting = true);
@@ -55,17 +101,23 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
       final response = await ApiClient.instance.dio.post(
         '/listings',
         data: {
+          'district': _selectedDistrict,
           'community': _community.text.trim(),
           'building': _building.text.trim(),
           'unit': _unit.text.trim(),
           'room_no': _roomNo.text.trim(),
           'area_sqm': double.parse(_areaSqm.text),
-          'layout': _layout.text.trim(),
+          'rooms': int.parse(_rooms.text),
+          'halls': int.parse(_halls.text),
+          'bathrooms': int.parse(_bathrooms.text),
           'floor': int.parse(_floor.text),
           'total_floor': int.parse(_totalFloor.text),
           'orientation': _orientation.text.trim(),
           'price_wan': double.parse(_priceWan.text),
           'remarks': _remarks.text.trim(),
+          // 段 8
+          'cover_thumbnail': _coverThumbnail,
+          'photos': _photos.map((p) => p.toJson()).toList(),
         },
       );
 
@@ -79,9 +131,7 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
     } on DioException catch (e) {
       if (!mounted) return;
       if (e.response?.statusCode == 409) {
-        // 一户一码查重失败
-        final detail = e.response?.data?['detail'];
-        await _showDuplicateDialog(detail);
+        await _showDuplicateDialog(e.response?.data?['detail']);
       } else {
         final msg = e.response?.data?['detail'] ?? e.message ?? '网络错误';
         _showSnack('录入失败:$msg');
@@ -121,18 +171,7 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
           TextButton(
             onPressed: () {
               Navigator.of(ctx).pop();
-              // 继续录入:清空表单
-              _formKey.currentState?.reset();
-              _community.clear();
-              _building.clear();
-              _unit.clear();
-              _roomNo.clear();
-              _areaSqm.clear();
-              _layout.clear();
-              _floor.clear();
-              _totalFloor.clear();
-              _priceWan.clear();
-              _remarks.clear();
+              _resetForm();
             },
             child: const Text('继续录入'),
           ),
@@ -148,8 +187,28 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
     );
   }
 
+  void _resetForm() {
+    _formKey.currentState?.reset();
+    setState(() {
+      _selectedDistrict = null;
+      _photos = [];
+      _coverThumbnail = null;
+    });
+    _community.clear();
+    _building.clear();
+    _unit.clear();
+    _roomNo.clear();
+    _areaSqm.clear();
+    _rooms.text = '2';
+    _halls.text = '1';
+    _bathrooms.text = '1';
+    _floor.clear();
+    _totalFloor.clear();
+    _priceWan.clear();
+    _remarks.clear();
+  }
+
   Future<void> _showDuplicateDialog(dynamic detail) async {
-    final existingName = detail is Map ? detail['existing_agent_name'] : '其他经纪人';
     final message = detail is Map ? detail['message'] : '该房源已被录入';
 
     await showDialog(
@@ -175,7 +234,6 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
     );
   }
 
-  /// 通用字段校验:不能为空
   String? _required(String? v, String label) {
     if (v == null || v.trim().isEmpty) return '$label不能为空';
     return null;
@@ -185,99 +243,147 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('录入房源')),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _sectionTitle('地址信息'),
-            _textField(_community, '小区名', hint: '如:新华家园'),
-            Row(
-              children: [
-                Expanded(child: _textField(_building, '楼号', hint: '如:3')),
-                const SizedBox(width: 12),
-                Expanded(child: _textField(_unit, '单元', hint: '如:2')),
-                const SizedBox(width: 12),
-                Expanded(child: _textField(_roomNo, '门牌号', hint: '如:502')),
-              ],
-            ),
-            const SizedBox(height: 20),
-            _sectionTitle('房源信息'),
-            _textField(_layout, '户型', hint: '如:2室1厅1卫'),
-            Row(
-              children: [
-                Expanded(
-                  child: _textField(
-                    _areaSqm,
-                    '建筑面积(㎡)',
-                    hint: '89.5',
+      body: _loadingDistricts
+          ? const Center(child: CircularProgressIndicator())
+          : Form(
+              key: _formKey,
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  _sectionTitle('地址信息'),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedDistrict,
+                      decoration: const InputDecoration(
+                        labelText: '行政区',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                        prefixIcon: Icon(Icons.location_on_outlined),
+                      ),
+                      items: _districts
+                          .map((d) => DropdownMenuItem(
+                                value: d,
+                                child: Text(d),
+                              ))
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedDistrict = value;
+                        });
+                      },
+                    ),
+                  ),
+                  _textField(_community, '小区名', hint: '如:新华家园'),
+                  Row(
+                    children: [
+                      Expanded(child: _textField(_building, '楼号', hint: '3')),
+                      const SizedBox(width: 12),
+                      Expanded(child: _textField(_unit, '单元', hint: '2')),
+                      const SizedBox(width: 12),
+                      Expanded(
+                          child: _textField(_roomNo, '门牌号', hint: '502')),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  _sectionTitle('户型'),
+                  Row(
+                    children: [
+                      Expanded(child: _textField(_rooms, '卧室', numeric: true)),
+                      const SizedBox(width: 12),
+                      Expanded(child: _textField(_halls, '客厅', numeric: true)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                          child: _textField(_bathrooms, '卫生间', numeric: true)),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  _sectionTitle('房源信息'),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _textField(
+                          _areaSqm,
+                          '建筑面积(㎡)',
+                          hint: '89.5',
+                          numeric: true,
+                          allowDecimal: true,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(child: _textField(_orientation, '朝向')),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _textField(
+                          _floor,
+                          '所在楼层',
+                          hint: '5',
+                          numeric: true,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _textField(
+                          _totalFloor,
+                          '总楼层',
+                          hint: '18',
+                          numeric: true,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  _sectionTitle('报价'),
+                  _textField(
+                    _priceWan,
+                    '报价(万元)',
+                    hint: '88.8',
                     numeric: true,
                     allowDecimal: true,
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(child: _textField(_orientation, '朝向')),
-              ],
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: _textField(
-                    _floor,
-                    '所在楼层',
-                    hint: '5',
-                    numeric: true,
+                  const SizedBox(height: 20),
+
+                  // 段 8:照片选择器
+                  PhotoPicker(
+                    initialPhotos: _photos,
+                    onChanged: (list) => setState(() => _photos = list),
+                    onCoverThumbnailChanged: (thumb) {
+                      setState(() => _coverThumbnail = thumb);
+                    },
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _textField(
-                    _totalFloor,
-                    '总楼层',
-                    hint: '18',
-                    numeric: true,
+                  const SizedBox(height: 20),
+
+                  _sectionTitle('备注'),
+                  _textField(
+                    _remarks,
+                    '备注',
+                    required: false,
+                    maxLines: 3,
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            _sectionTitle('报价'),
-            _textField(
-              _priceWan,
-              '报价(万元)',
-              hint: '88.8',
-              numeric: true,
-              allowDecimal: true,
-            ),
-            const SizedBox(height: 20),
-            _sectionTitle('其他'),
-            _textField(
-              _remarks,
-              '备注',
-              required: false,
-              maxLines: 3,
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              height: 48,
-              child: ElevatedButton(
-                onPressed: _submitting ? null : _submit,
-                child: _submitting
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text('提交', style: TextStyle(fontSize: 16)),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: _submitting ? null : _submit,
+                      child: _submitting
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text('提交', style: TextStyle(fontSize: 16)),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
     );
   }
 
@@ -314,9 +420,7 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
         inputFormatters: numeric
             ? [
                 FilteringTextInputFormatter.allow(
-                  allowDecimal
-                      ? RegExp(r'[0-9.]')
-                      : RegExp(r'[0-9]'),
+                  allowDecimal ? RegExp(r'[0-9.]') : RegExp(r'[0-9]'),
                 )
               ]
             : null,

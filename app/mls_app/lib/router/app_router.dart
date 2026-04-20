@@ -7,6 +7,11 @@ import '../screens/listing_edit_screen.dart';
 import '../screens/listing_list_screen.dart';
 import '../screens/listing_shared_screen.dart';
 import '../screens/login_screen.dart';
+import '../screens/register_screen.dart';
+import '../screens/showing_request_create_screen.dart';
+import '../screens/showing_request_sent_screen.dart';
+import '../screens/showing_request_received_screen.dart';
+import '../screens/showing_request_detail_screen.dart';
 import '../screens/splash_screen.dart';
 
 /// 全局 Navigator 钥匙,让 ApiClient 等非 UI 代码也能跳转页面
@@ -24,6 +29,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/login',
       builder: (context, state) => const LoginScreen(),
+    ),
+    GoRoute(
+      path: '/register',
+      builder: (context, state) => const RegisterScreen(),
     ),
     GoRoute(
       path: '/home',
@@ -48,6 +57,30 @@ final GoRouter appRouter = GoRouter(
       path: '/listing/:id',
       builder: (context, state) => ListingDetailScreen(
         listingId: state.pathParameters['id']!,
+      ),
+    ),
+    GoRoute(
+      path: '/showing-request/new',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>;
+        return ShowingRequestCreateScreen(
+          listingId: extra['listing_id'] as String,
+          listingSnapshot: extra['snapshot'] as Map<String, dynamic>,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/showing-requests/sent',
+      builder: (context, state) => const ShowingRequestSentScreen(),
+    ),
+    GoRoute(
+      path: '/showing-requests/received',
+      builder: (context, state) => const ShowingRequestReceivedScreen(),
+    ),
+    GoRoute(
+      path: '/showing-request/:id',
+      builder: (context, state) => ShowingRequestDetailScreen(
+        requestId: state.pathParameters['id']!,
       ),
     ),
     GoRoute(

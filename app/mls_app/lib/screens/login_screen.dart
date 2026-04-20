@@ -16,21 +16,39 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _codeController = TextEditingController();
 
-  // 加密存储(存 token 的保险柜)
   static const _storage = FlutterSecureStorage();
 
-  bool _smsSent = false;    // 是否已经发过验证码(发过才显示验证码输入框)
-  bool _sendingSms = false; // 正在发送验证码(按钮转圈)
-  bool _loggingIn = false;  // 正在登录(按钮转圈)
+  bool _smsSent = false;
+  bool _sendingSms = false;
+  bool _loggingIn = false;
+
+  /// 记录"发送验证码时的手机号",后续改号了就能察觉
+  String _phoneWhenSmsSent = '';
+
+  @override
+  void initState() {
+    super.initState();
+    // 监听手机号变化:只要改得和发送验证码时不一样了,就重置验证码状态
+    _phoneController.addListener(_onPhoneChanged);
+  }
 
   @override
   void dispose() {
+    _phoneController.removeListener(_onPhoneChanged);
     _phoneController.dispose();
     _codeController.dispose();
     super.dispose();
   }
 
-  /// 发送验证码
+  void _onPhoneChanged() {
+    if (_smsSent && _phoneController.text.trim() != _phoneWhenSmsSent) {
+      setState(() {
+        _smsSent = false;
+        _codeController.clear();
+      });
+    }
+  }
+
   Future<void> _sendSmsCode() async {
     final phone = _phoneController.text.trim();
 
@@ -53,7 +71,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (response.data['success'] == true) {
         _showMessage(response.data['message'] ?? '验证码已发送');
-        setState(() => _smsSent = true);
+        setState(() {
+          _smsSent = true;
+          _phoneWhenSmsSent = phone;
+        });
       } else {
         _showMessage('发送失败,请重试');
       }
@@ -67,7 +88,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  /// 登录
   Future<void> _login() async {
     final phone = _phoneController.text.trim();
     final code = _codeController.text.trim();
@@ -91,7 +111,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final data = response.data;
       if (data['success'] == true) {
-        // 登录成功,把两个 token 存进保险柜
         await _storage.write(key: 'access_token', value: data['access_token']);
         await _storage.write(key: 'refresh_token', value: data['refresh_token']);
         await _storage.write(key: 'agent_id', value: data['agent_id']);
@@ -143,7 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 60),
 
-            // 手机号 + 获取验证码
+            // 手机号 + 获取验证码(手机号始终可编辑)
             Row(
               children: [
                 Expanded(
@@ -151,7 +170,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
                     maxLength: 11,
-                    enabled: !_smsSent,
                     decoration: const InputDecoration(
                       labelText: '手机号',
                       prefixIcon: Icon(Icons.phone_android),
@@ -181,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 16),
 
-            // 验证码输入框(只在已发送验证码后显示)
+            // 验证码输入框 + 登录按钮
             if (_smsSent) ...[
               TextField(
                 controller: _codeController,
@@ -196,7 +214,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-
               SizedBox(
                 height: 48,
                 child: ElevatedButton(
@@ -214,6 +231,24 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ],
+
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    '还没账号?',
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                  ),
+                  TextButton(
+                    onPressed: () => context.push('/register'),
+                    child: const Text('立即注册'),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
