@@ -25,9 +25,20 @@ from listings import (
     update_listing,
     offline_listing,
     reactivate_listing,
+    get_districts,
 )
-
-
+from showing_requests import (
+    CreateShowingRequestBody,
+    RejectRequestBody,
+    ensure_showing_indexes,
+    create_showing_request,
+    approve_showing_request,
+    reject_showing_request,
+    get_request_by_id,
+    list_received_requests,
+    list_sent_requests,
+    count_pending_received,
+)
 # 创建 FastAPI 应用实例
 app = FastAPI(
     title="MLS 后端 API",
@@ -44,6 +55,8 @@ def startup_check():
     # 建立房源索引
     ensure_indexes()
     print("✓ 房源索引已建立")
+    ensure_showing_indexes()
+    print("✓ 带客申请索引已建立")
 
 # 创建假 Redis(内存模拟,测试用)
 redis_client = fakeredis.FakeStrictRedis(decode_responses=True)
@@ -206,16 +219,28 @@ class RegisterResponse(BaseModel):
     message: str
 
 
+class RegisterResponse(BaseModel):
+    """注册响应"""
+    success: bool
+    agent_id: str
+    name: str
+    access_token: str
+    refresh_token: str
+    token_type: str = "Bearer"
+    message: str
+
+
 @app.post("/api/v1/auth/register", response_model=RegisterResponse)
 def register(req: RegisterRequest):
     """
-    经纪人注册
+    经纪人注册 - 注册成功直接返回 token,自动登录
     
     流程:
       1. 校验验证码
       2. 检查手机号是否已注册
-      3. 插入新经纪人到 MongoDB
-      4. 返回新经纪人的 ID
+      3. 检查身份证号是否已注册
+      4. 插入新经纪人到 MongoDB
+      5. 签发 access_token + refresh_token(自动登录)
     """
     # 1. 校验验证码
     stored_code = redis_client.get(f"sms:code:{req.phone}")
@@ -229,7 +254,12 @@ def register(req: RegisterRequest):
     if existing:
         raise HTTPException(status_code=409, detail="该手机号已注册")
     
-    # 3. 插入新经纪人
+    # 3. 检查身份证号是否已注册
+    existing_id = agents_collection.find_one({"id_card": req.id_card})
+    if existing_id:
+        raise HTTPException(status_code=409, detail="该身份证号已注册")
+    
+    # 4. 插入新经纪人
     new_agent = {
         "phone": req.phone,
         "name": req.name,
@@ -242,22 +272,29 @@ def register(req: RegisterRequest):
         "coop_verified": False,
         "created_at": datetime.now(),
         "updated_at": datetime.now(),
-        "last_login_at": None,
+        "last_login_at": datetime.now(),  # 注册即登录
         "devices": [],
         "wechat_unionid": None,
     }
     result = agents_collection.insert_one(new_agent)
+    agent_id = str(result.inserted_id)
     
-    # 4. 验证码用过即失效
+    # 5. 验证码用过即失效
     redis_client.delete(f"sms:code:{req.phone}")
     
-    # 5. 返回成功
-    print(f"\n✓ 新经纪人注册: {req.name} ({req.phone})")
+    # 6. 签发两张 token(自动登录)
+    access_token = create_access_token(agent_id)
+    refresh_token = create_refresh_token(agent_id)
+    
+    print(f"\n✓ 新经纪人注册并自动登录: {req.name} ({req.phone})")
     
     return RegisterResponse(
         success=True,
-        agent_id=str(result.inserted_id),
-        message=f"注册成功,欢迎 {req.name}!"
+        agent_id=agent_id,
+        name=req.name,
+        access_token=access_token,
+        refresh_token=refresh_token,
+        message=f"注册成功,欢迎 {req.name}!",
     )
 # ==================== 登录接口 ====================
 
@@ -477,7 +514,9 @@ class UpdateListingRequest(BaseModel):
     更新房源请求 - 只允许修改这些字段
     全部 Optional:前端可以只传想改的字段,不传的字段保持原值
     """
-    layout: str | None = None
+    rooms: int | None = None
+    halls: int | None = None
+    bathrooms: int | None = None
     floor: int | None = None
     total_floor: int | None = None
     orientation: str | None = None
@@ -506,7 +545,7 @@ def update_listing_api(
     """更新房源(仅本人)"""
     update_fields = req.model_dump(exclude_unset=True)  # 只取前端真的传了的字段
     doc = update_listing(listing_id, update_fields, agent["_id"])
-    print(f"\n✏️  房源更新: {doc['community']} {doc['building']}-{doc['unit']}-{doc['room_no']} by {agent['name']}")
+    print(f"\n🏠 房源更新: {doc['community']} {doc['building']}-{doc['unit']}-{doc['room_no']} by {agent['name']}")
     return {"success": True, "data": doc}
 
 
@@ -528,4 +567,83 @@ def reactivate_listing_api(
     """重新上架(把 offline 状态改回 on_sale)"""
     doc = reactivate_listing(listing_id, agent["_id"])
     print(f"\n♻️  房源重新上架: {doc['community']} {doc['building']}-{doc['unit']}-{doc['room_no']} by {agent['name']}")
+    return {"success": True, "data": doc}
+
+@app.get("/api/v1/listings/meta/districts")
+def get_districts_api(agent: dict = Depends(get_current_agent)):
+    """获取张家口行政区字典(用于录入页下拉、筛选抽屉)"""
+    return {"success": True, "districts": get_districts()}
+
+# ==================== 模块四:带客协作 ====================
+
+@app.post("/api/v1/showing-requests")
+def create_showing_request_api(
+    req: CreateShowingRequestBody,
+    agent: dict = Depends(get_current_agent),
+):
+    """BA 发起带客申请"""
+    result = create_showing_request(req, agent)
+    print(f"\n👀 新带客申请: 客户{req.customer_surname} by {agent['name']}")
+    return {"success": True, **result}
+
+
+@app.get("/api/v1/showing-requests/received")
+def list_received_requests_api(
+    skip: int = 0,
+    limit: int = 50,
+    agent: dict = Depends(get_current_agent),
+):
+    """LA 视角:我收到的带客申请(别人向我房源申请)"""
+    items, total = list_received_requests(agent["_id"], skip=skip, limit=limit)
+    return {"success": True, "total": total, "items": items}
+
+
+@app.get("/api/v1/showing-requests/sent")
+def list_sent_requests_api(
+    skip: int = 0,
+    limit: int = 50,
+    agent: dict = Depends(get_current_agent),
+):
+    """BA 视角:我发出的带客申请"""
+    items, total = list_sent_requests(agent["_id"], skip=skip, limit=limit)
+    return {"success": True, "total": total, "items": items}
+
+
+@app.get("/api/v1/showing-requests/pending-count")
+def pending_count_api(agent: dict = Depends(get_current_agent)):
+    """工作台角标:待我审批的数量"""
+    count = count_pending_received(agent["_id"])
+    return {"success": True, "count": count}
+
+
+@app.get("/api/v1/showing-requests/{request_id}")
+def get_showing_request_api(
+    request_id: str,
+    agent: dict = Depends(get_current_agent),
+):
+    """查申请详情(按角色自动控制身份可见性)"""
+    doc = get_request_by_id(request_id, agent["_id"])
+    return {"success": True, "data": doc}
+
+
+@app.post("/api/v1/showing-requests/{request_id}/approve")
+def approve_showing_request_api(
+    request_id: str,
+    agent: dict = Depends(get_current_agent),
+):
+    """LA 审批通过"""
+    doc = approve_showing_request(request_id, agent["_id"])
+    print(f"\n✅ 审批通过: 客户{doc['customer_surname']} by {agent['name']}")
+    return {"success": True, "data": doc}
+
+
+@app.post("/api/v1/showing-requests/{request_id}/reject")
+def reject_showing_request_api(
+    request_id: str,
+    body: RejectRequestBody,
+    agent: dict = Depends(get_current_agent),
+):
+    """LA 审批拒绝"""
+    doc = reject_showing_request(request_id, body, agent["_id"])
+    print(f"\n❌ 审批拒绝: 客户{doc['customer_surname']} by {agent['name']} ({body.reason})")
     return {"success": True, "data": doc}
