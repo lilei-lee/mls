@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../services/api_client.dart';
 import '../services/meta_service.dart';
 import '../widgets/photo_picker.dart';
+import '../widgets/community_picker.dart';
 
 /// 房源录入页
 class ListingCreateScreen extends StatefulWidget {
@@ -18,7 +19,8 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
   final _formKey = GlobalKey<FormState>();
 
   String? _selectedDistrict;
-  final _community = TextEditingController();
+  PickedCommunity? _pickedCommunity;  // V4:从小区库选的小区
+
   final _building = TextEditingController();
   final _unit = TextEditingController();
   final _roomNo = TextEditingController();
@@ -36,7 +38,6 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
   final _priceWan = TextEditingController();
   final _remarks = TextEditingController();
 
-  // 段 8:照片
   List<PickedPhoto> _photos = [];
   String? _coverThumbnail;
 
@@ -72,7 +73,6 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
 
   @override
   void dispose() {
-    _community.dispose();
     _building.dispose();
     _unit.dispose();
     _roomNo.dispose();
@@ -89,6 +89,10 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
   }
 
   Future<void> _submit() async {
+    if (_pickedCommunity == null) {
+      _showSnack('请选择或添加小区');
+      return;
+    }
     if (_selectedDistrict == null) {
       _showSnack('请选择行政区');
       return;
@@ -102,7 +106,8 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
         '/listings',
         data: {
           'district': _selectedDistrict,
-          'community': _community.text.trim(),
+          'community': _pickedCommunity!.name,
+          'community_id': _pickedCommunity!.id,  // V4:关联小区库
           'building': _building.text.trim(),
           'unit': _unit.text.trim(),
           'room_no': _roomNo.text.trim(),
@@ -115,7 +120,6 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
           'orientation': _orientation.text.trim(),
           'price_wan': double.parse(_priceWan.text),
           'remarks': _remarks.text.trim(),
-          // 段 8
           'cover_thumbnail': _coverThumbnail,
           'photos': _photos.map((p) => p.toJson()).toList(),
         },
@@ -191,10 +195,10 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
     _formKey.currentState?.reset();
     setState(() {
       _selectedDistrict = null;
+      _pickedCommunity = null;
       _photos = [];
       _coverThumbnail = null;
     });
-    _community.clear();
     _building.clear();
     _unit.clear();
     _roomNo.clear();
@@ -251,6 +255,21 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
                 padding: const EdgeInsets.all(16),
                 children: [
                   _sectionTitle('地址信息'),
+
+                  // V4:小区选择器(替代原来的小区名输入框)
+                  CommunityPicker(
+                    initial: _pickedCommunity,
+                    districts: _districts,
+                    onChanged: (picked) {
+                      setState(() {
+                        _pickedCommunity = picked;
+                        // 选小区时自动回填行政区
+                        _selectedDistrict = picked.district;
+                      });
+                    },
+                  ),
+
+                  // 行政区(选了小区会自动回填,但仍可改)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: DropdownButtonFormField<String>(
@@ -260,6 +279,7 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
                         border: OutlineInputBorder(),
                         isDense: true,
                         prefixIcon: Icon(Icons.location_on_outlined),
+                        helperText: '选择小区后自动回填,可修改',
                       ),
                       items: _districts
                           .map((d) => DropdownMenuItem(
@@ -274,7 +294,7 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
                       },
                     ),
                   ),
-                  _textField(_community, '小区名', hint: '如:新华家园'),
+
                   Row(
                     children: [
                       Expanded(child: _textField(_building, '楼号', hint: '3')),
@@ -346,7 +366,6 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // 段 8:照片选择器
                   PhotoPicker(
                     initialPhotos: _photos,
                     onChanged: (list) => setState(() => _photos = list),

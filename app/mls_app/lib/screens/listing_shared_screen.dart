@@ -6,8 +6,15 @@ import '../widgets/base64_image.dart';
 import '../widgets/filter_sheet.dart';
 
 /// 共享房源库(搜索 + 排序 + 筛选,匿名浏览)
+///
+/// 路由参数 `?new_today=1` 进入时,只展示今日零点起新增的房源,
+/// 配合工作台"今日新房源"卡片。
 class ListingSharedScreen extends StatefulWidget {
-  const ListingSharedScreen({super.key});
+  /// true = 只看今日新增(工作台入口)
+  /// false = 看全量共享库(底部或主入口)
+  final bool newTodayOnly;
+
+  const ListingSharedScreen({super.key, this.newTodayOnly = false});
 
   @override
   State<ListingSharedScreen> createState() => _ListingSharedScreenState();
@@ -44,7 +51,14 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
   }
 
   Future<Map<String, dynamic>> _fetchList() async {
-    final response = await ApiClient.instance.dio.get('/listings/shared');
+    final query = <String, dynamic>{};
+    if (widget.newTodayOnly) {
+      query['new_today'] = '1';
+    }
+    final response = await ApiClient.instance.dio.get(
+      '/listings/shared',
+      queryParameters: query.isEmpty ? null : query,
+    );
     return response.data as Map<String, dynamic>;
   }
 
@@ -129,7 +143,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
                   border: InputBorder.none,
                 ),
               )
-            : const Text('共享房源库'),
+            : Text(widget.newTodayOnly ? '今日新房源' : '共享房源库'),
         actions: [
           IconButton(
             icon: Icon(_searchMode ? Icons.close : Icons.search),
@@ -209,31 +223,19 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
                   return Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 4, vertical: 8),
-                    child: Row(
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
                           _headerText(processed.length, allItems.length),
                           style: const TextStyle(
                               color: Colors.grey, fontSize: 13),
                         ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Text(
-                            '匿名浏览',
-                            style:
-                                TextStyle(color: Colors.blue, fontSize: 11),
-                          ),
-                        ),
-                        if (_filters.isActive) ...[
-                          const SizedBox(width: 6),
-                          _filterBadge(),
-                        ],
+                        if (widget.newTodayOnly) _todayBadge(),
+                        _anonymousBadge(),
+                        if (_filters.isActive) _filterBadge(),
                       ],
                     ),
                   );
@@ -243,6 +245,39 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _todayBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.teal.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.new_releases_outlined, color: Colors.teal, size: 12),
+          SizedBox(width: 3),
+          Text('仅今日',
+              style: TextStyle(color: Colors.teal, fontSize: 11)),
+        ],
+      ),
+    );
+  }
+
+  Widget _anonymousBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.blue.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: const Text(
+        '匿名浏览',
+        style: TextStyle(color: Colors.blue, fontSize: 11),
       ),
     );
   }
@@ -298,6 +333,9 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
     if (_keyword.isNotEmpty || _filters.isActive) {
       return '找到 $shown 套(共 $total 套)';
     }
+    if (widget.newTodayOnly) {
+      return '今日新增 $shown 套';
+    }
     return '共 $shown 套在售房源';
   }
 
@@ -305,8 +343,13 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
     String title;
     String? subtitle;
     if (totallyEmpty) {
-      title = '暂无其他经纪人的共享房源';
-      subtitle = '当其他经纪人录入房源后,这里会展示';
+      if (widget.newTodayOnly) {
+        title = '今日暂无新房源';
+        subtitle = '同行还没录入今天的新房源,稍后再来看看';
+      } else {
+        title = '暂无其他经纪人的共享房源';
+        subtitle = '当其他经纪人录入房源后,这里会展示';
+      }
     } else if (_filters.isActive || _keyword.isNotEmpty) {
       title = '没有符合条件的房源';
       subtitle = '试试调整筛选条件或搜索关键字';
@@ -318,7 +361,13 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.home_outlined, size: 80, color: Colors.grey),
+          Icon(
+            widget.newTodayOnly
+                ? Icons.new_releases_outlined
+                : Icons.home_outlined,
+            size: 80,
+            color: Colors.grey,
+          ),
           const SizedBox(height: 16),
           Text(title, style: const TextStyle(color: Colors.grey, fontSize: 16)),
           if (subtitle != null) ...[

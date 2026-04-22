@@ -4,10 +4,12 @@ import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/showing_request.dart';
+import '../services/api_client.dart';
 import '../services/showing_request_service.dart';
+import '../services/showing_service.dart';
+import '../services/transaction_service.dart';
 
 /// 带客申请详情页
-/// - LA 和 BA 都能进,按 viewer_role 决定 UI
 class ShowingRequestDetailScreen extends StatefulWidget {
   final String requestId;
   const ShowingRequestDetailScreen({super.key, required this.requestId});
@@ -20,21 +22,33 @@ class ShowingRequestDetailScreen extends StatefulWidget {
 class _ShowingRequestDetailScreenState
     extends State<ShowingRequestDetailScreen> {
   late Future<Map<String, dynamic>> _future;
+  Future<Map<String, dynamic>?>? _showingFuture;
+  Future<Map<String, dynamic>?>? _transactionFuture;
   bool _submitting = false;
 
   @override
   void initState() {
     super.initState();
-    _future = ShowingRequestService.instance.detail(widget.requestId);
+    _reload();
   }
 
   void _reload() {
     setState(() {
       _future = ShowingRequestService.instance.detail(widget.requestId);
+      _showingFuture = ShowingService.instance
+          .byRequest(widget.requestId)
+          .catchError((_) => null);
+      _transactionFuture = _showingFuture!.then((showing) {
+        if (showing != null && showing['status'] == 'confirmed') {
+          return TransactionService.instance
+              .byShowing(showing['showing_id'] as String)
+              .catchError((_) => null);
+        }
+        return null;
+      });
     });
   }
 
-  // ----- LA 审批通过 -----
   Future<void> _approve() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -73,7 +87,6 @@ class _ShowingRequestDetailScreenState
     }
   }
 
-  // ----- LA 审批拒绝 -----
   Future<void> _reject() async {
     final result = await showDialog<Map<String, String>?>(
       context: context,
@@ -103,14 +116,12 @@ class _ShowingRequestDetailScreenState
     }
   }
 
-  // ----- 一键拨号 -----
   Future<void> _makeCall(String phone) async {
     final uri = Uri.parse('tel:$phone');
     try {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
       } else {
-        // fallback:复制到剪贴板
         await Clipboard.setData(ClipboardData(text: phone));
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -126,6 +137,71 @@ class _ShowingRequestDetailScreenState
         );
       }
     }
+  }
+
+  Future<void> _goSubmitShowing(Map<String, dynamic> snapshot) async {
+    final result = await context.push<bool>('/showing/submit', extra: {
+      'request_id': widget.requestId,
+      'snapshot': snapshot,
+    });
+    if (result == true) _reload();
+  }
+
+  Future<void> _goConfirmShowing(String showingId) async {
+    final result = await context.push<bool>('/showing/$showingId/confirm');
+    if (result == true) _reload();
+  }
+
+  Future<void> _goInitiateTransaction(
+    String showingId,
+    Map<String, dynamic> snapshot,
+    String listingId,
+  ) async {
+    // 前置检查:listing 必须是 deposit_paid 或 transaction_ongoing
+    try {
+      final resp = await ApiClient.instance.dio.get('/listings/$listingId');
+      final listingStatus = resp.data['data']['status'] as String;
+      if (listingStatus != 'deposit_paid' &&
+          listingStatus != 'transaction_ongoing') {
+        if (!mounted) return;
+        await showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            icon: const Icon(Icons.warning_amber,
+                color: Colors.orange, size: 48),
+            title: const Text('房源尚未进入交易阶段'),
+            content: const Text(
+              '发起成交确认前,Listing Agent 必须先把房源标记为「定金已付」或「成交进行中」。\n\n请联系 LA 完成此操作后再发起。',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('知道了'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+    } on DioException catch (e) {
+      if (!mounted) return;
+      final msg = e.response?.data?['detail'] ?? e.message ?? '网络错误';
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('状态检查失败:$msg')));
+      return;
+    }
+
+    final result = await context.push<bool>('/transaction/initiate', extra: {
+      'showing_id': showingId,
+      'snapshot': snapshot,
+      'listing_price_wan': snapshot['price_wan'],
+    });
+    if (result == true) _reload();
+  }
+
+  Future<void> _goTransactionDetail(String transactionId) async {
+    final result = await context.push<bool>('/transaction/$transactionId');
+    if (result == true) _reload();
   }
 
   @override
@@ -162,15 +238,14 @@ class _ShowingRequestDetailScreenState
           final isLA = viewerRole == 'listing_agent';
           final snapshot = data['listing_snapshot'] as Map<String, dynamic>;
           final counter = data['counterparty'] as Map<String, dynamic>;
+          final listingId = data['listing_id'] as String;
 
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // 状态横幅
               _statusBanner(status),
               const SizedBox(height: 16),
 
-              // 房源信息卡片
               _sectionTitle('目标房源'),
               Card(
                 child: Padding(
@@ -195,7 +270,6 @@ class _ShowingRequestDetailScreenState
               ),
               const SizedBox(height: 16),
 
-              // 客户信息卡片
               _sectionTitle('客户信息'),
               Card(
                 child: Padding(
@@ -230,11 +304,9 @@ class _ShowingRequestDetailScreenState
               ),
               const SizedBox(height: 16),
 
-              // 对方身份(根据状态显示)
               _counterpartySection(counter, status, isLA),
               const SizedBox(height: 16),
 
-              // 拒绝理由
               if (status == ShowingRequestStatus.rejected) ...[
                 _sectionTitle('拒绝理由'),
                 Card(
@@ -264,7 +336,6 @@ class _ShowingRequestDetailScreenState
                 const SizedBox(height: 16),
               ],
 
-              // LA 的审批按钮(只有 pending 且 LA 视角时显示)
               if (isLA && status == ShowingRequestStatus.pending) ...[
                 Row(
                   children: [
@@ -312,7 +383,6 @@ class _ShowingRequestDetailScreenState
                 const SizedBox(height: 12),
               ],
 
-              // 已通过 → 显示拨号按钮
               if (status == ShowingRequestStatus.approved &&
                   counter['phone'] != null &&
                   counter['phone'].toString().isNotEmpty) ...[
@@ -338,6 +408,59 @@ class _ShowingRequestDetailScreenState
                     style: TextStyle(color: Colors.grey, fontSize: 11),
                   ),
                 ),
+                const SizedBox(height: 24),
+
+                // 带看记录区
+                _sectionTitle('带看记录(节点 ④)'),
+                FutureBuilder<Map<String, dynamic>?>(
+                  future: _showingFuture,
+                  builder: (ctx, s) {
+                    if (s.connectionState == ConnectionState.waiting) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 24),
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    return _showingSection(s.data, isLA, snapshot);
+                  },
+                ),
+
+                // 模块五:成交确认区
+                FutureBuilder<Map<String, dynamic>?>(
+                  future: _showingFuture,
+                  builder: (ctx, s) {
+                    if (s.data == null || s.data!['status'] != 'confirmed') {
+                      return const SizedBox.shrink();
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 24),
+                        _sectionTitle('成交确认(节点 ⑤)'),
+                        FutureBuilder<Map<String, dynamic>?>(
+                          future: _transactionFuture,
+                          builder: (ctx, t) {
+                            if (t.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 24),
+                                child: Center(
+                                    child: CircularProgressIndicator()),
+                              );
+                            }
+                            return _transactionSection(
+                              t.data,
+                              isLA,
+                              s.data!['showing_id'] as String,
+                              snapshot,
+                              listingId,
+                            );
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ],
             ],
           );
@@ -346,7 +469,424 @@ class _ShowingRequestDetailScreenState
     );
   }
 
-  // ----- 子组件 -----
+  // ----- 带看记录区 -----
+
+  Widget _showingSection(
+    Map<String, dynamic>? showing,
+    bool isLA,
+    Map<String, dynamic> snapshot,
+  ) {
+    if (showing == null) {
+      if (isLA) {
+        return Card(
+          color: Colors.grey.withValues(alpha: 0.1),
+          child: const Padding(
+            padding: EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Icon(Icons.hourglass_empty, color: Colors.grey, size: 18),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text('等待 BA 提交带看记录',
+                      style: TextStyle(color: Colors.grey, fontSize: 14)),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+      return Column(
+        children: [
+          Card(
+            color: Colors.orange.withValues(alpha: 0.08),
+            child: const Padding(
+              padding: EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.orange, size: 18),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text('完成实地带看后,请及时提交带看记录',
+                        style: TextStyle(fontSize: 13)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 48,
+            child: ElevatedButton.icon(
+              onPressed: () => _goSubmitShowing(snapshot),
+              icon: const Icon(Icons.camera_alt),
+              label: const Text('提交带看记录'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    final showingId = showing['showing_id'] as String;
+    final status = showing['status'] as String;
+    final photoCount = showing['photo_count'] as int? ?? 0;
+    final showingTime = _formatTime(showing['showing_time'] as String);
+    final rejectReason = showing['reject_reason'] as String?;
+
+    final infoCard = Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _showingStatusChip(status),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Icon(Icons.access_time,
+                    size: 14, color: Colors.grey),
+                const SizedBox(width: 4),
+                Text('带看时间:$showingTime',
+                    style: const TextStyle(fontSize: 13)),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                const Icon(Icons.camera_alt_outlined,
+                    size: 14, color: Colors.grey),
+                const SizedBox(width: 4),
+                Text('现场照片:$photoCount 张',
+                    style: const TextStyle(fontSize: 13)),
+              ],
+            ),
+            if (status == 'rejected' &&
+                rejectReason != null &&
+                rejectReason.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  '驳回理由:$rejectReason',
+                  style: const TextStyle(color: Colors.red, fontSize: 12),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+
+    if (status == 'pending_confirm') {
+      return Column(
+        children: [
+          infoCard,
+          const SizedBox(height: 8),
+          if (isLA)
+            SizedBox(
+              height: 48,
+              child: ElevatedButton.icon(
+                onPressed: () => _goConfirmShowing(showingId),
+                icon: const Icon(Icons.rate_review),
+                label: const Text('查看并确认'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            )
+          else
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 4),
+              child: Text('等待 LA 确认中...',
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                  textAlign: TextAlign.center),
+            ),
+        ],
+      );
+    }
+
+    if (status == 'confirmed') {
+      return Column(
+        children: [
+          infoCard,
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 44,
+            child: OutlinedButton.icon(
+              onPressed: () => context.push('/showing/$showingId/confirm'),
+              icon: const Icon(Icons.visibility_outlined),
+              label: const Text('查看带看详情'),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (status == 'rejected') {
+      return Column(
+        children: [
+          infoCard,
+          const SizedBox(height: 8),
+          if (!isLA)
+            SizedBox(
+              height: 48,
+              child: ElevatedButton.icon(
+                onPressed: () => _goSubmitShowing(snapshot),
+                icon: const Icon(Icons.refresh),
+                label: const Text('重新提交带看记录'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            )
+          else
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 4),
+              child: Text('等待 BA 重新提交...',
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                  textAlign: TextAlign.center),
+            ),
+        ],
+      );
+    }
+
+    return infoCard;
+  }
+
+  // ----- 成交确认区 -----
+
+  Widget _transactionSection(
+    Map<String, dynamic>? tx,
+    bool isLA,
+    String showingId,
+    Map<String, dynamic> snapshot,
+    String listingId,
+  ) {
+    if (tx == null) {
+      if (isLA) {
+        return Card(
+          color: Colors.grey.withValues(alpha: 0.08),
+          child: const Padding(
+            padding: EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Icon(Icons.hourglass_empty, color: Colors.grey, size: 18),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text('等待 BA 发起成交确认',
+                      style: TextStyle(color: Colors.grey, fontSize: 14)),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+      return Column(
+        children: [
+          Card(
+            color: Colors.amber.withValues(alpha: 0.08),
+            child: const Padding(
+              padding: EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.amber, size: 18),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '交易达成后,请发起成交确认。需要房源处于「定金已付」或「成交进行中」状态(由 LA 标记)。',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 48,
+            child: ElevatedButton.icon(
+              onPressed: () =>
+                  _goInitiateTransaction(showingId, snapshot, listingId),
+              icon: const Icon(Icons.gavel),
+              label: const Text('发起成交确认'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    final txId = tx['transaction_id'] as String;
+    final txStatus = tx['status'] as String;
+    final baPrice = tx['ba_deal_price_yuan'] as int?;
+    final laPrice = tx['la_deal_price_yuan'] as int?;
+    final baWan = (baPrice != null)
+        ? (baPrice / 10000).toStringAsFixed(1)
+        : '-';
+
+    final card = Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _transactionStatusChip(txStatus, tx),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Icon(Icons.attach_money, size: 14, color: Colors.grey),
+                const SizedBox(width: 4),
+                Text('BA 填:¥$baWan 万',
+                    style: const TextStyle(fontSize: 13)),
+              ],
+            ),
+            if (laPrice != null) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(Icons.attach_money,
+                      size: 14, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Text(
+                    'LA 填:¥${(laPrice / 10000).toStringAsFixed(1)} 万',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ],
+              ),
+            ],
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.calendar_today,
+                    size: 14, color: Colors.grey),
+                const SizedBox(width: 4),
+                Text('成交日期:${tx['ba_deal_date'] ?? '-'}',
+                    style: const TextStyle(fontSize: 13)),
+              ],
+            ),
+            if (txStatus == 'rejected' &&
+                tx['reject_reason'] != null) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  '驳回:${tx['reject_reason']}',
+                  style: const TextStyle(color: Colors.red, fontSize: 12),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+
+    return Column(
+      children: [
+        card,
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 44,
+          child: OutlinedButton.icon(
+            onPressed: () => _goTransactionDetail(txId),
+            icon: const Icon(Icons.open_in_new),
+            label: const Text('查看成交详情'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _transactionStatusChip(String status, Map<String, dynamic> tx) {
+    late Color color;
+    late String text;
+    switch (status) {
+      case 'pending_la_confirm':
+        color = Colors.orange;
+        text = '待 LA 独立填价';
+        break;
+      case 'confirmed':
+        color = Colors.green;
+        text = '成交已生效 · 写入留痕链';
+        break;
+      case 'rejected':
+        color = Colors.red;
+        text = tx['reject_kind'] == 'price_mismatch'
+            ? '系统自动驳回(价格不一致)'
+            : 'LA 驳回';
+        break;
+      case 'cancelled':
+        color = Colors.grey;
+        text = '已撤回';
+        break;
+      default:
+        color = Colors.grey;
+        text = status;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(text,
+          style: TextStyle(
+              color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+    );
+  }
+
+  Widget _showingStatusChip(String status) {
+    late Color color;
+    late String text;
+    switch (status) {
+      case 'pending_confirm':
+        color = Colors.orange;
+        text = '待 LA 确认';
+        break;
+      case 'confirmed':
+        color = Colors.green;
+        text = '已确认 · 写入留痕链';
+        break;
+      case 'rejected':
+        color = Colors.red;
+        text = '已驳回';
+        break;
+      default:
+        color = Colors.grey;
+        text = status;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(text,
+          style: TextStyle(
+              color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+    );
+  }
+
+  String _formatTime(String iso) {
+    final dt = DateTime.parse(iso).toLocal();
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${dt.year}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}';
+  }
 
   Widget _sectionTitle(String text) {
     return Padding(

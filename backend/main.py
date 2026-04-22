@@ -1,20 +1,24 @@
 """
-MLS 后端 - 第一个接口:发送短信验证码(Mock版)
+MLS 后端 - 所有接口入口
 作者:磊
 日期:2026-04-19
 """
+import hashlib
 import random
 from datetime import datetime, timedelta
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 import fakeredis
-from database import agents_collection, ping
+from database import agents_collection, ping, db
 from bson import ObjectId
 from jose import jwt, JWTError
 from listings import (
     CreateListingRequest,
     CreateListingResponse,
+    MarkDepositPaidBody,
+    MarkTransactionOngoingBody,
+    RollbackStatusBody,
     create_listing,
     ensure_indexes,
     list_my_listings,
@@ -26,6 +30,9 @@ from listings import (
     offline_listing,
     reactivate_listing,
     get_districts,
+    mark_listing_deposit_paid,
+    mark_listing_transaction_ongoing,
+    rollback_listing_to_on_sale,
 )
 from showing_requests import (
     CreateShowingRequestBody,
@@ -39,125 +46,162 @@ from showing_requests import (
     list_sent_requests,
     count_pending_received,
 )
-# 创建 FastAPI 应用实例
+from showings import (
+    CreateShowingBody,
+    RejectShowingBody,
+    ensure_showings_indexes,
+    submit_showing,
+    get_showing_by_id,
+    get_showing_by_request,
+    confirm_showing,
+    reject_showing,
+    list_pending_confirm,
+    count_pending_confirm,
+)
+from communities import (
+    CreateCommunityBody,
+    ensure_communities_indexes,
+    search_communities,
+    create_community,
+    get_community_by_id,
+)
+from transactions import (
+    InitiateTransactionBody,
+    LaConfirmTransactionBody,
+    LaRejectTransactionBody,
+    UpdateMyTransactionBody,
+    CancelTransactionBody,
+    ensure_transactions_indexes,
+    initiate_transaction,
+    la_confirm_transaction,
+    la_reject_transaction,
+    update_my_transaction,
+    cancel_transaction,
+    get_by_id as get_transaction_by_id,
+    get_by_showing as get_transaction_by_showing,
+    list_pending_for_la,
+    count_pending_for_la,
+)
+from settlements import (
+    LaMarkPaidBody,
+    ensure_settlements_indexes,
+    la_mark_paid,
+    get_by_id as get_settlement_by_id,
+    list_pending_for_me as list_pending_settlements_for_me,
+    count_pending_for_me as count_pending_settlements_for_me,
+)
+
 app = FastAPI(
     title="MLS 后端 API",
     description="张家口MLS经纪人系统 - 后端服务",
     version="0.1.0"
 )
-# 启动时测试数据库连接
+
+
 @app.on_event("startup")
 def startup_check():
     if ping():
         print("✓ MongoDB 连接正常")
     else:
         print("✗ MongoDB 连接失败!请检查服务是否启动")
-    # 建立房源索引
     ensure_indexes()
     print("✓ 房源索引已建立")
     ensure_showing_indexes()
     print("✓ 带客申请索引已建立")
+    ensure_showings_indexes()
+    print("✓ 带看记录索引已建立")
+    ensure_communities_indexes()
+    print("✓ 小区库索引已建立")
+    ensure_transactions_indexes()
+    print("✓ 成交记录索引已建立")
+    ensure_settlements_indexes()
+    print("✓ 奖金结算索引已建立")
 
-# 创建假 Redis(内存模拟,测试用)
+
 redis_client = fakeredis.FakeStrictRedis(decode_responses=True)
+
 # ==================== JWT 配置 ====================
 
-SECRET_KEY = "3Qy1db3aKPG4cVCk3132qtE-m9w0OSb7W-BUbnM3RZs"  # 开发用,上线前换新的
+SECRET_KEY = "3Qy1db3aKPG4cVCk3132qtE-m9w0OSb7W-BUbnM3RZs"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_HOURS = 2      # 短期票:2小时
-REFRESH_TOKEN_EXPIRE_DAYS = 30     # 长期票:30天
+ACCESS_TOKEN_EXPIRE_HOURS = 2
+REFRESH_TOKEN_EXPIRE_DAYS = 30
 
 
 def create_access_token(agent_id: str) -> str:
-    """签发 Access Token,2小时有效,用于日常请求"""
     expire = datetime.utcnow() + timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS)
-    payload = {
-        "sub": agent_id,      # subject,这张票是谁的
-        "exp": expire,        # expire,啥时候过期
-        "type": "access",     # 票的种类
-    }
+    payload = {"sub": agent_id, "exp": expire, "type": "access"}
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def create_refresh_token(agent_id: str) -> str:
-    """签发 Refresh Token,30天有效,用于换新的 Access Token"""
     expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
-    payload = {
-        "sub": agent_id,
-        "exp": expire,
-        "type": "refresh",
-    }
+    payload = {"sub": agent_id, "exp": expire, "type": "refresh"}
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
-# ==================== 认证检票员 ====================
 
-# Bearer Token 检查器,会自动从 Header 里取 Authorization: Bearer xxx
+
+def _token_hash(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def blacklist_refresh_token(token: str, payload: dict) -> None:
+    now_ts = int(datetime.utcnow().timestamp())
+    exp_ts = int(payload.get("exp", 0))
+    ttl = max(exp_ts - now_ts, 1)
+    key = f"rt_blacklist:{_token_hash(token)}"
+    redis_client.setex(key, ttl, "1")
+
+
+def is_refresh_token_blacklisted(token: str) -> bool:
+    key = f"rt_blacklist:{_token_hash(token)}"
+    return redis_client.exists(key) > 0
+
+
 security = HTTPBearer()
 
 
 def get_current_agent(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
-    """
-    检票员:验证 Token → 从数据库查出当前登录的经纪人 → 返回经纪人信息
-    任何接口加上 agent = Depends(get_current_agent),都会自动被保护
-    """
-    token = credentials.credentials  # 取出 Bearer 后面那串 token
-    
-    # 通用的"票不对"错误
+    token = credentials.credentials
     unauthorized = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="身份验证失败,请重新登录",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    
     try:
-        # 1. 解码 token,如果被篡改或签名不对,这里会抛异常
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        
-        # 2. 检查票的种类(access_token 才能用,refresh_token 不行)
         if payload.get("type") != "access":
             raise unauthorized
-        
-        # 3. 取出 agent_id
         agent_id = payload.get("sub")
         if not agent_id:
             raise unauthorized
     except JWTError:
-        # token 过期、签名错误、格式错误等,统一走这里
         raise unauthorized
-    
-    # 4. 从 MongoDB 里查出经纪人信息
+
     agent = agents_collection.find_one({"_id": ObjectId(agent_id)})
     if not agent:
         raise unauthorized
-    
-    # 5. 检查账号状态
     if agent.get("status") == "deleted":
         raise HTTPException(status_code=403, detail="账号已注销")
     if agent.get("status") == "banned":
         raise HTTPException(status_code=403, detail="账号已被禁用")
-    
-    return agent  # 返回整个经纪人文档,后面接口能直接用
+    return agent
 
 
 # ==================== 数据模型 ====================
 
 class SendSmsRequest(BaseModel):
-    """发送验证码请求"""
     phone: str = Field(..., pattern=r"^1[3-9]\d{9}$", description="手机号")
 
 
 class SendSmsResponse(BaseModel):
-    """发送验证码响应"""
     success: bool
     message: str
 
 
-# ==================== 接口 ====================
-
 @app.get("/")
 def root():
-    """根路径 - 健康检查"""
     return {
         "service": "MLS 后端",
         "status": "running",
@@ -167,60 +211,33 @@ def root():
 
 @app.post("/api/v1/auth/send-sms-code", response_model=SendSmsResponse)
 def send_sms_code(req: SendSmsRequest):
-    """
-    发送短信验证码(Mock版)
-    
-    - **phone**: 11位手机号(1开头,第二位3-9)
-    - 生成6位随机验证码
-    - 存入假Redis,5分钟过期
-    - 打印到控制台(模拟发送短信)
-    """
-    # 频率限制:同一手机号60秒内只能请求一次
     rate_limit_key = f"sms:ratelimit:{req.phone}"
     if redis_client.exists(rate_limit_key):
         raise HTTPException(status_code=429, detail="请求过于频繁,请60秒后再试")
-    
-    # 生成6位随机验证码
     code = f"{random.randint(100000, 999999)}"
-    
-    # 存入假Redis,5分钟过期
     redis_client.setex(f"sms:code:{req.phone}", 300, code)
-    
-    # 频率限制60秒
     redis_client.setex(rate_limit_key, 60, "1")
-    
-    # 打印到控制台(模拟发送短信)
     print(f"\n{'=' * 50}")
     print(f"[MOCK SMS] {datetime.now().strftime('%H:%M:%S')}")
     print(f"  手机号: {req.phone}")
     print(f"  验证码: {code}")
     print(f"  有效期: 5分钟")
     print(f"{'=' * 50}\n")
-    
     return SendSmsResponse(
         success=True,
         message=f"验证码已发送至 {req.phone[:3]}****{req.phone[-4:]}"
     )
-# ==================== 注册接口(真实数据库版) ====================
+
 
 class RegisterRequest(BaseModel):
-    """注册请求"""
-    phone: str = Field(..., pattern=r"^1[3-9]\d{9}$", description="手机号")
-    code: str = Field(..., pattern=r"^\d{6}$", description="6位验证码")
-    name: str = Field(..., min_length=2, max_length=20, description="真实姓名")
-    id_card: str = Field(..., pattern=r"^\d{17}[\dX]$", description="身份证号")
-    store_name: str = Field(..., min_length=2, max_length=100, description="所属门店")
+    phone: str = Field(..., pattern=r"^1[3-9]\d{9}$")
+    code: str = Field(..., pattern=r"^\d{6}$")
+    name: str = Field(..., min_length=2, max_length=20)
+    id_card: str = Field(..., pattern=r"^\d{17}[\dX]$")
+    store_name: str = Field(..., min_length=2, max_length=100)
 
 
 class RegisterResponse(BaseModel):
-    """注册响应"""
-    success: bool
-    agent_id: str
-    message: str
-
-
-class RegisterResponse(BaseModel):
-    """注册响应"""
     success: bool
     agent_id: str
     name: str
@@ -232,34 +249,17 @@ class RegisterResponse(BaseModel):
 
 @app.post("/api/v1/auth/register", response_model=RegisterResponse)
 def register(req: RegisterRequest):
-    """
-    经纪人注册 - 注册成功直接返回 token,自动登录
-    
-    流程:
-      1. 校验验证码
-      2. 检查手机号是否已注册
-      3. 检查身份证号是否已注册
-      4. 插入新经纪人到 MongoDB
-      5. 签发 access_token + refresh_token(自动登录)
-    """
-    # 1. 校验验证码
     stored_code = redis_client.get(f"sms:code:{req.phone}")
     if not stored_code:
         raise HTTPException(status_code=400, detail="验证码已过期,请重新获取")
     if stored_code != req.code:
         raise HTTPException(status_code=400, detail="验证码错误")
-    
-    # 2. 检查手机号是否已注册
-    existing = agents_collection.find_one({"phone": req.phone})
-    if existing:
+
+    if agents_collection.find_one({"phone": req.phone}):
         raise HTTPException(status_code=409, detail="该手机号已注册")
-    
-    # 3. 检查身份证号是否已注册
-    existing_id = agents_collection.find_one({"id_card": req.id_card})
-    if existing_id:
+    if agents_collection.find_one({"id_card": req.id_card}):
         raise HTTPException(status_code=409, detail="该身份证号已注册")
-    
-    # 4. 插入新经纪人
+
     new_agent = {
         "phone": req.phone,
         "name": req.name,
@@ -267,27 +267,21 @@ def register(req: RegisterRequest):
         "avatar_url": "",
         "store_id": "",
         "store_name": req.store_name,
-        "role": "agent",              # 默认普通经纪人(老板后台手动提权)
+        "role": "agent",
         "status": "active",
         "coop_verified": False,
         "created_at": datetime.now(),
         "updated_at": datetime.now(),
-        "last_login_at": datetime.now(),  # 注册即登录
+        "last_login_at": datetime.now(),
         "devices": [],
         "wechat_unionid": None,
     }
     result = agents_collection.insert_one(new_agent)
     agent_id = str(result.inserted_id)
-    
-    # 5. 验证码用过即失效
     redis_client.delete(f"sms:code:{req.phone}")
-    
-    # 6. 签发两张 token(自动登录)
     access_token = create_access_token(agent_id)
     refresh_token = create_refresh_token(agent_id)
-    
     print(f"\n✓ 新经纪人注册并自动登录: {req.name} ({req.phone})")
-    
     return RegisterResponse(
         success=True,
         agent_id=agent_id,
@@ -296,11 +290,11 @@ def register(req: RegisterRequest):
         refresh_token=refresh_token,
         message=f"注册成功,欢迎 {req.name}!",
     )
-# ==================== 登录接口 ====================
+
 
 class LoginRequest(BaseModel):
-    phone: str = Field(..., pattern=r"^1[3-9]\d{9}$", description="手机号")
-    code: str = Field(..., pattern=r"^\d{6}$", description="6位验证码")
+    phone: str = Field(..., pattern=r"^1[3-9]\d{9}$")
+    code: str = Field(..., pattern=r"^\d{6}$")
 
 
 class LoginResponse(BaseModel):
@@ -315,40 +309,29 @@ class LoginResponse(BaseModel):
 
 @app.post("/api/v1/auth/login", response_model=LoginResponse)
 def login(req: LoginRequest):
-    # 1. 校验验证码
     stored_code = redis_client.get(f"sms:code:{req.phone}")
     if not stored_code:
         raise HTTPException(status_code=400, detail="验证码已过期,请重新获取")
     if stored_code != req.code:
         raise HTTPException(status_code=400, detail="验证码错误")
 
-    # 2. 查找经纪人
     agent = agents_collection.find_one({"phone": req.phone})
     if not agent:
         raise HTTPException(status_code=404, detail="手机号未注册,请先注册")
-
-    # 3. 检查账号状态(预留,种子期宽松)
     if agent.get("status") == "deleted":
         raise HTTPException(status_code=403, detail="账号已注销")
     if agent.get("status") == "banned":
         raise HTTPException(status_code=403, detail="账号已被禁用")
 
-    # 4. 签发两张票
     agent_id = str(agent["_id"])
     access_token = create_access_token(agent_id)
     refresh_token = create_refresh_token(agent_id)
-
-    # 5. 更新最后登录时间
     agents_collection.update_one(
         {"_id": agent["_id"]},
         {"$set": {"last_login_at": datetime.now()}}
     )
-
-    # 6. 验证码用过即失效
     redis_client.delete(f"sms:code:{req.phone}")
-
     print(f"\n✓ 登录成功: {agent['name']} ({req.phone})")
-
     return LoginResponse(
         success=True,
         agent_id=agent_id,
@@ -358,7 +341,6 @@ def login(req: LoginRequest):
         message=f"欢迎回来, {agent['name']}!"
     )
 
-# ==================== 刷新 Token 接口 ====================
 
 class RefreshRequest(BaseModel):
     refresh_token: str = Field(..., description="长期票 refresh_token")
@@ -373,55 +355,67 @@ class RefreshResponse(BaseModel):
 
 @app.post("/api/v1/auth/refresh", response_model=RefreshResponse)
 def refresh_token_api(req: RefreshRequest):
-    """
-    用 refresh_token 换一对新的 token
-    - 每次调用会同时签发新的 access_token 和 refresh_token(Token Rotation)
-    - 如果 refresh_token 已过期或无效,返回 401
-    """
     unauthorized = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="登录已过期,请重新登录",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    try:
-        # 1. 解码,检查签名和过期时间
-        payload = jwt.decode(req.refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+    if is_refresh_token_blacklisted(req.refresh_token):
+        raise unauthorized
 
-        # 2. 必须是 refresh 类型(不能拿 access_token 冒充)
+    try:
+        payload = jwt.decode(req.refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
         if payload.get("type") != "refresh":
             raise unauthorized
-
-        # 3. 取出 agent_id
         agent_id = payload.get("sub")
         if not agent_id:
             raise unauthorized
     except JWTError:
         raise unauthorized
 
-    # 4. 从数据库查经纪人,确认账号还健在
     agent = agents_collection.find_one({"_id": ObjectId(agent_id)})
     if not agent:
         raise unauthorized
-
     if agent.get("status") == "deleted":
         raise HTTPException(status_code=403, detail="账号已注销")
     if agent.get("status") == "banned":
         raise HTTPException(status_code=403, detail="账号已被禁用")
 
-    # 5. 签发新的两张票
+    blacklist_refresh_token(req.refresh_token, payload)
+
     new_access = create_access_token(agent_id)
     new_refresh = create_refresh_token(agent_id)
-
     print(f"\n🔄 Token 续期: {agent['name']} ({agent['phone']})")
-
     return RefreshResponse(
         success=True,
         access_token=new_access,
         refresh_token=new_refresh,
     )
 
-# ==================== 受保护接口 ====================
+
+class LogoutRequest(BaseModel):
+    refresh_token: str = Field(..., description="当前的 refresh_token")
+
+
+class LogoutResponse(BaseModel):
+    success: bool
+    message: str
+
+
+@app.post("/api/v1/auth/logout", response_model=LogoutResponse)
+def logout_api(req: LogoutRequest):
+    try:
+        payload = jwt.decode(
+            req.refresh_token, SECRET_KEY, algorithms=[ALGORITHM]
+        )
+        if payload.get("type") == "refresh":
+            blacklist_refresh_token(req.refresh_token, payload)
+            print(f"\n🚪 退出登录: agent_id={payload.get('sub')}")
+    except JWTError:
+        pass
+    return LogoutResponse(success=True, message="已退出登录")
+
 
 class MeResponse(BaseModel):
     agent_id: str
@@ -435,10 +429,6 @@ class MeResponse(BaseModel):
 
 @app.get("/api/v1/me", response_model=MeResponse)
 def get_me(agent: dict = Depends(get_current_agent)):
-    """
-    获取当前登录经纪人的信息
-    必须在 Header 里带上 Authorization: Bearer <access_token>
-    """
     return MeResponse(
         agent_id=str(agent["_id"]),
         phone=agent["phone"],
@@ -449,6 +439,7 @@ def get_me(agent: dict = Depends(get_current_agent)):
         coop_verified=agent.get("coop_verified", False),
     )
 
+
 # ==================== 模块二:房源管理 ====================
 
 @app.post("/api/v1/listings", response_model=CreateListingResponse)
@@ -456,12 +447,6 @@ def create_listing_api(
     req: CreateListingRequest,
     agent: dict = Depends(get_current_agent),
 ):
-    """
-    创建房源
-    - 需要登录(带 Bearer Token)
-    - 自动生成一户一码(小区+楼号+单元+门牌号)
-    - 如果已存在,返回 409 告知已被谁录入
-    """
     result = create_listing(req, agent)
     print(f"\n🏠 新房源录入: {req.community} {req.building}-{req.unit}-{req.room_no} by {agent['name']}")
     return CreateListingResponse(
@@ -470,6 +455,7 @@ def create_listing_api(
         house_code=result["house_code"],
         message=f"录入成功!一户一码: {result['house_code']}",
     )
+
 
 class ListingListResponse(BaseModel):
     success: bool
@@ -483,37 +469,25 @@ def get_my_listings_api(
     limit: int = 20,
     agent: dict = Depends(get_current_agent),
 ):
-    """
-    获取当前登录经纪人自己录入的所有房源
-    - skip:跳过多少条(分页用)
-    - limit:返回多少条(默认 20)
-    """
     items = list_my_listings(agent["_id"], skip=skip, limit=limit)
     total = count_my_listings(agent["_id"])
     return ListingListResponse(success=True, total=total, items=items)
+
 
 @app.get("/api/v1/listings/shared", response_model=ListingListResponse)
 def get_shared_listings_api(
     skip: int = 0,
     limit: int = 20,
+    new_today: bool = False,
     agent: dict = Depends(get_current_agent),
 ):
-    """
-    获取共享房源库(匿名):其他经纪人录入的在售房源
-    - 自动过滤掉登录者自己的房源
-    - 不返回任何录入人身份信息(浏览阶段匿名)
-    """
-    items = list_shared_listings(agent["_id"], skip=skip, limit=limit)
-    total = count_shared_listings(agent["_id"])
+    items = list_shared_listings(
+        agent["_id"], skip=skip, limit=limit, new_today=new_today)
+    total = count_shared_listings(agent["_id"], new_today=new_today)
     return ListingListResponse(success=True, total=total, items=items)
 
-# ==================== 单条房源接口 ====================
 
 class UpdateListingRequest(BaseModel):
-    """
-    更新房源请求 - 只允许修改这些字段
-    全部 Optional:前端可以只传想改的字段,不传的字段保持原值
-    """
     rooms: int | None = None
     halls: int | None = None
     bathrooms: int | None = None
@@ -522,9 +496,61 @@ class UpdateListingRequest(BaseModel):
     orientation: str | None = None
     price_wan: float | None = None
     remarks: str | None = None
-    # 段 8 新增:照片字段
     cover_thumbnail: str | None = None
     photos: list | None = None
+
+
+@app.get("/api/v1/listings/meta/districts")
+def get_districts_api(agent: dict = Depends(get_current_agent)):
+    return {"success": True, "districts": get_districts()}
+
+
+# ⚠️ 具体路径必须注册在 {listing_id} 之前
+
+@app.post("/api/v1/listings/{listing_id}/mark-deposit-paid")
+def mark_deposit_paid_api(
+    listing_id: str,
+    body: MarkDepositPaidBody,
+    agent: dict = Depends(get_current_agent),
+):
+    """V5:标记定金已付"""
+    doc = mark_listing_deposit_paid(listing_id, body, agent["_id"])
+    print(f"\n💰 房源标记定金已付: {doc['community']} by {agent['name']}")
+    return {"success": True, "data": doc}
+
+
+@app.post("/api/v1/listings/{listing_id}/mark-transaction-ongoing")
+def mark_transaction_ongoing_api(
+    listing_id: str,
+    body: MarkTransactionOngoingBody,
+    agent: dict = Depends(get_current_agent),
+):
+    """V5:标记成交进行中"""
+    doc = mark_listing_transaction_ongoing(listing_id, body, agent["_id"])
+    print(f"\n📝 房源标记成交进行中: {doc['community']} by {agent['name']}")
+    return {"success": True, "data": doc}
+
+
+@app.post("/api/v1/listings/{listing_id}/rollback-to-on-sale")
+def rollback_to_on_sale_api(
+    listing_id: str,
+    body: RollbackStatusBody,
+    agent: dict = Depends(get_current_agent),
+):
+    """V5:回退到在售"""
+    doc = rollback_listing_to_on_sale(listing_id, body, agent["_id"])
+    print(f"\n↩️  房源回退到在售: {doc['community']} by {agent['name']} ({body.reason})")
+    return {"success": True, "data": doc}
+
+
+@app.post("/api/v1/listings/{listing_id}/reactivate")
+def reactivate_listing_api(
+    listing_id: str,
+    agent: dict = Depends(get_current_agent),
+):
+    doc = reactivate_listing(listing_id, agent["_id"])
+    print(f"\n♻️  房源重新上架: {doc['community']} by {agent['name']}")
+    return {"success": True, "data": doc}
 
 
 @app.get("/api/v1/listings/{listing_id}")
@@ -532,7 +558,6 @@ def get_listing_api(
     listing_id: str,
     agent: dict = Depends(get_current_agent),
 ):
-    """获取单条房源详情"""
     doc = get_listing_by_id(listing_id)
     if not doc:
         raise HTTPException(status_code=404, detail="房源不存在")
@@ -545,10 +570,9 @@ def update_listing_api(
     req: UpdateListingRequest,
     agent: dict = Depends(get_current_agent),
 ):
-    """更新房源(仅本人)"""
-    update_fields = req.model_dump(exclude_unset=True)  # 只取前端真的传了的字段
+    update_fields = req.model_dump(exclude_unset=True)
     doc = update_listing(listing_id, update_fields, agent["_id"])
-    print(f"\n🏠 房源更新: {doc['community']} {doc['building']}-{doc['unit']}-{doc['room_no']} by {agent['name']}")
+    print(f"\n🏠 房源更新: {doc['community']} by {agent['name']}")
     return {"success": True, "data": doc}
 
 
@@ -557,25 +581,10 @@ def offline_listing_api(
     listing_id: str,
     agent: dict = Depends(get_current_agent),
 ):
-    """下架房源(软删除,仅本人)"""
     doc = offline_listing(listing_id, agent["_id"])
-    print(f"\n🚫 房源下架: {doc['community']} {doc['building']}-{doc['unit']}-{doc['room_no']} by {agent['name']}")
+    print(f"\n🚫 房源下架: {doc['community']} by {agent['name']}")
     return {"success": True, "data": doc}
 
-@app.post("/api/v1/listings/{listing_id}/reactivate")
-def reactivate_listing_api(
-    listing_id: str,
-    agent: dict = Depends(get_current_agent),
-):
-    """重新上架(把 offline 状态改回 on_sale)"""
-    doc = reactivate_listing(listing_id, agent["_id"])
-    print(f"\n♻️  房源重新上架: {doc['community']} {doc['building']}-{doc['unit']}-{doc['room_no']} by {agent['name']}")
-    return {"success": True, "data": doc}
-
-@app.get("/api/v1/listings/meta/districts")
-def get_districts_api(agent: dict = Depends(get_current_agent)):
-    """获取张家口行政区字典(用于录入页下拉、筛选抽屉)"""
-    return {"success": True, "districts": get_districts()}
 
 # ==================== 模块四:带客协作 ====================
 
@@ -584,7 +593,6 @@ def create_showing_request_api(
     req: CreateShowingRequestBody,
     agent: dict = Depends(get_current_agent),
 ):
-    """BA 发起带客申请"""
     result = create_showing_request(req, agent)
     print(f"\n👀 新带客申请: 客户{req.customer_surname} by {agent['name']}")
     return {"success": True, **result}
@@ -596,7 +604,6 @@ def list_received_requests_api(
     limit: int = 50,
     agent: dict = Depends(get_current_agent),
 ):
-    """LA 视角:我收到的带客申请(别人向我房源申请)"""
     items, total = list_received_requests(agent["_id"], skip=skip, limit=limit)
     return {"success": True, "total": total, "items": items}
 
@@ -607,14 +614,12 @@ def list_sent_requests_api(
     limit: int = 50,
     agent: dict = Depends(get_current_agent),
 ):
-    """BA 视角:我发出的带客申请"""
     items, total = list_sent_requests(agent["_id"], skip=skip, limit=limit)
     return {"success": True, "total": total, "items": items}
 
 
 @app.get("/api/v1/showing-requests/pending-count")
 def pending_count_api(agent: dict = Depends(get_current_agent)):
-    """工作台角标:待我审批的数量"""
     count = count_pending_received(agent["_id"])
     return {"success": True, "count": count}
 
@@ -624,7 +629,6 @@ def get_showing_request_api(
     request_id: str,
     agent: dict = Depends(get_current_agent),
 ):
-    """查申请详情(按角色自动控制身份可见性)"""
     doc = get_request_by_id(request_id, agent["_id"])
     return {"success": True, "data": doc}
 
@@ -634,7 +638,6 @@ def approve_showing_request_api(
     request_id: str,
     agent: dict = Depends(get_current_agent),
 ):
-    """LA 审批通过"""
     doc = approve_showing_request(request_id, agent["_id"])
     print(f"\n✅ 审批通过: 客户{doc['customer_surname']} by {agent['name']}")
     return {"success": True, "data": doc}
@@ -646,7 +649,289 @@ def reject_showing_request_api(
     body: RejectRequestBody,
     agent: dict = Depends(get_current_agent),
 ):
-    """LA 审批拒绝"""
     doc = reject_showing_request(request_id, body, agent["_id"])
     print(f"\n❌ 审批拒绝: 客户{doc['customer_surname']} by {agent['name']} ({body.reason})")
+    return {"success": True, "data": doc}
+
+
+# ==================== 模块四续集:带看确认 ====================
+
+@app.post("/api/v1/showings")
+def submit_showing_api(
+    body: CreateShowingBody,
+    agent: dict = Depends(get_current_agent),
+):
+    result = submit_showing(body, agent)
+    print(f"\n📸 新带看记录: showing_id={result['showing_id']} by {agent['name']}")
+    return {"success": True, **result}
+
+
+@app.get("/api/v1/showings/pending-confirm")
+def list_pending_confirm_api(
+    skip: int = 0,
+    limit: int = 50,
+    agent: dict = Depends(get_current_agent),
+):
+    items, total = list_pending_confirm(agent["_id"], skip=skip, limit=limit)
+    return {"success": True, "total": total, "items": items}
+
+
+@app.get("/api/v1/showings/pending-confirm-count")
+def pending_confirm_count_api(agent: dict = Depends(get_current_agent)):
+    count = count_pending_confirm(agent["_id"])
+    return {"success": True, "count": count}
+
+
+@app.get("/api/v1/showings/by-request/{request_id}")
+def get_showing_by_request_api(
+    request_id: str,
+    agent: dict = Depends(get_current_agent),
+):
+    doc = get_showing_by_request(request_id, agent["_id"])
+    return {"success": True, "data": doc}
+
+
+@app.post("/api/v1/showings/{showing_id}/confirm")
+def confirm_showing_api(
+    showing_id: str,
+    agent: dict = Depends(get_current_agent),
+):
+    doc = confirm_showing(showing_id, agent["_id"])
+    print(f"\n✔️  带看已确认: showing_id={showing_id} by {agent['name']}")
+    return {"success": True, "data": doc}
+
+
+@app.post("/api/v1/showings/{showing_id}/reject")
+def reject_showing_api(
+    showing_id: str,
+    body: RejectShowingBody,
+    agent: dict = Depends(get_current_agent),
+):
+    doc = reject_showing(showing_id, body, agent["_id"])
+    print(f"\n⏪ 带看驳回: showing_id={showing_id} by {agent['name']} ({body.reason})")
+    return {"success": True, "data": doc}
+
+
+@app.get("/api/v1/showings/{showing_id}")
+def get_showing_api(
+    showing_id: str,
+    agent: dict = Depends(get_current_agent),
+):
+    doc = get_showing_by_id(showing_id, agent["_id"])
+    return {"success": True, "data": doc}
+
+
+# ==================== 模块五:成交确认(节点 ⑤)====================
+# ⚠️ 具体路径必须先注册
+
+@app.post("/api/v1/transactions")
+def initiate_transaction_api(
+    body: InitiateTransactionBody,
+    agent: dict = Depends(get_current_agent),
+):
+    """BA 发起成交确认"""
+    result = initiate_transaction(body, agent)
+    print(f"\n💰 新成交确认发起: tx={result['transaction_id']} by {agent['name']}")
+    return {"success": True, **result}
+
+
+@app.get("/api/v1/transactions/pending-la")
+def list_pending_la_api(
+    skip: int = 0,
+    limit: int = 50,
+    agent: dict = Depends(get_current_agent),
+):
+    """LA 待我确认的成交列表"""
+    items, total = list_pending_for_la(agent["_id"], skip=skip, limit=limit)
+    return {"success": True, "total": total, "items": items}
+
+
+@app.get("/api/v1/transactions/pending-la-count")
+def pending_la_count_api(agent: dict = Depends(get_current_agent)):
+    """工作台角标"""
+    count = count_pending_for_la(agent["_id"])
+    return {"success": True, "count": count}
+
+
+@app.get("/api/v1/transactions/by-showing/{showing_id}")
+def get_transaction_by_showing_api(
+    showing_id: str,
+    agent: dict = Depends(get_current_agent),
+):
+    """按带看查成交(可能 null)"""
+    doc = get_transaction_by_showing(showing_id, agent["_id"])
+    return {"success": True, "data": doc}
+
+
+@app.post("/api/v1/transactions/{transaction_id}/la-confirm")
+def la_confirm_transaction_api(
+    transaction_id: str,
+    body: LaConfirmTransactionBody,
+    agent: dict = Depends(get_current_agent),
+):
+    """LA 独立填价 + 自动比对"""
+    doc = la_confirm_transaction(transaction_id, body, agent["_id"])
+    if doc["status"] == "confirmed":
+        print(f"\n🎉 成交确认通过: tx={transaction_id} by {agent['name']}")
+    else:
+        print(f"\n⚠️  成交确认价格不一致自动驳回: tx={transaction_id}")
+    return {"success": True, "data": doc}
+
+
+@app.post("/api/v1/transactions/{transaction_id}/la-reject")
+def la_reject_transaction_api(
+    transaction_id: str,
+    body: LaRejectTransactionBody,
+    agent: dict = Depends(get_current_agent),
+):
+    """LA 手动驳回"""
+    doc = la_reject_transaction(transaction_id, body, agent["_id"])
+    print(f"\n❌ 成交手动驳回: tx={transaction_id} by {agent['name']} ({body.reason})")
+    return {"success": True, "data": doc}
+
+
+@app.patch("/api/v1/transactions/{transaction_id}/my-submission")
+def update_my_transaction_api(
+    transaction_id: str,
+    body: UpdateMyTransactionBody,
+    agent: dict = Depends(get_current_agent),
+):
+    """BA 修改自己的填报并重提"""
+    doc = update_my_transaction(transaction_id, body, agent["_id"])
+    print(f"\n✏️  成交记录修改重提: tx={transaction_id} by {agent['name']}")
+    return {"success": True, "data": doc}
+
+
+@app.post("/api/v1/transactions/{transaction_id}/cancel")
+def cancel_transaction_api(
+    transaction_id: str,
+    body: CancelTransactionBody,
+    agent: dict = Depends(get_current_agent),
+):
+    """BA 撤回"""
+    doc = cancel_transaction(transaction_id, body, agent["_id"])
+    print(f"\n🚫 成交已撤回: tx={transaction_id} by {agent['name']}")
+    return {"success": True, "data": doc}
+
+
+@app.get("/api/v1/transactions/{transaction_id}")
+def get_transaction_api(
+    transaction_id: str,
+    agent: dict = Depends(get_current_agent),
+):
+    """成交详情(BA 或 LA)"""
+    doc = get_transaction_by_id(transaction_id, agent["_id"])
+    return {"success": True, "data": doc}
+
+
+# ==================== 工作台 Dashboard ====================
+
+@app.get("/api/v1/dashboard/summary")
+def dashboard_summary_api(agent: dict = Depends(get_current_agent)):
+    """工作台 5 个数字"""
+    agent_id = agent["_id"]
+
+    my_on_sale = db["listings"].count_documents({
+        "owner_agent_id": agent_id,
+        "status": "on_sale",
+    })
+
+    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    shared_new_today = db["listings"].count_documents({
+        "status": {"$in": ["on_sale", "deposit_paid", "transaction_ongoing", "sold"]},
+        "owner_agent_id": {"$ne": agent_id},
+        "created_at": {"$gte": today_start},
+    })
+
+    pending_approval = count_pending_received(agent_id)
+    pending_confirm_showing = count_pending_confirm(agent_id)
+    pending_confirm_transaction = count_pending_for_la(agent_id)
+    pending_settlement = count_pending_settlements_for_me(agent_id)
+
+    return {
+        "success": True,
+        "data": {
+            "my_on_sale_count": my_on_sale,
+            "shared_new_today_count": shared_new_today,
+            "pending_approval_count": pending_approval,
+            "pending_confirm_showing_count": pending_confirm_showing,
+            "pending_confirm_transaction_count": pending_confirm_transaction,
+            "pending_settlement_count": pending_settlement,
+        },
+    }
+
+
+# ==================== 模块三补强:小区库 ====================
+
+@app.get("/api/v1/communities/search")
+def search_communities_api(
+    q: str = "",
+    district: str | None = None,
+    limit: int = 10,
+    agent: dict = Depends(get_current_agent),
+):
+    items = search_communities(q, district, limit)
+    return {"success": True, "items": items}
+
+
+@app.post("/api/v1/communities")
+def create_community_api(
+    body: CreateCommunityBody,
+    agent: dict = Depends(get_current_agent),
+):
+    result = create_community(body, agent)
+    print(f"\n🏘️  新小区: {body.name} ({body.district}) by {agent['name']}")
+    return {"success": True, **result, "message": "小区已添加"}
+
+
+@app.get("/api/v1/communities/{community_id}")
+def get_community_api(
+    community_id: str,
+    agent: dict = Depends(get_current_agent),
+):
+    doc = get_community_by_id(community_id)
+    return {"success": True, "data": doc}
+
+    # ==================== 奖金结算(节点 ⑥) ====================
+
+
+@app.get("/api/v1/settlements/pending-my")
+def list_pending_settlements_api(
+    skip: int = 0,
+    limit: int = 50,
+    agent: dict = Depends(get_current_agent),
+):
+    """待我处理的奖金结算单(LA 待付 / BA 待确认,合并返回)"""
+    items, total = list_pending_settlements_for_me(
+        agent["_id"], skip=skip, limit=limit)
+    return {"success": True, "total": total, "items": items}
+
+
+@app.get("/api/v1/settlements/pending-my-count")
+def pending_settlements_count_api(
+    agent: dict = Depends(get_current_agent),
+):
+    """工作台"待我操作奖金"角标数"""
+    count = count_pending_settlements_for_me(agent["_id"])
+    return {"success": True, "count": count}
+
+
+@app.post("/api/v1/settlements/{settlement_id}/la-mark-paid")
+def la_mark_paid_api(
+    settlement_id: str,
+    body: LaMarkPaidBody,
+    agent: dict = Depends(get_current_agent),
+):
+    """LA 标记"我已付款" → pending_payment 转 pending_receipt"""
+    doc = la_mark_paid(settlement_id, body, agent["_id"])
+    return {"success": True, "data": doc}
+
+
+@app.get("/api/v1/settlements/{settlement_id}")
+def get_settlement_api(
+    settlement_id: str,
+    agent: dict = Depends(get_current_agent),
+):
+    """结算单详情(viewer-aware)"""
+    doc = get_settlement_by_id(settlement_id, agent["_id"])
     return {"success": True, "data": doc}
