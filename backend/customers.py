@@ -312,3 +312,152 @@ def can_direct_showing(current_agent_id: str, listing_id: str) -> dict:
             "can_direct": False,
             "reason": "首次对接该房源,请先走申请流程",
         }
+# ============= 直接带看(跳过申请) =============
+
+class DirectShowingRequest(BaseModel):
+    listing_id: str = Field(..., description="目标房源 ID")
+    customer_id: Optional[str] = Field(None, description="关联客户 ID(可选)")
+    customer_surname: Optional[str] = Field(None, min_length=1, max_length=5)
+    customer_gender: Optional[str] = Field(None, pattern="^(male|female)$")
+    requirements: Optional[str] = Field(None, max_length=200)
+    showing_time: str = Field(..., description="实际带看时间 ISO8601")
+    photos: list[str] = Field(..., min_length=1, max_length=3, description="现场照片 base64 1-3 张")
+    notes: Optional[str] = Field(None, max_length=200, description="备注")
+
+
+def create_direct_showing(current_agent_id: str, req: DirectShowingRequest) -> dict:
+    """直接发起带看 · 前置:对这套房历史有 approved 申请
+    
+    动作:
+    1. 检查熟人关系(复用 can_direct_showing 逻辑)
+    2. 自动创建一条 showing_request(status=auto_approved, approval_kind=auto_approved)
+    3. 立刻创建 showing(status=pending_confirm)
+    4. 返回 showing_id
+    """
+    try:
+        listing_oid = ObjectId(req.listing_id)
+        agent_oid = ObjectId(current_agent_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="ID 格式错误")
+
+    # 1. 查房源
+    listing = db["listings"].find_one({"_id": listing_oid})
+    if not listing:
+        raise HTTPException(status_code=404, detail="房源不存在")
+    if listing.get("status") not in ("on_sale", "deposit_paid"):
+        raise HTTPException(status_code=400, detail="该房源当前不接受带看")
+    if listing["owner_agent_id"] == agent_oid:
+        raise HTTPException(status_code=400, detail="不能对自己录入的房源直接带看")
+
+    # 2. 查熟人关系(历史 approved 申请)
+    prior_request = db["showing_requests"].find_one({
+        "listing_id": listing_oid,
+        "buyer_agent_id": agent_oid,
+        "status": {"$in": ["approved", "auto_approved"]},
+    })
+    if not prior_request:
+        raise HTTPException(
+            status_code=403,
+            detail="首次对接该房源,请先走申请流程",
+        )
+
+    # 3. 复用老客户信息 / 新建临时信息
+    customer_surname = req.customer_surname
+    customer_gender = req.customer_gender
+    requirements = req.requirements or ""
+    customer_oid = None
+
+    if req.customer_id:
+        customer_oid = ObjectId(req.customer_id)
+        customer_doc = db["customers"].find_one({"_id": customer_oid})
+        if not customer_doc:
+            raise HTTPException(status_code=404, detail="客户不存在")
+        if customer_doc["owner_agent_id"] != agent_oid:
+            raise HTTPException(status_code=403, detail="不能用他人客户")
+        # 有 customer_id 时,客户信息从档案取
+        customer_surname = customer_doc["surname"]
+        customer_gender = customer_doc["gender"]
+        requirements = customer_doc.get("requirements", "")
+    else:
+        # 无 customer_id,必须提供扁平字段
+        if not customer_surname or not customer_gender:
+            raise HTTPException(
+                status_code=400,
+                detail="未关联客户时,必须提供 customer_surname 和 customer_gender",
+            )
+
+    # 4. 解析 BA/LA 信息
+    buyer_agent = db["agents"].find_one({"_id": agent_oid})
+    if not buyer_agent:
+        raise HTTPException(status_code=404, detail="BA 不存在")
+    la_doc = db["agents"].find_one({"_id": listing["owner_agent_id"]})
+
+    # 5. 插入 auto_approved 申请(留痕)
+    now = datetime.now()
+    request_doc = {
+        "listing_id": listing_oid,
+        "listing_snapshot": {
+            "community": listing["community"],
+            "building": listing["building"],
+            "unit": listing["unit"],
+            "room_no": listing["room_no"],
+            "layout": listing.get("layout", ""),
+            "area_sqm": listing["area_sqm"],
+            "price_wan": listing["price_wan"],
+        },
+        "buyer_agent_id": agent_oid,
+        "buyer_agent_name": buyer_agent["name"],
+        "buyer_agent_phone": buyer_agent["phone"],
+        "buyer_agent_store": buyer_agent.get("store_name", ""),
+        "listing_agent_id": listing["owner_agent_id"],
+        "listing_agent_name": listing["owner_agent_name"],
+        "listing_agent_phone": listing.get("owner_agent_phone", ""),
+        "customer_surname": customer_surname,
+        "customer_gender": customer_gender,
+        "requirements": requirements,
+        "customer_id": customer_oid,
+        "approval_kind": "auto_approved",
+        "status": "auto_approved",
+        "reject_reason": None,
+        "reject_extra": None,
+        "created_at": now,
+        "updated_at": now,
+        "reviewed_at": now,  # 自动通过,reviewed_at = 创建时
+    }
+    request_result = db["showing_requests"].insert_one(request_doc)
+
+    # 6. 立刻创建 showing
+    try:
+        showing_time_dt = datetime.fromisoformat(req.showing_time.replace("Z", "+00:00"))
+    except Exception:
+        raise HTTPException(status_code=400, detail="showing_time 格式错误,需 ISO8601")
+
+    showing_doc = {
+        "showing_request_id": request_result.inserted_id,
+        "listing_id": listing_oid,
+        "listing_snapshot": request_doc["listing_snapshot"],
+        "ba_agent_id": agent_oid,
+        "la_agent_id": listing["owner_agent_id"],
+        "customer_surname": customer_surname,
+        "customer_gender": customer_gender,
+        "customer_id": customer_oid,
+        "showing_time": showing_time_dt,
+        "photos": req.photos,
+        "photo_count": len(req.photos),
+        "notes": req.notes or "",
+        "status": "pending_confirm",
+        "reject_reason": None,
+        "confirmed_at": None,
+        "customer_feedback": "",
+        "created_at": now,
+        "updated_at": now,
+    }
+    showing_result = db["showings"].insert_one(showing_doc)
+
+    return {
+        "showing_id": str(showing_result.inserted_id),
+        "showing_request_id": str(request_result.inserted_id),
+        "skipped_approval": True,
+        "la_name": la_doc.get("name", "") if la_doc else "",
+        "la_phone": la_doc.get("phone", "") if la_doc else "",
+    }

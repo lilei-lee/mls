@@ -106,6 +106,8 @@ from customers import (
     close_customer,
     get_customer_timeline,
     can_direct_showing,
+    DirectShowingRequest,
+    create_direct_showing,
 )
 
 app = FastAPI(
@@ -1041,4 +1043,13 @@ def api_can_direct_showing(
 ):
     """检查能否对某房直接发起带看(熟人专用)"""
     data = can_direct_showing(str(current_agent["_id"]), listing_id)
+    return {"success": True, "data": data}
+
+@app.post("/api/v1/showings/direct")
+def api_create_direct_showing(
+    req: DirectShowingRequest,
+    current_agent: dict = Depends(get_current_agent),
+):
+    """直接发起带看(跳过申请) · 前置:对这套房历史有 approved 申请"""
+    data = create_direct_showing(str(current_agent["_id"]), req)
     return {"success": True, "data": data}
