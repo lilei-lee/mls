@@ -91,6 +91,7 @@ from settlements import (
     list_pending_for_me as list_pending_settlements_for_me,
     count_pending_for_me as count_pending_settlements_for_me,
 )
+from scheduler import start_scheduler, stop_scheduler
 
 app = FastAPI(
     title="MLS 后端 API",
@@ -117,6 +118,12 @@ def startup_check():
     print("✓ 成交记录索引已建立")
     ensure_settlements_indexes()
     print("✓ 奖金结算索引已建立")
+    start_scheduler()
+
+
+@app.on_event("shutdown")
+def shutdown_hook():
+    stop_scheduler()
 
 
 redis_client = fakeredis.FakeStrictRedis(decode_responses=True)
