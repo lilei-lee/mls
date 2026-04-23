@@ -286,7 +286,7 @@ def can_direct_showing(current_agent_id: str, listing_id: str) -> dict:
         listing_oid = ObjectId(listing_id)
         agent_oid = ObjectId(current_agent_id)
     except Exception:
-        raise HTTPException(status_code=400, detail="ID格式错误")
+        raise HTTPException(status_code=400, detail="无效的房源 ID")
 
     # 查历史是否对这套房有过 approved 申请(或 auto_approved)
     history = db["showing_requests"].find_one({
@@ -338,7 +338,7 @@ def create_direct_showing(current_agent_id: str, req: DirectShowingRequest) -> d
         listing_oid = ObjectId(req.listing_id)
         agent_oid = ObjectId(current_agent_id)
     except Exception:
-        raise HTTPException(status_code=400, detail="ID 格式错误")
+        raise HTTPException(status_code=400, detail="无效的房源 ID")
 
     # 1. 查房源
     listing = db["listings"].find_one({"_id": listing_oid})
