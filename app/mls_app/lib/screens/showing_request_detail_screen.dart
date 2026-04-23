@@ -8,6 +8,7 @@ import '../services/api_client.dart';
 import '../services/showing_request_service.dart';
 import '../services/showing_service.dart';
 import '../services/transaction_service.dart';
+import '../widgets/status_labels.dart';
 
 /// 带客申请详情页
 class ShowingRequestDetailScreen extends StatefulWidget {
@@ -813,30 +814,34 @@ class _ShowingRequestDetailScreenState
   }
 
   Widget _transactionStatusChip(String status, Map<String, dynamic> tx) {
+    // 颜色映射留在本地(语义化色彩),文字大多用 StatusLabels 工具
     late Color color;
-    late String text;
     switch (status) {
       case 'pending_la_confirm':
         color = Colors.orange;
-        text = '待 LA 独立填价';
         break;
       case 'confirmed':
         color = Colors.green;
-        text = '成交已生效 · 写入留痕链';
         break;
       case 'rejected':
         color = Colors.red;
-        text = tx['reject_kind'] == 'price_mismatch'
-            ? '系统自动驳回(价格不一致)'
-            : 'LA 驳回';
         break;
       case 'cancelled':
         color = Colors.grey;
-        text = '已撤回';
         break;
       default:
         color = Colors.grey;
-        text = status;
+    }
+    // 特殊显示:confirmed 加"· 写入留痕链"、rejected 分自动/手动
+    late final String text;
+    if (status == 'confirmed') {
+      text = '成交已生效 · 写入留痕链';
+    } else if (status == 'rejected') {
+      text = tx['reject_kind'] == 'price_mismatch'
+          ? '系统自动驳回(价格不一致)'
+          : 'LA 驳回';
+    } else {
+      text = StatusLabels.transaction(status);
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -851,25 +856,26 @@ class _ShowingRequestDetailScreenState
   }
 
   Widget _showingStatusChip(String status) {
+    // 颜色映射留在本地(语义化色彩),文字用 StatusLabels 工具
     late Color color;
-    late String text;
     switch (status) {
+      case 'pending_la_confirm':
       case 'pending_confirm':
         color = Colors.orange;
-        text = '待 LA 确认';
         break;
       case 'confirmed':
         color = Colors.green;
-        text = '已确认 · 写入留痕链';
         break;
       case 'rejected':
         color = Colors.red;
-        text = '已驳回';
         break;
       default:
         color = Colors.grey;
-        text = status;
     }
+    // 特殊显示:confirmed 带"· 写入留痕链"强调这是一个链路节点
+    final text = status == 'confirmed'
+        ? '已确认 · 写入留痕链'
+        : StatusLabels.showing(status);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
@@ -918,6 +924,11 @@ class _ShowingRequestDetailScreenState
         color = Colors.grey;
         icon = Icons.block;
         text = '已拒绝';
+        break;
+      case ShowingRequestStatus.expired:
+        color = Colors.grey;
+        icon = Icons.timer_off_outlined;
+        text = '已过期 · 7 天未处理自动失效';
         break;
     }
     return Container(

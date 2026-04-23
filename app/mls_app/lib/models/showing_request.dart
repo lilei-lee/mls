@@ -2,7 +2,8 @@
 enum ShowingRequestStatus {
   pending('pending', '待审批'),
   approved('approved', '已通过'),
-  rejected('rejected', '已拒绝');
+  rejected('rejected', '已拒绝'),
+  expired('expired', '已过期');
 
   final String value;
   final String label;

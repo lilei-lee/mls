@@ -239,6 +239,9 @@ class _StatusBadge extends StatelessWidget {
       case ShowingRequestStatus.rejected:
         color = Colors.grey;
         break;
+      case ShowingRequestStatus.expired:
+        color = Colors.grey;
+        break;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
