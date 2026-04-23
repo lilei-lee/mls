@@ -162,6 +162,10 @@ def initiate_transaction(body: InitiateTransactionBody, ba_agent: dict) -> dict:
         "la_agent_id": showing["la_agent_id"],
         "la_agent_name": showing["la_agent_name"],
 
+        # 奖金快照(V10 决策:金额锁定时点=BA 提交时)
+        # 读 listing 当前 bonus_yuan 存进来,la_confirm 生成 settlement 时优先读这个
+        "bonus_yuan_snapshot": int(listing.get("bonus_yuan", 0) or 0),
+
         # BA 填报(发起时写)
         "ba_deal_price_yuan": body.deal_price_yuan,
         "ba_deal_date": deal_dt,
@@ -244,13 +248,16 @@ def la_confirm_transaction(
         )
 
         # 副作用 2:节点⑥ - 奖金结算单自动生成(V10 决策)
-        # 金额锁定 = BA 提交成交确认时 listing 的 bonus_yuan
-        # 但我们没有"BA 提交时刻的快照",只能以当前 listing.bonus_yuan 近似
-        # (V10 允许 LA 上下调奖金,但本 MVP 让房源有单一 bonus_yuan 字段,
-        #  pending_la_confirm 期间不能修改 —— 该规则在 listings.py 的调价接口里约束,
-        #  登技术债:调价拦截尚未实现)
-        listing_doc = listings_collection.find_one({"_id": doc["listing_id"]})
-        bonus_yuan = int(listing_doc.get("bonus_yuan", 0) or 0) if listing_doc else 0
+        # 金额锁定时点 = BA 提交成交确认时(读 transaction 上的快照)
+        # 快照存在 doc.bonus_yuan_snapshot(initiate_transaction 时写入)
+        # 老数据没快照,回落读 listing 当前值(向后兼容)
+        bonus_yuan = doc.get("bonus_yuan_snapshot")
+        if bonus_yuan is None:
+            listing_doc = listings_collection.find_one({"_id": doc["listing_id"]})
+            bonus_yuan = int(listing_doc.get("bonus_yuan", 0) or 0) if listing_doc else 0
+        else:
+            bonus_yuan = int(bonus_yuan)
+
         if bonus_yuan > 0:
             # 重新取最新 transaction doc 以便快照字段齐全
             latest_tx = transactions_collection.find_one({"_id": oid})
