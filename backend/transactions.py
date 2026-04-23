@@ -127,8 +127,12 @@ def initiate_transaction(body: InitiateTransactionBody, ba_agent: dict) -> dict:
     deal_dt = _parse_date(body.deal_date)
     if deal_dt > datetime.now():
         raise HTTPException(status_code=400, detail="成交日期不能晚于今天")
-    if deal_dt < showing["showing_time"]:
-        raise HTTPException(status_code=400, detail="成交日期不能早于带看时间")
+    # 日期粒度比较:把带看时间截到当天 00:00,避免"同天带看同天成交"被拦
+    # (deal_dt 本来就是 _parse_date 出的 00:00,showing_time 是带时刻的)
+    showing_day = showing["showing_time"].replace(
+        hour=0, minute=0, second=0, microsecond=0)
+    if deal_dt < showing_day:
+        raise HTTPException(status_code=400, detail="成交日期不能早于带看日期")
 
     # 4. 同一房源"单一待确认"控制
     existing = transactions_collection.find_one({
