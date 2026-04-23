@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../services/api_client.dart';
 import '../services/dashboard_service.dart';
 
-/// 登录后的工作台(Day 7.5 补齐第 5 卡)
+/// 登录后的工作台
+/// Day 9 重构:废掉"快捷入口"区,所有入口整合为 7 张卡
+/// 卡 2 "共享房源库"显示"总 X · 今 Y",点进去默认全部
 class HomeScreen extends StatefulWidget {
   final String name;
   const HomeScreen({super.key, required this.name});
@@ -156,80 +158,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // 待处理仪表盘(5 卡:2×2 + 1 全宽)
+                // 7 卡仪表盘(4 行:2+2+2+1)
                 _buildSummaryDashboard(),
                 const SizedBox(height: 20),
 
-                // 快捷入口
-                const Padding(
-                  padding: EdgeInsets.only(left: 4, bottom: 10),
-                  child: Text(
-                    '快捷入口',
-                    style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: SizedBox(
-                        height: 52,
-                        child: ElevatedButton.icon(
-                          onPressed: () => context.push('/listings/mine'),
-                          icon: const Icon(Icons.home_work),
-                          label: const Text('我的房源'),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: SizedBox(
-                        height: 52,
-                        child: OutlinedButton.icon(
-                          onPressed: () => context.push('/listings/shared'),
-                          icon: const Icon(Icons.share),
-                          label: const Text('共享房源库'),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: SizedBox(
-                        height: 52,
-                        child: OutlinedButton.icon(
-                          onPressed: () async {
-                            await context.push('/showing-requests/sent');
-                            _refreshAll();
-                          },
-                          icon: const Icon(Icons.send_outlined),
-                          label: const Text('我发出的申请'),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: SizedBox(
-                        height: 52,
-                        child: OutlinedButton.icon(
-                          onPressed: () async {
-                            await context.push('/showing-requests/received');
-                            _refreshAll();
-                          },
-                          icon: const Icon(Icons.inbox_outlined),
-                          label: const Text('收到的申请'),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
                 Center(
                   child: Text(
                     '手机号 ${me['phone'] ?? '-'} · ${me['store_name'] ?? '独立经纪人'}',
@@ -245,14 +177,15 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// 待处理仪表盘:第一行 2 个,第二行 2 个,第三行 1 个全宽
+  /// 7 卡仪表盘
   Widget _buildSummaryDashboard() {
     return FutureBuilder<Map<String, dynamic>>(
       future: _summaryFuture,
       builder: (context, snap) {
-        // 默认全 0,未加载完也能铺出来
         int myOnSale = 0;
+        int sharedTotal = 0;
         int sharedNewToday = 0;
+        int mySentRecentChanges = 0;
         int pendingApproval = 0;
         int pendingConfirmShowing = 0;
         int pendingConfirmTransaction = 0;
@@ -264,8 +197,11 @@ class _HomeScreenState extends State<HomeScreen> {
         if (snap.hasData && snap.data!['my_on_sale_count'] != null) {
           final d = snap.data!;
           myOnSale = (d['my_on_sale_count'] as num?)?.toInt() ?? 0;
+          sharedTotal = (d['shared_total_count'] as num?)?.toInt() ?? 0;
           sharedNewToday =
               (d['shared_new_today_count'] as num?)?.toInt() ?? 0;
+          mySentRecentChanges =
+              (d['my_sent_recent_changes_count'] as num?)?.toInt() ?? 0;
           pendingApproval =
               (d['pending_approval_count'] as num?)?.toInt() ?? 0;
           pendingConfirmShowing =
@@ -303,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            // 第 1 行
+            // 第 1 行:房源数据概览
             Row(
               children: [
                 Expanded(
@@ -322,13 +258,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _StatCard(
-                    icon: Icons.new_releases_outlined,
-                    label: '今日新房源',
-                    count: sharedNewToday,
+                    icon: Icons.share_outlined,
+                    label: '共享房源库',
+                    count: sharedTotal,
+                    subText: sharedNewToday > 0 ? '今日新 $sharedNewToday' : null,
                     color: Colors.teal,
                     badge: false,
                     onTap: () async {
-                      await context.push('/listings/shared?new_today=1');
+                      await context.push('/listings/shared');
                       _refreshAll();
                     },
                   ),
@@ -336,13 +273,27 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            // 第 2 行
+            // 第 2 行:申请双向(都有 badge)
             Row(
               children: [
                 Expanded(
                   child: _StatCard(
+                    icon: Icons.send_outlined,
+                    label: '我发出的申请',
+                    count: mySentRecentChanges,
+                    color: Colors.indigo,
+                    badge: true,
+                    onTap: () async {
+                      await context.push('/showing-requests/sent');
+                      _refreshAll();
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _StatCard(
                     icon: Icons.inbox_outlined,
-                    label: '待我审批',
+                    label: '收到的申请',
                     count: pendingApproval,
                     color: Colors.orange,
                     badge: true,
@@ -352,7 +303,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
                 ),
-                const SizedBox(width: 12),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // 第 3 行:确认类
+            Row(
+              children: [
                 Expanded(
                   child: _StatCard(
                     icon: Icons.fact_check_outlined,
@@ -366,12 +322,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            // 第 3 行:成交 + 奖金 2 卡
-            Row(
-              children: [
+                const SizedBox(width: 12),
                 Expanded(
                   child: _StatCard(
                     icon: Icons.gavel_outlined,
@@ -385,21 +336,21 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _StatCard(
-                    icon: Icons.payments_outlined,
-                    label: '待我操作奖金',
-                    count: pendingSettlement,
-                    color: Colors.orange,
-                    badge: true,
-                    onTap: () async {
-                      await context.push('/settlements/pending-my');
-                      _refreshAll();
-                    },
-                  ),
-                ),
               ],
+            ),
+            const SizedBox(height: 12),
+            // 第 4 行:奖金(全宽)
+            _StatCard(
+              icon: Icons.payments_outlined,
+              label: '待我操作奖金',
+              count: pendingSettlement,
+              color: Colors.orange.shade800,
+              badge: true,
+              fullWidth: true,
+              onTap: () async {
+                await context.push('/settlements/pending-my');
+                _refreshAll();
+              },
             ),
           ],
         );
@@ -443,6 +394,7 @@ class _StatCard extends StatelessWidget {
   final Color color;
   final bool badge;
   final bool fullWidth;
+  final String? subText; // 副标题,用于"今日新 X"提示
   final VoidCallback onTap;
 
   const _StatCard({
@@ -453,6 +405,7 @@ class _StatCard extends StatelessWidget {
     required this.badge,
     required this.onTap,
     this.fullWidth = false,
+    this.subText,
   });
 
   @override
@@ -526,6 +479,19 @@ class _StatCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: color,
                   shape: BoxShape.circle,
+                ),
+              ),
+            ],
+            if (subText != null) ...[
+              const SizedBox(width: 6),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 3),
+                child: Text(
+                  subText!,
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: color,
+                      fontWeight: FontWeight.w600),
                 ),
               ),
             ],

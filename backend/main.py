@@ -45,6 +45,7 @@ from showing_requests import (
     list_received_requests,
     list_sent_requests,
     count_pending_received,
+    count_my_sent_recent_changes,
 )
 from showings import (
     CreateShowingBody,
@@ -837,27 +838,27 @@ def dashboard_summary_api(agent: dict = Depends(get_current_agent)):
         "status": "on_sale",
     })
 
-    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    shared_new_today = db["listings"].count_documents({
-        "status": {"$in": ["on_sale", "deposit_paid", "transaction_ongoing", "sold"]},
-        "owner_agent_id": {"$ne": agent_id},
-        "created_at": {"$gte": today_start},
-    })
+    # 共享库统计:总数 + 今日新增
+    shared_total = count_shared_listings(agent_id, new_today=False)
+    shared_new_today = count_shared_listings(agent_id, new_today=True)
 
     pending_approval = count_pending_received(agent_id)
     pending_confirm_showing = count_pending_confirm(agent_id)
     pending_confirm_transaction = count_pending_for_la(agent_id)
     pending_settlement = count_pending_settlements_for_me(agent_id)
+    my_sent_recent_changes = count_my_sent_recent_changes(agent_id)
 
     return {
         "success": True,
         "data": {
             "my_on_sale_count": my_on_sale,
+            "shared_total_count": shared_total,
             "shared_new_today_count": shared_new_today,
             "pending_approval_count": pending_approval,
             "pending_confirm_showing_count": pending_confirm_showing,
             "pending_confirm_transaction_count": pending_confirm_transaction,
             "pending_settlement_count": pending_settlement,
+            "my_sent_recent_changes_count": my_sent_recent_changes,
         },
     }
 

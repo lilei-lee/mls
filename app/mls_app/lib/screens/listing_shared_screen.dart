@@ -5,13 +5,14 @@ import '../services/api_client.dart';
 import '../widgets/base64_image.dart';
 import '../widgets/filter_sheet.dart';
 
-/// 共享房源库(搜索 + 排序 + 筛选,匿名浏览)
+/// 共享房源库(搜索 + 排序 + 筛选 + Tab:全部/今日新,匿名浏览)
 ///
-/// 路由参数 `?new_today=1` 进入时,只展示今日零点起新增的房源,
-/// 配合工作台"今日新房源"卡片。
+/// Day 9 重构:
+/// - 顶部加 Tab:"全部 / 今日新"(默认"全部")
+/// - 原路由参数 `?new_today=1` 仍支持(兼容旧工作台入口),会默认选中"今日新" Tab
 class ListingSharedScreen extends StatefulWidget {
-  /// true = 只看今日新增(工作台入口)
-  /// false = 看全量共享库(底部或主入口)
+  /// true = 初始选中"今日新" Tab(兼容旧路由)
+  /// false = 初始选中"全部" Tab(默认)
   final bool newTodayOnly;
 
   const ListingSharedScreen({super.key, this.newTodayOnly = false});
@@ -20,8 +21,11 @@ class ListingSharedScreen extends StatefulWidget {
   State<ListingSharedScreen> createState() => _ListingSharedScreenState();
 }
 
-class _ListingSharedScreenState extends State<ListingSharedScreen> {
-  late Future<Map<String, dynamic>> _listFuture;
+class _ListingSharedScreenState extends State<ListingSharedScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  late Future<Map<String, dynamic>> _allListFuture;
+  late Future<Map<String, dynamic>> _todayListFuture;
 
   bool _searchMode = false;
   final TextEditingController _searchController = TextEditingController();
@@ -34,6 +38,18 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: widget.newTodayOnly ? 1 : 0,
+    );
+    _tabController.addListener(() {
+      // Tab 切换时触发重建(显示对应的 header 和空态文案)
+      if (_tabController.indexIsChanging ||
+          _tabController.index != _tabController.previousIndex) {
+        setState(() {});
+      }
+    });
     _searchController.addListener(() {
       if (_keyword != _searchController.text.trim()) {
         setState(() {
@@ -41,30 +57,29 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
         });
       }
     });
-    _listFuture = _fetchList();
+    _allListFuture = _fetchList(newToday: false);
+    _todayListFuture = _fetchList(newToday: true);
   }
 
   @override
   void dispose() {
+    _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
-  Future<Map<String, dynamic>> _fetchList() async {
-    final query = <String, dynamic>{};
-    if (widget.newTodayOnly) {
-      query['new_today'] = '1';
-    }
+  Future<Map<String, dynamic>> _fetchList({required bool newToday}) async {
     final response = await ApiClient.instance.dio.get(
       '/listings/shared',
-      queryParameters: query.isEmpty ? null : query,
+      queryParameters: newToday ? {'new_today': '1'} : null,
     );
     return response.data as Map<String, dynamic>;
   }
 
   void _refresh() {
     setState(() {
-      _listFuture = _fetchList();
+      _allListFuture = _fetchList(newToday: false);
+      _todayListFuture = _fetchList(newToday: true);
     });
   }
 
@@ -143,7 +158,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
                   border: InputBorder.none,
                 ),
               )
-            : Text(widget.newTodayOnly ? '今日新房源' : '共享房源库'),
+            : const Text('共享房源库'),
         actions: [
           IconButton(
             icon: Icon(_searchMode ? Icons.close : Icons.search),
@@ -194,77 +209,79 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
             onPressed: _refresh,
           ),
         ],
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: theme.colorScheme.primary,
+          unselectedLabelColor: Colors.grey,
+          indicatorColor: theme.colorScheme.primary,
+          tabs: const [
+            Tab(text: '全部'),
+            Tab(text: '今日新'),
+          ],
+        ),
       ),
-      body: FutureBuilder<Map<String, dynamic>>(
-        future: _listFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return _buildError(snapshot.error.toString());
-          }
-
-          final data = snapshot.data!;
-          final allItems = (data['items'] as List).cast<Map<String, dynamic>>();
-          final processed = _processItems(allItems);
-
-          if (processed.isEmpty) {
-            return _buildEmpty(allItems.isEmpty);
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async => _refresh(),
-            child: ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: processed.length + 1,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 4, vertical: 8),
-                    child: Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Text(
-                          _headerText(processed.length, allItems.length),
-                          style: const TextStyle(
-                              color: Colors.grey, fontSize: 13),
-                        ),
-                        if (widget.newTodayOnly) _todayBadge(),
-                        _anonymousBadge(),
-                        if (_filters.isActive) _filterBadge(),
-                      ],
-                    ),
-                  );
-                }
-                return _SharedListingCard(item: processed[index - 1]);
-              },
-            ),
-          );
-        },
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildListView(_allListFuture, isTodayTab: false),
+          _buildListView(_todayListFuture, isTodayTab: true),
+        ],
       ),
     );
   }
 
-  Widget _todayBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.teal.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: const Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.new_releases_outlined, color: Colors.teal, size: 12),
-          SizedBox(width: 3),
-          Text('仅今日',
-              style: TextStyle(color: Colors.teal, fontSize: 11)),
-        ],
-      ),
+  Widget _buildListView(Future<Map<String, dynamic>> future,
+      {required bool isTodayTab}) {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return _buildError(snapshot.error.toString());
+        }
+
+        final data = snapshot.data!;
+        final allItems = (data['items'] as List).cast<Map<String, dynamic>>();
+        final processed = _processItems(allItems);
+
+        if (processed.isEmpty) {
+          return _buildEmpty(allItems.isEmpty, isTodayTab: isTodayTab);
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async => _refresh(),
+          child: ListView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: processed.length + 1,
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                return Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        _headerText(processed.length, allItems.length,
+                            isTodayTab: isTodayTab),
+                        style:
+                            const TextStyle(color: Colors.grey, fontSize: 13),
+                      ),
+                      _anonymousBadge(),
+                      if (_filters.isActive) _filterBadge(),
+                    ],
+                  ),
+                );
+              }
+              return _SharedListingCard(item: processed[index - 1]);
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -329,21 +346,21 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
     );
   }
 
-  String _headerText(int shown, int total) {
+  String _headerText(int shown, int total, {required bool isTodayTab}) {
     if (_keyword.isNotEmpty || _filters.isActive) {
       return '找到 $shown 套(共 $total 套)';
     }
-    if (widget.newTodayOnly) {
+    if (isTodayTab) {
       return '今日新增 $shown 套';
     }
     return '共 $shown 套在售房源';
   }
 
-  Widget _buildEmpty(bool totallyEmpty) {
+  Widget _buildEmpty(bool totallyEmpty, {required bool isTodayTab}) {
     String title;
     String? subtitle;
     if (totallyEmpty) {
-      if (widget.newTodayOnly) {
+      if (isTodayTab) {
         title = '今日暂无新房源';
         subtitle = '同行还没录入今天的新房源,稍后再来看看';
       } else {
@@ -362,9 +379,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            widget.newTodayOnly
-                ? Icons.new_releases_outlined
-                : Icons.home_outlined,
+            isTodayTab ? Icons.new_releases_outlined : Icons.home_outlined,
             size: 80,
             color: Colors.grey,
           ),
@@ -484,7 +499,6 @@ class _SharedListingCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                    // 奖金徽章(左上角,橙色,仅有奖金时显示)
                     if (bonusYuan > 0)
                       Positioned(
                         left: 4,

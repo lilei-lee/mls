@@ -12,7 +12,7 @@ MVP 范围:
 - 推送 / 微信分享 / 7天过期
 - 暂停校验 / 自促成交 / 批量审批
 """
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 from bson import ObjectId
 from fastapi import HTTPException
@@ -248,6 +248,19 @@ def count_pending_received(current_agent_id: ObjectId) -> int:
     return showing_requests_collection.count_documents({
         "listing_agent_id": current_agent_id,
         "status": "pending",
+    })
+
+
+def count_my_sent_recent_changes(current_agent_id: ObjectId, hours: int = 24) -> int:
+    """BA 视角:过去 N 小时内,我发出的申请被 LA 审批(通过/驳回)的数量
+    用于工作台"我发出的申请"角标提示。
+    过了 N 小时自然消失,避免一直顶着。
+    """
+    since = datetime.now() - timedelta(hours=hours)
+    return showing_requests_collection.count_documents({
+        "buyer_agent_id": current_agent_id,
+        "status": {"$in": ["approved", "rejected"]},
+        "reviewed_at": {"$gte": since},
     })
 
 
