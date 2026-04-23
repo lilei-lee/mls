@@ -92,6 +92,21 @@ from settlements import (
     count_pending_for_me as count_pending_settlements_for_me,
 )
 from scheduler import start_scheduler, stop_scheduler
+from customers import (
+    CreateCustomerRequest,
+    UpdateCustomerRequest,
+    AddMemoRequest,
+    ensure_customers_indexes,
+    create_customer,
+    list_my_customers,
+    count_my_customers,
+    get_customer_by_id,
+    update_customer,
+    add_memo,
+    close_customer,
+    get_customer_timeline,
+    can_direct_showing,
+)
 
 app = FastAPI(
     title="MLS 后端 API",
@@ -118,6 +133,8 @@ def startup_check():
     print("✓ 成交记录索引已建立")
     ensure_settlements_indexes()
     print("✓ 奖金结算索引已建立")
+    ensure_customers_indexes()
+    print("✓ 客户档案索引已建立")
     start_scheduler()
 
 
@@ -944,3 +961,84 @@ def get_settlement_api(
     """结算单详情(viewer-aware)"""
     doc = get_settlement_by_id(settlement_id, agent["_id"])
     return {"success": True, "data": doc}
+
+# ==================== 模块:客户管理(Day 10) ====================
+
+@app.post("/api/v1/customers")
+def api_create_customer(
+    req: CreateCustomerRequest,
+    current_agent: dict = Depends(get_current_agent),
+):
+    """BA 创建一个新客户"""
+    data = create_customer(str(current_agent["_id"]), req)
+    return {"success": True, "data": data}
+
+
+@app.get("/api/v1/customers/mine")
+def api_list_my_customers(
+    current_agent: dict = Depends(get_current_agent),
+):
+    """BA 查自己的客户列表"""
+    data = list_my_customers(str(current_agent["_id"]))
+    return {"success": True, "data": {"items": data, "total": len(data)}}
+
+@app.get("/api/v1/customers/{customer_id}")
+def api_get_customer(
+    customer_id: str,
+    current_agent: dict = Depends(get_current_agent),
+):
+    """查客户详情"""
+    data = get_customer_by_id(str(current_agent["_id"]), customer_id)
+    return {"success": True, "data": data}
+
+
+@app.patch("/api/v1/customers/{customer_id}")
+def api_update_customer(
+    customer_id: str,
+    req: UpdateCustomerRequest,
+    current_agent: dict = Depends(get_current_agent),
+):
+    """更新客户基础信息"""
+    data = update_customer(str(current_agent["_id"]), customer_id, req)
+    return {"success": True, "data": data}
+
+
+@app.post("/api/v1/customers/{customer_id}/memo")
+def api_add_memo(
+    customer_id: str,
+    req: AddMemoRequest,
+    current_agent: dict = Depends(get_current_agent),
+):
+    """添加跟进记录"""
+    data = add_memo(str(current_agent["_id"]), customer_id, req)
+    return {"success": True, "data": data}
+
+
+@app.patch("/api/v1/customers/{customer_id}/close")
+def api_close_customer(
+    customer_id: str,
+    current_agent: dict = Depends(get_current_agent),
+):
+    """标记客户为已结单"""
+    data = close_customer(str(current_agent["_id"]), customer_id)
+    return {"success": True, "data": data}
+
+
+@app.get("/api/v1/customers/{customer_id}/timeline")
+def api_get_customer_timeline(
+    customer_id: str,
+    current_agent: dict = Depends(get_current_agent),
+):
+    """查客户时间线(关联的协作事件)"""
+    data = get_customer_timeline(str(current_agent["_id"]), customer_id)
+    return {"success": True, "data": data}
+
+
+@app.get("/api/v1/showings/can-direct")
+def api_can_direct_showing(
+    listing_id: str,
+    current_agent: dict = Depends(get_current_agent),
+):
+    """检查能否对某房直接发起带看(熟人专用)"""
+    data = can_direct_showing(str(current_agent["_id"]), listing_id)
+    return {"success": True, "data": data}
