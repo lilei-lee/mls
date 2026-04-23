@@ -5,6 +5,7 @@ import '../services/api_client.dart';
 import 'package:go_router/go_router.dart';
 
 /// 登录页
+/// Day 9 修:用 SingleChildScrollView 包裹,键盘弹出时内容可滚,不再 overflow
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -22,13 +23,11 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _sendingSms = false;
   bool _loggingIn = false;
 
-  /// 记录"发送验证码时的手机号",后续改号了就能察觉
   String _phoneWhenSmsSent = '';
 
   @override
   void initState() {
     super.initState();
-    // 监听手机号变化:只要改得和发送验证码时不一样了,就重置验证码状态
     _phoneController.addListener(_onPhoneChanged);
   }
 
@@ -112,7 +111,8 @@ class _LoginScreenState extends State<LoginScreen> {
       final data = response.data;
       if (data['success'] == true) {
         await _storage.write(key: 'access_token', value: data['access_token']);
-        await _storage.write(key: 'refresh_token', value: data['refresh_token']);
+        await _storage.write(
+            key: 'refresh_token', value: data['refresh_token']);
         await _storage.write(key: 'agent_id', value: data['agent_id']);
         await _storage.write(key: 'name', value: data['name']);
 
@@ -143,99 +143,99 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('MLS 登录')),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: 40),
-            const Text(
-              '张家口 MLS',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              '经纪人协作平台',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 60),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(24, 40, 24, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                '张家口 MLS',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                '经纪人协作平台',
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 60),
 
-            // 手机号 + 获取验证码(手机号始终可编辑)
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _phoneController,
-                    keyboardType: TextInputType.phone,
-                    maxLength: 11,
-                    decoration: const InputDecoration(
-                      labelText: '手机号',
-                      prefixIcon: Icon(Icons.phone_android),
-                      border: OutlineInputBorder(),
-                      counterText: '',
+              // 手机号 + 获取验证码
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      maxLength: 11,
+                      decoration: const InputDecoration(
+                        labelText: '手机号',
+                        prefixIcon: Icon(Icons.phone_android),
+                        border: OutlineInputBorder(),
+                        counterText: '',
+                      ),
                     ),
                   ),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _sendingSms ? null : _sendSmsCode,
+                      child: _sendingSms
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(_smsSent ? '重新发送' : '获取验证码'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // 验证码 + 登录按钮(只在发送后显示)
+              if (_smsSent) ...[
+                TextField(
+                  controller: _codeController,
+                  keyboardType: TextInputType.number,
+                  maxLength: 6,
+                  decoration: const InputDecoration(
+                    labelText: '验证码',
+                    hintText: '请输入6位验证码',
+                    prefixIcon: Icon(Icons.lock_outline),
+                    border: OutlineInputBorder(),
+                    counterText: '',
+                  ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(height: 24),
                 SizedBox(
-                  height: 56,
+                  height: 48,
                   child: ElevatedButton(
-                    onPressed: _sendingSms ? null : _sendSmsCode,
-                    child: _sendingSms
+                    onPressed: _loggingIn ? null : _login,
+                    child: _loggingIn
                         ? const SizedBox(
-                            width: 16,
-                            height: 16,
+                            width: 20,
+                            height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
                               color: Colors.white,
                             ),
                           )
-                        : Text(_smsSent ? '重新发送' : '获取验证码'),
+                        : const Text('登 录', style: TextStyle(fontSize: 16)),
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 16),
 
-            // 验证码输入框 + 登录按钮
-            if (_smsSent) ...[
-              TextField(
-                controller: _codeController,
-                keyboardType: TextInputType.number,
-                maxLength: 6,
-                decoration: const InputDecoration(
-                  labelText: '验证码',
-                  hintText: '请输入6位验证码',
-                  prefixIcon: Icon(Icons.lock_outline),
-                  border: OutlineInputBorder(),
-                  counterText: '',
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: _loggingIn ? null : _login,
-                  child: _loggingIn
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text('登 录', style: TextStyle(fontSize: 16)),
-                ),
-              ),
-            ],
+              const SizedBox(height: 40),
 
-            const Spacer(),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Row(
+              // 立即注册(不再尝试顶到底部,自然跟随内容后面)
+              Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text(
@@ -248,8 +248,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
