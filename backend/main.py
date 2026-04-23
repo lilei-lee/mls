@@ -496,6 +496,7 @@ class UpdateListingRequest(BaseModel):
     orientation: str | None = None
     price_wan: float | None = None
     remarks: str | None = None
+    bonus_yuan: int | None = None
     cover_thumbnail: str | None = None
     photos: list | None = None
 

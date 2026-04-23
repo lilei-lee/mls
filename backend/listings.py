@@ -92,6 +92,9 @@ class CreateListingRequest(BaseModel):
     orientation: str = Field(..., max_length=20)
     price_wan: float = Field(..., gt=0)
     remarks: Optional[str] = Field(None, max_length=500)
+    bonus_yuan: Optional[int] = Field(
+        0, ge=0, le=500_000, description="合作奖金(元),0=无奖金"
+    )
     cover_thumbnail: Optional[str] = Field(None, description="封面缩略图 base64")
     photos: Optional[List[PhotoItem]] = Field(default=None, description="完整照片列表")
 
@@ -179,6 +182,7 @@ def create_listing(req: CreateListingRequest, agent: dict) -> dict:
         "orientation": req.orientation,
         "price_wan": req.price_wan,
         "remarks": req.remarks or "",
+        "bonus_yuan": int(req.bonus_yuan or 0),
         "status": "on_sale",
         "cover_thumbnail": req.cover_thumbnail,
         "photos": photos_list,
@@ -301,6 +305,7 @@ def update_listing(
         "rooms", "halls", "bathrooms",
         "floor", "total_floor", "orientation",
         "price_wan", "remarks",
+        "bonus_yuan",
         "cover_thumbnail", "photos",
     }
     clean_fields = {
@@ -530,6 +535,7 @@ def _format_listing_full(doc: dict) -> dict:
         "orientation": doc["orientation"],
         "price_wan": doc["price_wan"],
         "remarks": doc.get("remarks", ""),
+        "bonus_yuan": int(doc.get("bonus_yuan", 0) or 0),
         "status": doc.get("status", "on_sale"),
         "status_label": STATUS_LABELS.get(doc.get("status", "on_sale"), doc.get("status", "")),
         "cover_thumbnail": doc.get("cover_thumbnail"),
@@ -603,6 +609,7 @@ def _format_listing_anonymous_lite(doc: dict) -> dict:
         "orientation": doc["orientation"],
         "price_wan": doc["price_wan"],
         "remarks": doc.get("remarks", ""),
+        "bonus_yuan": int(doc.get("bonus_yuan", 0) or 0),
         "status": doc.get("status", "on_sale"),
         "status_label": STATUS_LABELS.get(doc.get("status", "on_sale"), doc.get("status", "")),
         "cover_thumbnail": doc.get("cover_thumbnail"),

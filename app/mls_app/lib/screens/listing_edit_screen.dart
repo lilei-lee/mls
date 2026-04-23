@@ -29,6 +29,7 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
   late final TextEditingController _totalFloor;
   late final TextEditingController _orientation;
   late final TextEditingController _priceWan;
+  late final TextEditingController _bonusYuan;
   late final TextEditingController _remarks;
 
   late List<PickedPhoto> _photos;
@@ -50,6 +51,8 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
     _orientation =
         TextEditingController(text: o['orientation']?.toString() ?? '');
     _priceWan = TextEditingController(text: o['price_wan']?.toString() ?? '');
+    _bonusYuan = TextEditingController(
+        text: (o['bonus_yuan'] ?? 0).toString());
     _remarks = TextEditingController(text: o['remarks']?.toString() ?? '');
 
     // 段 8:初始化照片列表(从详情里读 photos 数组)
@@ -69,6 +72,7 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
     _totalFloor.dispose();
     _orientation.dispose();
     _priceWan.dispose();
+    _bonusYuan.dispose();
     _remarks.dispose();
     super.dispose();
   }
@@ -99,6 +103,8 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
         return;
       }
 
+      final bonusVal = int.tryParse(_bonusYuan.text.trim()) ?? 0;
+
       final payload = {
         'rooms': roomsVal,
         'halls': hallsVal,
@@ -107,6 +113,7 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
         'total_floor': totalFloorVal,
         'orientation': _orientation.text.trim(),
         'price_wan': priceVal,
+        'bonus_yuan': bonusVal,
         'remarks': _remarks.text.trim(),
         // 段 8
         'cover_thumbnail': _coverThumbnail,
@@ -217,9 +224,16 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
             ),
             _tf(_orientation, '朝向'),
             const SizedBox(height: 20),
-            _sectionTitle('报价'),
+            _sectionTitle('报价与合作奖金'),
             _tf(_priceWan, '报价(万元)', numeric: true, decimal: true),
-            const SizedBox(height: 20),
+            _tf(_bonusYuan, '合作奖金(元)', numeric: true, required: false),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 16, left: 4),
+              child: Text(
+                '💡 奖金 = 成交后您从中介费里拿出激励 BA 的金额。0 表示无奖金。',
+                style: TextStyle(fontSize: 11, color: Colors.grey),
+              ),
+            ),
             _sectionTitle('备注'),
             _tf(_remarks, '备注', required: false, maxLines: 3),
             const SizedBox(height: 24),

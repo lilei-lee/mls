@@ -432,6 +432,7 @@ class _SharedListingCard extends StatelessWidget {
     final createdAt = item['created_at'] as String?;
     final cover = item['cover_thumbnail'] as String?;
     final photoCount = (item['photo_count'] as num?)?.toInt() ?? 0;
+    final bonusYuan = (item['bonus_yuan'] as num?)?.toInt() ?? 0;
 
     final unitPrice = area > 0 ? (priceWan * 10000 / area).round() : 0;
 
@@ -478,6 +479,35 @@ class _SharedListingCard extends StatelessWidget {
                                 '$photoCount',
                                 style: const TextStyle(
                                     color: Colors.white, fontSize: 10),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    // 奖金徽章(左上角,橙色,仅有奖金时显示)
+                    if (bonusYuan > 0)
+                      Positioned(
+                        left: 4,
+                        top: 4,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade700,
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.local_offer,
+                                  size: 10, color: Colors.white),
+                              const SizedBox(width: 2),
+                              Text(
+                                '奖¥$bonusYuan',
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),

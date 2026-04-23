@@ -36,6 +36,7 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
   final _orientation = TextEditingController(text: '南北通透');
 
   final _priceWan = TextEditingController();
+  final _bonusYuan = TextEditingController(text: '0');
   final _remarks = TextEditingController();
 
   List<PickedPhoto> _photos = [];
@@ -84,6 +85,7 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
     _totalFloor.dispose();
     _orientation.dispose();
     _priceWan.dispose();
+    _bonusYuan.dispose();
     _remarks.dispose();
     super.dispose();
   }
@@ -119,6 +121,7 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
           'total_floor': int.parse(_totalFloor.text),
           'orientation': _orientation.text.trim(),
           'price_wan': double.parse(_priceWan.text),
+          'bonus_yuan': int.tryParse(_bonusYuan.text.trim()) ?? 0,
           'remarks': _remarks.text.trim(),
           'cover_thumbnail': _coverThumbnail,
           'photos': _photos.map((p) => p.toJson()).toList(),
@@ -209,6 +212,7 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
     _floor.clear();
     _totalFloor.clear();
     _priceWan.clear();
+    _bonusYuan.text = '0';
     _remarks.clear();
   }
 
@@ -356,7 +360,7 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  _sectionTitle('报价'),
+                  _sectionTitle('报价与合作奖金'),
                   _textField(
                     _priceWan,
                     '报价(万元)',
@@ -364,7 +368,20 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
                     numeric: true,
                     allowDecimal: true,
                   ),
-                  const SizedBox(height: 20),
+                  _textField(
+                    _bonusYuan,
+                    '合作奖金(元)',
+                    hint: '0 表示无奖金',
+                    numeric: true,
+                    required: false,
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 16, left: 4),
+                    child: Text(
+                      '💡 奖金 = 成交后您从中介费里拿出激励 BA 的金额,鼓励同行优先带客。示例:2000-5000 元',
+                      style: TextStyle(fontSize: 11, color: Colors.grey),
+                    ),
+                  ),
 
                   PhotoPicker(
                     initialPhotos: _photos,
