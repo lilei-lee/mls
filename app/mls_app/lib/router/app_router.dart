@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../screens/home_screen.dart';
 import '../widgets/bottom_nav.dart';
+import '../screens/customer_create_screen.dart';
+import '../screens/customer_detail_screen.dart';
 import '../screens/listing_create_screen.dart';
 import '../screens/listing_detail_screen.dart';
 import '../screens/listing_edit_screen.dart';
@@ -154,6 +156,18 @@ final GoRouter appRouter = GoRouter(
       path: '/transaction/:id',
       builder: (context, state) => TransactionDetailScreen(
         transactionId: state.pathParameters['id']!,
+      ),
+    ),
+
+    // 模块:客户管理(Day 12)
+    GoRoute(
+      path: '/customer/new',
+      builder: (context, state) => const CustomerCreateScreen(),
+    ),
+    GoRoute(
+      path: '/customer/:id',
+      builder: (context, state) => CustomerDetailScreen(
+        customerId: state.pathParameters['id']!,
       ),
     ),
   ],
