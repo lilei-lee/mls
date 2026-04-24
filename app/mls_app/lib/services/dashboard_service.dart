@@ -13,4 +13,18 @@ class DashboardService {
     final resp = await _dio.get('/dashboard/summary');
     return Map<String, dynamic>.from(resp.data['data']);
   }
+
+  /// Day 11 · 拉取逐条待办列表
+  /// 返 { todos: [...], total: N }
+  Future<Map<String, dynamic>> todos() async {
+    final resp = await _dio.get('/dashboard/todos');
+    return Map<String, dynamic>.from(resp.data['data']);
+  }
+
+  /// Day 11 · 拉取过去 24 小时的事件流
+  /// 返 { events: [...], total: N }
+  Future<Map<String, dynamic>> recentEvents() async {
+    final resp = await _dio.get('/dashboard/recent-events');
+    return Map<String, dynamic>.from(resp.data['data']);
+  }
 }

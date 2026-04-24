@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../screens/home_screen.dart';
 
 /// 应用主 Shell:底部 5 Tab 导航
 /// Day 11 新建
@@ -35,7 +36,7 @@ class _MainShellState extends State<MainShell> {
       body: IndexedStack(
         index: _currentIndex,
         children: const [
-          _PlaceholderPage(title: '工作台', subtitle: '待办 + 动态 + 快速入口'),
+          HomeScreen(),
           _PlaceholderPage(title: '房源', subtitle: '我的 / 共享库'),
           _PlaceholderPage(title: '协作', subtitle: '买方协作 / 卖方协作'),
           _PlaceholderPage(title: '客户', subtitle: '我的客户轻管理'),
