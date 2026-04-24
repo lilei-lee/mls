@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../screens/home_screen.dart';
+import '../widgets/bottom_nav.dart';
 import '../screens/listing_create_screen.dart';
 import '../screens/listing_detail_screen.dart';
 import '../screens/listing_edit_screen.dart';
@@ -43,8 +44,11 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/home',
       builder: (context, state) {
-        final name = state.uri.queryParameters['name'] ?? '';
-        return HomeScreen(name: name);
+        // Day 11:/home 改为 5 Tab 主 Shell
+        // ?tab=0~4 可指定初始 Tab(默认 0 工作台)
+        final tabStr = state.uri.queryParameters['tab'];
+        final initial = int.tryParse(tabStr ?? '0') ?? 0;
+        return MainShell(initialIndex: initial);
       },
     ),
     GoRoute(
