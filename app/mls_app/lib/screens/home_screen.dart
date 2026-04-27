@@ -270,11 +270,7 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: Icons.person_add_outlined,
               color: Colors.purple,
               label: '添加客户',
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('客户新建待 Day 12 实现')),
-                );
-              },
+              onTap: () => context.push('/customer/new'),
             ),
             _quickActionTile(
               icon: Icons.assignment_outlined,

@@ -7,7 +7,7 @@ class ApiConfig {
   /// 
   /// ⚠️ 每次电脑换 WiFi,或者路由器重启后 IP 可能会变
   /// 如果手机连不上,先 ipconfig 查一下当前 IP 是否还是这个
-  static const String baseUrl = 'http://192.168.0.104:8000';
+  static const String baseUrl = 'http://192.168.0.103:8000';
   
   /// API 前缀
   static const String apiPrefix = '/api/v1';

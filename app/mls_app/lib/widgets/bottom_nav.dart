@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../screens/home_screen.dart';
 import '../screens/customer_list_screen.dart';
+import '../screens/collaboration_list_screen.dart';
 
 /// 应用主 Shell:底部 5 Tab 导航
 /// Day 11 新建
@@ -39,7 +40,7 @@ class _MainShellState extends State<MainShell> {
         children: const [
           HomeScreen(),
           _PlaceholderPage(title: '房源', subtitle: '我的 / 共享库'),
-          _PlaceholderPage(title: '协作', subtitle: '买方协作 / 卖方协作'),
+          CollaborationListScreen(),
           CustomerListScreen(),
           _PlaceholderPage(title: '奖金', subtitle: '收入 / 支出'),
         ],
