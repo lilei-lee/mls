@@ -200,9 +200,21 @@ def list_my_collaborations(current_agent_id: str, role: str) -> list[dict]:
                 last_action_text = "结算完成"
 
         # 失败/过期态覆盖文案
+        # 失败/过期态覆盖文案
         if is_failed:
             if req.get("status") == "rejected":
-                last_action_text = f"申请被拒({req.get('reject_reason') or '未填理由'})"
+                # 拒绝理由中文映射(和后端 REJECT_REASONS 保持一致)
+                reject_reason_map = {
+                    "mismatch": "客户需求与房源不匹配",
+                    "inconvenient": "近期不方便看房",
+                    "near_deal": "房源即将成交",
+                    "other": req.get("reject_extra") or "其他",
+                }
+                reason_text = reject_reason_map.get(
+                    req.get("reject_reason") or "",
+                    req.get("reject_reason") or "未填理由",
+                )
+                last_action_text = f"申请被拒 · {reason_text}"
             elif req.get("status") == "expired":
                 last_action_text = "申请已过期"
 

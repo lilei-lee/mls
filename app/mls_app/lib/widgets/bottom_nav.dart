@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../screens/home_screen.dart';
 import '../screens/customer_list_screen.dart';
+import '../screens/listing_list_screen.dart';
+import '../screens/settlement_pending_screen.dart';
 import '../screens/collaboration_list_screen.dart';
 
 /// 应用主 Shell:底部 5 Tab 导航
@@ -39,10 +41,10 @@ class _MainShellState extends State<MainShell> {
         index: _currentIndex,
         children: const [
           HomeScreen(),
-          _PlaceholderPage(title: '房源', subtitle: '我的 / 共享库'),
+          ListingListScreen(),
           CollaborationListScreen(),
           CustomerListScreen(),
-          _PlaceholderPage(title: '奖金', subtitle: '收入 / 支出'),
+          SettlementPendingScreen(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
