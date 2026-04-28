@@ -133,9 +133,9 @@ class _CollaborationListScreenState extends State<CollaborationListScreen>
 
     // 优先级:有结算 → 结算详情;有成交 → 成交详情;否则 → 申请详情
     if (stage >= 4 && settlementId != null) {
-      context.push('/settlement/$settlementId');
+      context.push('/settlements/$settlementId');
     } else if (stage >= 3 && transactionId != null) {
-      context.push('/transaction/$transactionId');
+  context.push('/transaction/$transactionId');
     } else if (requestId != null) {
       context.push('/showing-request/$requestId');
     }
