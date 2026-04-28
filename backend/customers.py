@@ -220,7 +220,10 @@ def get_customer_timeline(current_agent_id: str, customer_id: str) -> dict:
         raise HTTPException(status_code=403, detail="无权查看他人客户")
 
     # 查关联的带客申请(通过 customer_id 字段)
-    requests = list(db["showing_requests"].find({"customer_id": oid}))
+    requests = list(db["showing_requests"].find({
+    "customer_id": oid,
+    "status": {"$ne": "merged_into_prior"},
+}))
 
     # 查关联的带看(通过申请反查,1:N 模式下一个 req 可能挂多条 showing)
     request_ids = [r["_id"] for r in requests]
