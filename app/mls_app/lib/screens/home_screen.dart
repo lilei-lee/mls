@@ -3,14 +3,14 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../services/dashboard_service.dart';
 
-/// 工作台 · Day 11 重写
+/// 工作台 · Day 11 重写 + Day 15 加退出登录入口
 ///
 /// 新结构(从上到下):
 /// 1. 今日待办(逐条版,红/橙卡片,做完消失)
 /// 2. 最近动态(过去 24h 事件流,灰色信息性)
 /// 3. 快速入口(创建类动作)
 ///
-/// AppBar 右上角头像入口 → /me("我的"页,Day 14 实现)
+/// AppBar 右上角头像入口 → 弹底部菜单(Day 15 临时:仅退出登录,完整"我的"页待后续)
 class HomeScreen extends StatefulWidget {
   /// 保留参数兼容老路由(当前没用,但保留避免破坏 app_router)
   final String name;
@@ -64,6 +64,73 @@ class _HomeScreenState extends State<HomeScreen> {
     return '夜深了';
   }
 
+  // ============= "我的"菜单(Day 15 临时实现:仅退出登录) =============
+
+  void _showMyMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (sheetCtx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.person_outline),
+              title: Text(_myName.isEmpty ? '我的' : _myName),
+              subtitle: const Text('完整"我的"页待后续实现'),
+              enabled: false,
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text(
+                '退出登录',
+                style: TextStyle(color: Colors.red),
+              ),
+              onTap: () {
+                Navigator.pop(sheetCtx);
+                _confirmLogout(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmLogout(BuildContext context) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dlgCtx) => AlertDialog(
+        title: const Text('退出登录'),
+        content: const Text('确定要退出当前账号吗?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dlgCtx, false),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dlgCtx, true),
+            child: const Text(
+              '退出',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (ok != true) return;
+    if (!context.mounted) return;
+
+    await _storage.delete(key: 'access_token');
+    await _storage.delete(key: 'refresh_token');
+    await _storage.delete(key: 'agent_id');
+    await _storage.delete(key: 'name');
+
+    if (!context.mounted) return;
+    context.go('/login');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,11 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 backgroundColor: Colors.blueGrey,
                 child: Icon(Icons.person, size: 16, color: Colors.white),
               ),
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('「我的」页待 Day 14 实现')),
-                );
-              },
+              onPressed: () => _showMyMenu(context),
             ),
           ),
         ],
