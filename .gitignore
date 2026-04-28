@@ -5,6 +5,10 @@ venv/
 .env
 *.egg-info/
 
+# 一次性脚本输出 / 诊断文件
+dry_run_*.txt
+*.dump.json
+
 # ===== Flutter / Dart / 前端 =====
 .dart_tool/
 .flutter-plugins
