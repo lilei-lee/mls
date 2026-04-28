@@ -354,7 +354,7 @@ def create_direct_showing(current_agent_id: str, req: DirectShowingRequest) -> d
     listing = db["listings"].find_one({"_id": listing_oid})
     if not listing:
         raise HTTPException(status_code=404, detail="房源不存在")
-    if listing.get("status") not in ("on_sale", "deposit_paid"):
+    if listing.get("status") not in ("on_sale", "deposit_paid", "transaction_ongoing"):
         raise HTTPException(status_code=400, detail="该房源当前不接受带看")
     if listing["owner_agent_id"] == agent_oid:
         raise HTTPException(status_code=400, detail="不能对自己录入的房源直接带看")
