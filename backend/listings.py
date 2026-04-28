@@ -9,6 +9,10 @@ V5 升级(模块五):
 - 共享库展示规则:on_sale/deposit_paid/transaction_ongoing/sold 都展示
   (仅 on_sale 能被申请带客,deposit_paid 种子期也放开以兼容 backup,
    transaction_ongoing/sold 不接带客)
+
+Day 16 增量:
+- list_shared_listings 在共享库每条 listing 上挂 my_request_status,
+  防止 BA 重复对同一房发起申请
 """
 import hashlib
 from datetime import datetime
@@ -19,6 +23,7 @@ from fastapi import HTTPException
 from database import db
 
 listings_collection = db["listings"]
+showing_requests_collection = db["showing_requests"]
 
 MAX_PHOTOS = 6
 
@@ -226,6 +231,53 @@ def count_my_listings(agent_id: ObjectId) -> int:
     return listings_collection.count_documents({"owner_agent_id": agent_id})
 
 
+# Day 16:状态优先级 —— approved 比 pending 更"硬"(approved 是终态在协作里活着)
+_REQ_STATUS_PRIORITY = {
+    "approved": 2,
+    "auto_approved": 2,
+    "pending": 1,
+}
+
+
+def _build_my_request_status_map(
+    listing_oids: list,
+    current_agent_id: ObjectId,
+) -> dict:
+    """Day 16:批量查"我对这些房子有什么活的申请"
+    返回 {listing_id_str: status} 字典,只含 pending/approved 两种结果。
+    """
+    if not listing_oids:
+        return {}
+
+    cursor = showing_requests_collection.find(
+        {
+            "listing_id": {"$in": listing_oids},
+            "buyer_agent_id": current_agent_id,
+            "status": {"$in": ["pending", "approved", "auto_approved"]},
+        },
+        {"listing_id": 1, "status": 1, "created_at": 1},
+    )
+
+    result = {}
+    for doc in cursor:
+        lid = str(doc["listing_id"])
+        new_status = doc["status"]
+        new_priority = _REQ_STATUS_PRIORITY.get(new_status, 0)
+
+        if lid not in result:
+            result[lid] = new_status
+        else:
+            old_priority = _REQ_STATUS_PRIORITY.get(result[lid], 0)
+            if new_priority > old_priority:
+                result[lid] = new_status
+
+    # 把 auto_approved 统一显示为 approved(前端只认两种)
+    return {
+        lid: "approved" if status == "auto_approved" else status
+        for lid, status in result.items()
+    }
+
+
 def list_shared_listings(
     current_agent_id: ObjectId,
     skip: int = 0,
@@ -235,6 +287,9 @@ def list_shared_listings(
     """共享库:所有交易状态的房源都展示(V10:sold 也公开展示成交价)
 
     new_today=True 时只返今日零点起新增的(配合工作台"今日新房源"卡片)。
+
+    Day 16:每条 listing 加 my_request_status 字段,值为
+    'pending' | 'approved' | None,前端用于显示"已申请"标签。
     """
     query = {
         "status": {"$in": SHARED_VISIBLE_STATUSES},
@@ -245,13 +300,24 @@ def list_shared_listings(
             hour=0, minute=0, second=0, microsecond=0)
         query["created_at"] = {"$gte": today_start}
 
-    cursor = (
+    docs = list(
         listings_collection.find(query)
         .sort("created_at", -1)
         .skip(skip)
         .limit(limit)
     )
-    return [_format_listing_anonymous_lite(doc) for doc in cursor]
+
+    # Day 16:批量查 my_request_status
+    listing_oids = [d["_id"] for d in docs]
+    my_status_map = _build_my_request_status_map(listing_oids, current_agent_id)
+
+    return [
+        _format_listing_anonymous_lite(
+            doc,
+            my_request_status=my_status_map.get(str(doc["_id"])),
+        )
+        for doc in docs
+    ]
 
 
 def count_shared_listings(
@@ -589,7 +655,15 @@ def _format_listing_lite(doc: dict) -> dict:
     }
 
 
-def _format_listing_anonymous_lite(doc: dict) -> dict:
+def _format_listing_anonymous_lite(
+    doc: dict,
+    my_request_status: Optional[str] = None,
+) -> dict:
+    """
+    Day 16:加 my_request_status 可选透出
+    - 'pending' / 'approved' / None
+    - 前端读这个字段决定共享库卡片右上角的"已申请"标签
+    """
     return {
         "listing_id": str(doc["_id"]),
         "house_code": doc["house_code"],
@@ -618,5 +692,7 @@ def _format_listing_anonymous_lite(doc: dict) -> dict:
         "sold_price_yuan": doc.get("sold_price_yuan"),
         "sold_date": doc["sold_date"].strftime("%Y-%m-%d")
         if doc.get("sold_date") else None,
+        # Day 16:我对这房的申请状态(防重复申请)
+        "my_request_status": my_request_status,
         "created_at": doc["created_at"].isoformat(),
     }

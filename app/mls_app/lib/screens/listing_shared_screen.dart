@@ -10,6 +10,10 @@ import '../widgets/filter_sheet.dart';
 /// Day 9 重构:
 /// - 顶部加 Tab:"全部 / 今日新"(默认"全部")
 /// - 原路由参数 `?new_today=1` 仍支持(兼容旧工作台入口),会默认选中"今日新" Tab
+///
+/// Day 16 增量:
+/// - 卡片标题右侧显示我的申请状态标签("已申请" / "已通过")
+/// - 已 pending/approved 的房,"申请带客"按钮置灰,提示已有协作
 class ListingSharedScreen extends StatefulWidget {
   /// true = 初始选中"今日新" Tab(兼容旧路由)
   /// false = 初始选中"全部" Tab(默认)
@@ -277,7 +281,10 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
                   ),
                 );
               }
-              return _SharedListingCard(item: processed[index - 1]);
+              return _SharedListingCard(
+                item: processed[index - 1],
+                onAfterApply: _refresh, // Day 16:申请成功后刷新,标签随之更新
+              );
             },
           ),
         );
@@ -413,7 +420,9 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
 
 class _SharedListingCard extends StatelessWidget {
   final Map<String, dynamic> item;
-  const _SharedListingCard({required this.item});
+  final VoidCallback? onAfterApply;
+
+  const _SharedListingCard({required this.item, this.onAfterApply});
 
   String _relativeTime(String? iso) {
     if (iso == null) return '';
@@ -428,6 +437,89 @@ class _SharedListingCard extends StatelessWidget {
     } catch (_) {
       return '';
     }
+  }
+
+  /// Day 16:我对这房的申请状态(后端返字段)
+  /// - 'pending' / 'approved' / null
+  String? get _myRequestStatus => item['my_request_status'] as String?;
+
+  bool get _hasMyRequest => _myRequestStatus != null;
+
+  Widget? _buildMyRequestBadge() {
+    if (_myRequestStatus == 'pending') {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.orange.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(3),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.hourglass_empty, size: 10, color: Colors.orange),
+            SizedBox(width: 2),
+            Text('已申请',
+                style: TextStyle(
+                    color: Colors.orange,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold)),
+          ],
+        ),
+      );
+    }
+    if (_myRequestStatus == 'approved') {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.green.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(3),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.check_circle, size: 10, color: Colors.green),
+            SizedBox(width: 2),
+            Text('已通过',
+                style: TextStyle(
+                    color: Colors.green,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold)),
+          ],
+        ),
+      );
+    }
+    return null;
+  }
+
+  void _onTapApply(BuildContext context, Map<String, dynamic> snapshot) async {
+    // Day 16:已有 pending/approved 时拦截 + 提示
+    if (_myRequestStatus == 'pending') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('已对这套房发起过申请,等待 LA 审批中(可在协作 Tab 跟进)'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+    if (_myRequestStatus == 'approved') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('已对这套房通过审批,请到协作 Tab 推进带看'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    final result = await context.push<bool>(
+      '/showing-request/new',
+      extra: {
+        'listing_id': item['listing_id'],
+        'snapshot': snapshot,
+      },
+    );
+    if (result == true) onAfterApply?.call();
   }
 
   @override
@@ -450,6 +542,17 @@ class _SharedListingCard extends StatelessWidget {
     final bonusYuan = (item['bonus_yuan'] as num?)?.toInt() ?? 0;
 
     final unitPrice = area > 0 ? (priceWan * 10000 / area).round() : 0;
+
+    final myRequestBadge = _buildMyRequestBadge();
+    final snapshot = {
+      'community': community,
+      'building': building,
+      'unit': unit,
+      'room_no': roomNo,
+      'layout': layout,
+      'area_sqm': area,
+      'price_wan': priceWan,
+    };
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
@@ -563,6 +666,10 @@ class _SharedListingCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          if (myRequestBadge != null) ...[
+                            const SizedBox(width: 4),
+                            myRequestBadge,
+                          ],
                         ],
                       ),
                       const SizedBox(height: 6),
@@ -623,27 +730,34 @@ class _SharedListingCard extends StatelessWidget {
                           ),
                           const Spacer(),
                           OutlinedButton.icon(
-                            onPressed: () {
-                              context.push(
-                                '/showing-request/new',
-                                extra: {
-                                  'listing_id': item['listing_id'],
-                                  'snapshot': {
-                                    'community': community,
-                                    'building': building,
-                                    'unit': unit,
-                                    'room_no': roomNo,
-                                    'layout': layout,
-                                    'area_sqm': area,
-                                    'price_wan': priceWan,
-                                  },
-                                },
-                              );
-                            },
-                            icon: const Icon(Icons.person_add, size: 14),
-                            label: const Text('申请带客',
-                                style: TextStyle(fontSize: 12)),
+                            onPressed: () => _onTapApply(context, snapshot),
+                            icon: Icon(
+                              _hasMyRequest
+                                  ? Icons.check
+                                  : Icons.person_add,
+                              size: 14,
+                            ),
+                            label: Text(
+                              _myRequestStatus == 'pending'
+                                  ? '已申请'
+                                  : _myRequestStatus == 'approved'
+                                      ? '已通过'
+                                      : '申请带客',
+                              style: const TextStyle(fontSize: 12),
+                            ),
                             style: OutlinedButton.styleFrom(
+                              foregroundColor: _myRequestStatus == 'pending'
+                                  ? Colors.orange
+                                  : _myRequestStatus == 'approved'
+                                      ? Colors.green
+                                      : null,
+                              side: BorderSide(
+                                color: _myRequestStatus == 'pending'
+                                    ? Colors.orange
+                                    : _myRequestStatus == 'approved'
+                                        ? Colors.green
+                                        : Colors.grey.shade400,
+                              ),
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 4),
                               minimumSize: const Size(0, 32),
