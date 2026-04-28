@@ -7,11 +7,15 @@ class ShowingRequestService {
   ShowingRequestService._internal();
 
   /// 发起带客申请
+  ///
+  /// [customerId] 可选 · 如果是从"我的客户"中选中的老客户,带上 customer_id
+  /// 透传给后端;新建临时客户场景留空,后端按 manual 流程走。
   Future<String> create({
     required String listingId,
     required String customerSurname,
     required String customerGender,
     required String requirements,
+    String? customerId,
   }) async {
     final resp = await ApiClient.instance.dio.post(
       '/showing-requests',
@@ -20,6 +24,8 @@ class ShowingRequestService {
         'customer_surname': customerSurname,
         'customer_gender': customerGender,
         'requirements': requirements,
+        if (customerId != null && customerId.isNotEmpty)
+          'customer_id': customerId,
       },
     );
     return resp.data['request_id'] as String;
