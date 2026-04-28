@@ -274,7 +274,7 @@ def apply_backfill(groups: list[dict]) -> None:
             )
             backfilled += 1
 
-    print(f"✅ 完成")
+    print("DONE: 完成")
     print(f"   - 新建客户档案: {new_count} 个")
     print(f"   - 匹配现有档案: {existing_count} 个")
     print(f"   - 回填 customer_id: {backfilled} 条 showing_request")
