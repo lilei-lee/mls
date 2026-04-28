@@ -72,6 +72,16 @@ def _naive(dt: datetime) -> datetime:
     return dt
 
 
+def _iso_or_none(v):
+    """格式化器助手:datetime → isoformat,缺失 → None,容错 Day 16 直接带看历史数据"""
+    if v is None:
+        return None
+    try:
+        return v.isoformat()
+    except AttributeError:
+        return None
+
+
 # ==================== 业务函数 ====================
 
 def submit_showing(body: CreateShowingBody, ba_agent: dict) -> dict:
@@ -246,7 +256,11 @@ def count_pending_confirm(la_agent_id: ObjectId) -> int:
 # ==================== 格式化器 ====================
 
 def _format_showing(doc: dict) -> dict:
-    """详情版:含完整 photos"""
+    """
+    详情版:含完整 photos
+    Day 16 容错:Day 15 重构后的"直接带看"创建路径漏写 ba_submitted_at 等字段,
+    formatter 用 .get 容错,缺字段返 None,前端按 null 处理。
+    """
     return {
         "showing_id": str(doc["_id"]),
         "showing_request_id": str(doc["showing_request_id"]),
@@ -254,15 +268,18 @@ def _format_showing(doc: dict) -> dict:
         "listing_snapshot": doc.get("listing_snapshot", {}),
         "ba_agent_name": doc.get("ba_agent_name", ""),
         "la_agent_name": doc.get("la_agent_name", ""),
-        "showing_time": doc["showing_time"].isoformat(),
+        "showing_time": _iso_or_none(doc.get("showing_time")),
         "photos": doc.get("photos", []),
         "photo_count": doc.get("photo_count", 0),
         "notes": doc.get("notes", ""),
         "status": doc["status"],
         "reject_reason": doc.get("reject_reason"),
-        "ba_submitted_at": doc["ba_submitted_at"].isoformat(),
-        "la_reviewed_at": doc["la_reviewed_at"].isoformat()
-        if doc.get("la_reviewed_at") else None,
+        "ba_submitted_at": _iso_or_none(doc.get("ba_submitted_at")),
+        "la_reviewed_at": _iso_or_none(doc.get("la_reviewed_at")),
+        # Day 15 1:N 留痕(可能没有,前端按需读)
+        "is_repeat_showing": doc.get("is_repeat_showing", False),
+        "original_request_id": str(doc["original_request_id"])
+        if doc.get("original_request_id") else None,
     }
 
 
@@ -273,8 +290,8 @@ def _format_showing_lite(doc: dict) -> dict:
         "showing_request_id": str(doc["showing_request_id"]),
         "listing_snapshot": doc.get("listing_snapshot", {}),
         "ba_agent_name": doc.get("ba_agent_name", ""),
-        "showing_time": doc["showing_time"].isoformat(),
+        "showing_time": _iso_or_none(doc.get("showing_time")),
         "photo_count": doc.get("photo_count", 0),
         "status": doc["status"],
-        "ba_submitted_at": doc["ba_submitted_at"].isoformat(),
+        "ba_submitted_at": _iso_or_none(doc.get("ba_submitted_at")),
     }

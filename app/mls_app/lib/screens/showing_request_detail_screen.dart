@@ -204,7 +204,27 @@ class _ShowingRequestDetailScreenState
     final result = await context.push<bool>('/transaction/$transactionId');
     if (result == true) _reload();
   }
+  
+  // Day 16:直接带看(1:N)入口
+  Future<void> _goDirectShowing(Map<String, dynamic> snapshot) async {
+    // 取当前申请的客户标签
+    final data = await _future;
+    final surname = (data['customer_surname'] ?? '') as String;
+    final gender = (data['customer_gender'] ?? 'male') as String;
+    final customerLabel = '$surname${gender == 'male' ? '先生' : '女士'}';
+    final listingId = data['listing_id'] as String;
 
+    if (!mounted) return;
+    final result = await context.push<bool>(
+      '/showings/direct/new',
+      extra: {
+        'listing_id': listingId,
+        'snapshot': snapshot,
+        'customer_label': customerLabel,
+      },
+    );
+    if (result == true) _reload();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -627,6 +647,22 @@ class _ShowingRequestDetailScreenState
               label: const Text('查看带看详情'),
             ),
           ),
+          // Day 16:1:N 直接带看 · 仅 BA 视角显示
+          if (!isLA) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 44,
+              child: OutlinedButton.icon(
+                onPressed: () => _goDirectShowing(snapshot),
+                icon: const Icon(Icons.camera_alt_outlined),
+                label: const Text('再次带看(无需重新审批)'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.blue,
+                  side: const BorderSide(color: Colors.blue),
+                ),
+              ),
+            ),
+          ],
         ],
       );
     }

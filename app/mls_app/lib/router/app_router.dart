@@ -4,6 +4,7 @@ import '../screens/home_screen.dart';
 import '../widgets/bottom_nav.dart';
 import '../screens/customer_create_screen.dart';
 import '../screens/customer_detail_screen.dart';
+import '../screens/direct_showing_create_screen.dart';
 import '../screens/listing_create_screen.dart';
 import '../screens/listing_detail_screen.dart';
 import '../screens/listing_edit_screen.dart';
@@ -119,6 +120,18 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/showings/pending-confirm',
       builder: (context, state) => const ShowingPendingConfirmScreen(),
+    ),
+    // Day 16:直接带看(1:N)
+    GoRoute(
+      path: '/showings/direct/new',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>;
+        return DirectShowingCreateScreen(
+          listingId: extra['listing_id'] as String,
+          listingSnapshot: extra['snapshot'] as Map<String, dynamic>,
+          customerLabel: extra['customer_label'] as String,
+        );
+      },
     ),
     GoRoute(
       path: '/showing/submit',

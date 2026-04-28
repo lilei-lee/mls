@@ -24,6 +24,26 @@ class ShowingService {
     return resp.data['showing_id'] as String;
   }
 
+  /// Day 16:直接带看(1:N 模式)
+  ///
+  /// 老客户对老房子再次带看,跳过申请审批。
+  /// 后端会基于"最早 prior_request"挂新 showing,客户信息从 prior_request 取,
+  /// 不允许换客户。
+  Future<String> createDirect({
+    required String listingId,
+    required DateTime showingTime,
+    required List<String> photos,
+    String? notes,
+  }) async {
+    final resp = await _dio.post('/showings/direct', data: {
+      'listing_id': listingId,
+      'showing_time': showingTime.toIso8601String(),
+      'photos': photos,
+      'notes': notes ?? '',
+    });
+    return resp.data['data']['showing_id'] as String;
+  }
+
   /// 按 request_id 查最新的带看记录(返回 null 表示尚未提交)
   Future<Map<String, dynamic>?> byRequest(String requestId) async {
     final resp = await _dio.get('/showings/by-request/$requestId');

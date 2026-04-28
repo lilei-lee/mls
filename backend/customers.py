@@ -390,6 +390,8 @@ def create_direct_showing(current_agent_id: str, req: DirectShowingRequest) -> d
 
     # 5. 在 prior_request 下挂新 showing(不再造新 showing_request)
     now = datetime.now()
+    # Day 16 修订:对齐 submit_showing 字段全集,补 ba_*/la_*/ba_submitted_at 等,
+    # 否则 _format_showing 在拉详情时会 KeyError(坑 29)
     showing_doc = {
         "showing_request_id": prior_request["_id"],
         "listing_id": listing_oid,
@@ -402,20 +404,30 @@ def create_direct_showing(current_agent_id: str, req: DirectShowingRequest) -> d
             "area_sqm": listing["area_sqm"],
             "price_wan": listing["price_wan"],
         }),
+        # 双方信息(对齐 submit_showing)
         "ba_agent_id": agent_oid,
+        "ba_agent_name": prior_request.get("buyer_agent_name", ""),
+        "ba_agent_phone": prior_request.get("buyer_agent_phone", ""),
         "la_agent_id": listing["owner_agent_id"],
+        "la_agent_name": prior_request.get("listing_agent_name", ""),
+        # 客户信息(1:N 模式下从 prior_request 取,不允许换)
         "customer_surname": customer_surname,
         "customer_gender": customer_gender,
         "customer_id": customer_oid,
+        # 带看内容
         "showing_time": showing_time_dt,
         "photos": req.photos,
         "photo_count": len(req.photos),
         "notes": req.notes or "",
+        # 状态机字段(对齐 submit_showing)
         "status": "pending_confirm",
         "reject_reason": None,
-        "confirmed_at": None,
-        "customer_feedback": "",
-        "is_repeat_showing": True,  # Day 15:标记这是基于熟人关系的非首次带看
+        "ba_submitted_at": now,
+        "la_reviewed_at": None,
+        "listing_cycle": None,  # 预留,模块五用
+        # 1:N 留痕
+        "is_repeat_showing": True,
+        # 时间戳
         "created_at": now,
         "updated_at": now,
     }
