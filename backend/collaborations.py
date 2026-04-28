@@ -1,10 +1,11 @@
 """
-MLS 模块:协作聚合(Day 13 新建)
+MLS 模块:协作聚合(Day 13 新建,Day 15 重构支持 1:N 带看)
 
 职责:
 - 把 showing_request + showings + transactions + settlements 4 个集合
   串成"协作"对象返给前端,用于进度条展示
 - 区分买方协作(BA 视角)和卖方协作(LA 视角)
+- 1 申请 → N 带看:同一申请下挂多条带看记录,进度条以"最新带看"判定阶段
 
 设计原则:聚合查询,前端不再分别查 4 个接口拼数据
 """
@@ -28,9 +29,11 @@ STAGE_COMPLETED = 5     # 完成
 STAGE_LABELS = ["申请", "已通过", "带看", "成交", "付款", "完成"]
 
 
-def _compute_stage(request_doc, showing_doc, transaction_doc, settlement_doc):
-    """根据 4 个对象的状态推算当前在第几个阶段。
-    
+def _compute_stage(request_doc, showings, transaction_doc, settlement_doc):
+    """根据状态推算当前在第几个阶段。
+
+    showings: list[dict],按 created_at 倒序(最新在前);可能为空 list
+
     返 (stage_index, stage_status, is_failed)
     - stage_index: 0~5
     - stage_status: 'in_progress' | 'done' | 'failed' | 'expired'
@@ -47,44 +50,49 @@ def _compute_stage(request_doc, showing_doc, transaction_doc, settlement_doc):
     if req_status == "pending":
         return (STAGE_REQUEST, "in_progress", False)
 
-    # 申请已通过(approved 或 auto_approved)
-    if not showing_doc:
+    # 申请已通过(approved 或 auto_approved),但还没带看
+    if not showings:
         return (STAGE_APPROVED, "in_progress", False)
 
-    # 有了带看
-    showing_status = showing_doc.get("status")
-    if showing_status == "rejected":
+    # 有 transaction(挂在某一条 showing 上)优先走 transaction/settlement 分支
+    if transaction_doc:
+        tx_status = transaction_doc.get("status")
+        if tx_status in ("rejected", "cancelled"):
+            return (STAGE_TRANSACTION, "failed", True)
+        if tx_status == "pending_la_confirm":
+            return (STAGE_TRANSACTION, "in_progress", False)
+
+        # 成交已 confirmed
+        if not settlement_doc:
+            # confirmed 但没产生 settlement(说明 bonus_yuan = 0)
+            return (STAGE_COMPLETED, "done", False)
+
+        stl_status = settlement_doc.get("status")
+        if stl_status == "settled":
+            return (STAGE_COMPLETED, "done", False)
+        if stl_status in ("pending_payment", "pending_receipt"):
+            return (STAGE_PAYMENT, "in_progress", False)
+        if stl_status == "disputed":
+            return (STAGE_PAYMENT, "failed", True)
+
+        # 兜底
+        return (STAGE_PAYMENT, "in_progress", False)
+
+    # 没 transaction,看最新一条带看判态
+    latest = showings[0]
+    latest_status = latest.get("status")
+
+    if latest_status == "rejected":
+        # 鲁棒:历史有 confirmed 的不算 failed(下一次带看再来即可)
+        if any(s.get("status") == "confirmed" for s in showings):
+            return (STAGE_SHOWING, "done", False)
         return (STAGE_SHOWING, "failed", True)
-    if showing_status == "pending_confirm":
+
+    if latest_status == "pending_confirm":
         return (STAGE_SHOWING, "in_progress", False)
 
-    # 带看已确认
-    if not transaction_doc:
-        return (STAGE_SHOWING, "done", False)
-
-    # 有了成交
-    tx_status = transaction_doc.get("status")
-    if tx_status in ("rejected", "cancelled"):
-        return (STAGE_TRANSACTION, "failed", True)
-    if tx_status == "pending_la_confirm":
-        return (STAGE_TRANSACTION, "in_progress", False)
-
-    # 成交已 confirmed
-    if not settlement_doc:
-        # confirmed 但没产生 settlement(说明 bonus_yuan = 0)
-        return (STAGE_COMPLETED, "done", False)
-
-    # 有了 settlement
-    stl_status = settlement_doc.get("status")
-    if stl_status == "settled":
-        return (STAGE_COMPLETED, "done", False)
-    if stl_status in ("pending_payment", "pending_receipt"):
-        return (STAGE_PAYMENT, "in_progress", False)
-    if stl_status == "disputed":
-        return (STAGE_PAYMENT, "failed", True)
-
-    # 兜底
-    return (STAGE_PAYMENT, "in_progress", False)
+    # latest 是 confirmed 或其他正常态,带看已完成(等成交)
+    return (STAGE_SHOWING, "done", False)
 
 
 def _stage_status_label(stage, status, is_failed):
@@ -105,8 +113,8 @@ def _stage_status_label(stage, status, is_failed):
 # ============= 主聚合函数 =============
 
 def list_my_collaborations(current_agent_id: str, role: str) -> list[dict]:
-    """查我的协作列表
-    
+    """查我的协作列表(Day 15 起支持 1:N 带看)
+
     role: 'buyer' | 'seller'
     - buyer: 我作为 BA(我带客户)
     - seller: 我作为 LA(别人带客户来我房)
@@ -128,17 +136,25 @@ def list_my_collaborations(current_agent_id: str, role: str) -> list[dict]:
     if not requests:
         return []
 
-    # 批量查关联的 showings
+    # 批量查关联的 showings(1:N — 一个 req 可能对应多条 showing)
     request_ids = [r["_id"] for r in requests]
-    showings_by_req = {}
-    for s in db["showings"].find({"showing_request_id": {"$in": request_ids}}):
-        showings_by_req[s["showing_request_id"]] = s
+    showings_by_req: dict = {}
+    for s in (
+        db["showings"]
+        .find({"showing_request_id": {"$in": request_ids}})
+        .sort("created_at", -1)  # 倒序:每个 req 的 showings 列表中最新的在前
+    ):
+        showings_by_req.setdefault(s["showing_request_id"], []).append(s)
 
-    # 批量查关联的 transactions
-    showing_ids = [s["_id"] for s in showings_by_req.values()]
+    # 批量查关联的 transactions(可能挂在任何一条 showing 上,因此 flatten 取所有 showing_id)
+    all_showing_ids = [
+        s["_id"]
+        for showing_list in showings_by_req.values()
+        for s in showing_list
+    ]
     transactions_by_showing = {}
-    if showing_ids:
-        for t in db["transactions"].find({"showing_id": {"$in": showing_ids}}):
+    if all_showing_ids:
+        for t in db["transactions"].find({"showing_id": {"$in": all_showing_ids}}):
             transactions_by_showing[t["showing_id"]] = t
 
     # 批量查关联的 settlements
@@ -151,56 +167,71 @@ def list_my_collaborations(current_agent_id: str, role: str) -> list[dict]:
     # 组装结果
     result = []
     for req in requests:
-        showing = showings_by_req.get(req["_id"])
-        transaction = (
-            transactions_by_showing.get(showing["_id"]) if showing else None
-        )
+        showings = showings_by_req.get(req["_id"], [])  # list,最新在前;可能为空
+        latest_showing = showings[0] if showings else None
+
+        # transaction 挂在某一条 showing 上,逐条扫:任一 showing 上有 tx 即算这个协作的 tx
+        transaction = None
+        for s in showings:
+            t = transactions_by_showing.get(s["_id"])
+            if t:
+                transaction = t
+                break
+
         settlement = (
             settlements_by_tx.get(transaction["_id"]) if transaction else None
         )
 
         stage, status, is_failed = _compute_stage(
-            req, showing, transaction, settlement
+            req, showings, transaction, settlement
         )
 
         # 找最近动作时间(用于排序和"最近动作"显示)
         last_time = req.get("updated_at") or req.get("created_at")
         last_action_text = "申请已发出"
 
-        if showing:
-            if showing.get("updated_at") and showing["updated_at"] > last_time:
-                last_time = showing["updated_at"]
-            if showing.get("status") == "confirmed":
-                last_action_text = "带看已确认"
-            elif showing.get("status") == "pending_confirm":
-                last_action_text = "带看待 LA 确认"
-            elif showing.get("status") == "rejected":
-                last_action_text = "带看被驳回"
+        if showings:
+            # 遍历所有带看,取最大 updated_at
+            for s in showings:
+                s_time = s.get("updated_at") or s.get("created_at")
+                if s_time and (last_time is None or s_time > last_time):
+                    last_time = s_time
+            # 文案以最新一条为准,>1 次带看时加"第 N 次"前缀
+            n = len(showings)
+            prefix = f"第{n}次" if n > 1 else ""
+            ls = latest_showing.get("status")
+            if ls == "confirmed":
+                last_action_text = f"{prefix}带看已确认"
+            elif ls == "pending_confirm":
+                last_action_text = f"{prefix}带看待 LA 确认"
+            elif ls == "rejected":
+                last_action_text = f"{prefix}带看被驳回"
 
         if transaction:
-            if (transaction.get("updated_at") and
-                    transaction["updated_at"] > last_time):
-                last_time = transaction["updated_at"]
-            if transaction.get("status") == "pending_la_confirm":
+            t_time = transaction.get("updated_at") or transaction.get("created_at")
+            if t_time and (last_time is None or t_time > last_time):
+                last_time = t_time
+            tx_status = transaction.get("status")
+            if tx_status == "pending_la_confirm":
                 last_action_text = "成交待 LA 填价"
-            elif transaction.get("status") == "confirmed":
+            elif tx_status == "confirmed":
                 last_action_text = "成交已生效"
-            elif transaction.get("status") == "rejected":
+            elif tx_status == "rejected":
                 last_action_text = "成交被驳回"
 
         if settlement:
-            if (settlement.get("updated_at") and
-                    settlement["updated_at"] > last_time):
-                last_time = settlement["updated_at"]
-            if settlement.get("status") == "pending_payment":
+            stl_time = settlement.get("updated_at") or settlement.get("created_at")
+            if stl_time and (last_time is None or stl_time > last_time):
+                last_time = stl_time
+            stl_status = settlement.get("status")
+            if stl_status == "pending_payment":
                 last_action_text = "等 LA 付款"
-            elif settlement.get("status") == "pending_receipt":
+            elif stl_status == "pending_receipt":
                 last_action_text = "等 BA 确认收款"
-            elif settlement.get("status") == "settled":
+            elif stl_status == "settled":
                 last_action_text = "结算完成"
 
-        # 失败/过期态覆盖文案
-        # 失败/过期态覆盖文案
+        # 失败/过期态覆盖文案(申请态拒绝/过期单独处理)
         if is_failed:
             if req.get("status") == "rejected":
                 # 拒绝理由中文映射(和后端 REJECT_REASONS 保持一致)
@@ -244,14 +275,16 @@ def list_my_collaborations(current_agent_id: str, role: str) -> list[dict]:
             "customer_gender": req.get("customer_gender", ""),
             "last_action_text": last_action_text,
             "last_action_time": last_time.isoformat() if last_time else None,
-            # 跳转用的子对象 ID
+            # Day 15 新增:带看次数(给前端"X 次带看"角标用,前端忽略也无影响)
+            "showing_count": len(showings),
+            # 跳转用的子对象 ID(showing_id 取最新一条;transaction/settlement 取唯一)
             "request_id": str(req["_id"]),
-            "showing_id": str(showing["_id"]) if showing else None,
+            "showing_id": str(latest_showing["_id"]) if latest_showing else None,
             "transaction_id": str(transaction["_id"]) if transaction else None,
             "settlement_id": str(settlement["_id"]) if settlement else None,
         })
 
-    # 按 last_action_time 降序(已经按 created_at 取的,大致符合)
+    # 按 last_action_time 降序
     result.sort(
         key=lambda x: x.get("last_action_time") or "",
         reverse=True,
