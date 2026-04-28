@@ -1,10 +1,11 @@
 """
-MLS 模块:客户管理(Day 10 新建)
+MLS 模块:客户管理(Day 10 新建,Day 15 1:N 带看重构)
 
 职责:
 - 客户档案 CRUD(owner_agent_id 归属 BA)
 - 跟进记录(memo_entries)
 - 客户时间线(关联协作)
+- 直接带看(基于历史 approved 申请,1:N 模式下不再造重复申请)
 
 设计原则:轻量,只为"不忘事"服务,不做重 CRM
 """
@@ -89,6 +90,8 @@ def count_my_customers(current_agent_id: str) -> int:
         "owner_agent_id": ObjectId(current_agent_id),
         "status": "active",
     })
+
+
 def get_customer_by_id(current_agent_id: str, customer_id: str) -> dict:
     """查客户详情(只能查自己的)"""
     try:
@@ -219,7 +222,7 @@ def get_customer_timeline(current_agent_id: str, customer_id: str) -> dict:
     # 查关联的带客申请(通过 customer_id 字段)
     requests = list(db["showing_requests"].find({"customer_id": oid}))
 
-    # 查关联的带看(通过申请反查)
+    # 查关联的带看(通过申请反查,1:N 模式下一个 req 可能挂多条 showing)
     request_ids = [r["_id"] for r in requests]
     showings = list(
         db["showings"].find({"showing_request_id": {"$in": request_ids}})
@@ -279,7 +282,7 @@ def get_customer_timeline(current_agent_id: str, customer_id: str) -> dict:
 
 def can_direct_showing(current_agent_id: str, listing_id: str) -> dict:
     """检查能否对某房直接发起带看
-    
+
     规则(B 版本):针对同一套房,历史上有过 approved 的申请即可。
     """
     try:
@@ -312,27 +315,31 @@ def can_direct_showing(current_agent_id: str, listing_id: str) -> dict:
             "can_direct": False,
             "reason": "首次对接该房源,请先走申请流程",
         }
-# ============= 直接带看(跳过申请) =============
+
+
+# ============= 直接带看(Day 15 1:N 重构) =============
 
 class DirectShowingRequest(BaseModel):
+    """直接带看入参(Day 15 简化:不再接受客户字段,从 prior_request 取)"""
     listing_id: str = Field(..., description="目标房源 ID")
-    customer_id: Optional[str] = Field(None, description="关联客户 ID(可选)")
-    customer_surname: Optional[str] = Field(None, min_length=1, max_length=5)
-    customer_gender: Optional[str] = Field(None, pattern="^(male|female)$")
-    requirements: Optional[str] = Field(None, max_length=200)
     showing_time: str = Field(..., description="实际带看时间 ISO8601")
     photos: list[str] = Field(..., min_length=1, max_length=3, description="现场照片 base64 1-3 张")
     notes: Optional[str] = Field(None, max_length=200, description="备注")
 
 
 def create_direct_showing(current_agent_id: str, req: DirectShowingRequest) -> dict:
-    """直接发起带看 · 前置:对这套房历史有 approved 申请
-    
+    """直接发起带看(Day 15 1:N 重构)
+
+    业务规则:1 客户 + 1 房 = 1 协作。同一 BA 对同一套房的"再次带看"
+    不再造新 showing_request,而是复用历史 approved 申请,在它下面挂新 showing。
+
     动作:
-    1. 检查熟人关系(复用 can_direct_showing 逻辑)
-    2. 自动创建一条 showing_request(status=auto_approved, approval_kind=auto_approved)
-    3. 立刻创建 showing(status=pending_confirm)
-    4. 返回 showing_id
+    1. 校验房源状态
+    2. 查 prior_request:同房 + 同 BA + status in (approved/auto_approved)
+       - 找不到 → 400 引导走正常申请流程
+    3. 客户信息从 prior_request 取(不允许换客户)
+    4. 在 prior_request 下挂新 showing(status=pending_confirm)
+    5. 返回 showing_id
     """
     try:
         listing_oid = ObjectId(req.listing_id)
@@ -349,54 +356,41 @@ def create_direct_showing(current_agent_id: str, req: DirectShowingRequest) -> d
     if listing["owner_agent_id"] == agent_oid:
         raise HTTPException(status_code=400, detail="不能对自己录入的房源直接带看")
 
-    # 2. 查熟人关系(历史 approved 申请)
-    prior_request = db["showing_requests"].find_one({
-        "listing_id": listing_oid,
-        "buyer_agent_id": agent_oid,
-        "status": {"$in": ["approved", "auto_approved"]},
-    })
+    # 2. 查 prior_request(熟人关系):取最早的 approved 申请作为协作锚点
+    #    如果有多条(老数据未迁移),取 created_at 最早,与 Day 15 数据迁移脚本逻辑保持一致
+    prior_request = db["showing_requests"].find_one(
+        {
+            "listing_id": listing_oid,
+            "buyer_agent_id": agent_oid,
+            "status": {"$in": ["approved", "auto_approved"]},
+        },
+        sort=[("created_at", 1)],
+    )
     if not prior_request:
         raise HTTPException(
-            status_code=403,
+            status_code=400,
             detail="首次对接该房源,请先走申请流程",
         )
 
-    # 3. 复用老客户信息 / 新建临时信息
-    customer_surname = req.customer_surname
-    customer_gender = req.customer_gender
-    requirements = req.requirements or ""
-    customer_oid = None
+    # 3. 客户信息从 prior_request 取(1:N 模式下不允许换客户)
+    customer_surname = prior_request.get("customer_surname", "")
+    customer_gender = prior_request.get("customer_gender", "")
+    customer_oid = prior_request.get("customer_id")  # 可能为 None(老数据)
 
-    if req.customer_id:
-        customer_oid = ObjectId(req.customer_id)
-        customer_doc = db["customers"].find_one({"_id": customer_oid})
-        if not customer_doc:
-            raise HTTPException(status_code=404, detail="客户不存在")
-        if customer_doc["owner_agent_id"] != agent_oid:
-            raise HTTPException(status_code=403, detail="不能用他人客户")
-        # 有 customer_id 时,客户信息从档案取
-        customer_surname = customer_doc["surname"]
-        customer_gender = customer_doc["gender"]
-        requirements = customer_doc.get("requirements", "")
-    else:
-        # 无 customer_id,必须提供扁平字段
-        if not customer_surname or not customer_gender:
-            raise HTTPException(
-                status_code=400,
-                detail="未关联客户时,必须提供 customer_surname 和 customer_gender",
-            )
+    # 4. 解析带看时间
+    try:
+        showing_time_dt = datetime.fromisoformat(
+            req.showing_time.replace("Z", "+00:00")
+        )
+    except Exception:
+        raise HTTPException(status_code=400, detail="showing_time 格式错误,需 ISO8601")
 
-    # 4. 解析 BA/LA 信息
-    buyer_agent = db["agents"].find_one({"_id": agent_oid})
-    if not buyer_agent:
-        raise HTTPException(status_code=404, detail="BA 不存在")
-    la_doc = db["agents"].find_one({"_id": listing["owner_agent_id"]})
-
-    # 5. 插入 auto_approved 申请(留痕)
+    # 5. 在 prior_request 下挂新 showing(不再造新 showing_request)
     now = datetime.now()
-    request_doc = {
+    showing_doc = {
+        "showing_request_id": prior_request["_id"],
         "listing_id": listing_oid,
-        "listing_snapshot": {
+        "listing_snapshot": prior_request.get("listing_snapshot", {
             "community": listing["community"],
             "building": listing["building"],
             "unit": listing["unit"],
@@ -404,38 +398,7 @@ def create_direct_showing(current_agent_id: str, req: DirectShowingRequest) -> d
             "layout": listing.get("layout", ""),
             "area_sqm": listing["area_sqm"],
             "price_wan": listing["price_wan"],
-        },
-        "buyer_agent_id": agent_oid,
-        "buyer_agent_name": buyer_agent["name"],
-        "buyer_agent_phone": buyer_agent["phone"],
-        "buyer_agent_store": buyer_agent.get("store_name", ""),
-        "listing_agent_id": listing["owner_agent_id"],
-        "listing_agent_name": listing["owner_agent_name"],
-        "listing_agent_phone": listing.get("owner_agent_phone", ""),
-        "customer_surname": customer_surname,
-        "customer_gender": customer_gender,
-        "requirements": requirements,
-        "customer_id": customer_oid,
-        "approval_kind": "auto_approved",
-        "status": "auto_approved",
-        "reject_reason": None,
-        "reject_extra": None,
-        "created_at": now,
-        "updated_at": now,
-        "reviewed_at": now,  # 自动通过,reviewed_at = 创建时
-    }
-    request_result = db["showing_requests"].insert_one(request_doc)
-
-    # 6. 立刻创建 showing
-    try:
-        showing_time_dt = datetime.fromisoformat(req.showing_time.replace("Z", "+00:00"))
-    except Exception:
-        raise HTTPException(status_code=400, detail="showing_time 格式错误,需 ISO8601")
-
-    showing_doc = {
-        "showing_request_id": request_result.inserted_id,
-        "listing_id": listing_oid,
-        "listing_snapshot": request_doc["listing_snapshot"],
+        }),
         "ba_agent_id": agent_oid,
         "la_agent_id": listing["owner_agent_id"],
         "customer_surname": customer_surname,
@@ -449,15 +412,26 @@ def create_direct_showing(current_agent_id: str, req: DirectShowingRequest) -> d
         "reject_reason": None,
         "confirmed_at": None,
         "customer_feedback": "",
+        "is_repeat_showing": True,  # Day 15:标记这是基于熟人关系的非首次带看
         "created_at": now,
         "updated_at": now,
     }
     showing_result = db["showings"].insert_one(showing_doc)
 
+    # 6. 顺手更新 prior_request 的 updated_at(让协作 Tab 排序能跟上)
+    db["showing_requests"].update_one(
+        {"_id": prior_request["_id"]},
+        {"$set": {"updated_at": now}},
+    )
+
+    # 7. 取 LA 信息返给前端(给"等 LA 确认"提示用)
+    la_doc = db["agents"].find_one({"_id": listing["owner_agent_id"]})
+
     return {
         "showing_id": str(showing_result.inserted_id),
-        "showing_request_id": str(request_result.inserted_id),
+        "showing_request_id": str(prior_request["_id"]),
         "skipped_approval": True,
+        "reused_prior_request": True,  # Day 15 新增:明示复用了历史申请
         "la_name": la_doc.get("name", "") if la_doc else "",
         "la_phone": la_doc.get("phone", "") if la_doc else "",
     }
