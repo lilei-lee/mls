@@ -741,6 +741,26 @@ def reject_showing_api(
     return {"success": True, "data": doc}
 
 
+# 具体路径必须先于 {showing_id} 注册(坑 3: FastAPI 路由顺序)
+# 否则 "can-direct" / "direct" 会被 {showing_id} 吞掉当 OID 解析
+@app.get("/api/v1/showings/can-direct")
+def api_can_direct_showing(
+    listing_id: str,
+    current_agent: dict = Depends(get_current_agent),
+):
+    """检查能否对某房直接发起带看(熟人专用)"""
+    data = can_direct_showing(str(current_agent["_id"]), listing_id)
+    return {"success": True, "data": data}
+
+@app.post("/api/v1/showings/direct")
+def api_create_direct_showing(
+    req: DirectShowingRequest,
+    current_agent: dict = Depends(get_current_agent),
+):
+    """直接发起带看(跳过申请) · 前置:对这套房历史有 approved 申请"""
+    data = create_direct_showing(str(current_agent["_id"]), req)
+    return {"success": True, "data": data}
+
 @app.get("/api/v1/showings/{showing_id}")
 def get_showing_api(
     showing_id: str,
@@ -1036,24 +1056,6 @@ def api_get_customer_timeline(
     data = get_customer_timeline(str(current_agent["_id"]), customer_id)
     return {"success": True, "data": data}
 
-
-@app.get("/api/v1/showings/can-direct")
-def api_can_direct_showing(
-    listing_id: str,
-    current_agent: dict = Depends(get_current_agent),
-):
-    """检查能否对某房直接发起带看(熟人专用)"""
-    data = can_direct_showing(str(current_agent["_id"]), listing_id)
-    return {"success": True, "data": data}
-
-@app.post("/api/v1/showings/direct")
-def api_create_direct_showing(
-    req: DirectShowingRequest,
-    current_agent: dict = Depends(get_current_agent),
-):
-    """直接发起带看(跳过申请) · 前置:对这套房历史有 approved 申请"""
-    data = create_direct_showing(str(current_agent["_id"]), req)
-    return {"success": True, "data": data}
 
 # ==================== 模块:工作台 Day 11 增强 ====================
 
