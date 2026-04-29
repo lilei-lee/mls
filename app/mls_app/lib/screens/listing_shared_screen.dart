@@ -360,7 +360,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
     if (isTodayTab) {
       return '今日新增 $shown 套';
     }
-    return '共 $shown 套在售房源';
+    return '共 $shown 套房源';
   }
 
   Widget _buildEmpty(bool totallyEmpty, {required bool isTodayTab}) {
@@ -444,6 +444,44 @@ class _SharedListingCard extends StatelessWidget {
   String? get _myRequestStatus => item['my_request_status'] as String?;
 
   bool get _hasMyRequest => _myRequestStatus != null;
+
+  Widget? _buildListingStatusBadge() {
+    final status = (item['status'] ?? '').toString();
+    String label;
+    Color color;
+    switch (status) {
+      case 'on_sale':
+        label = '在售';
+        color = Colors.green;
+        break;
+      case 'deposit_paid':
+        label = '定金已付';
+        color = Colors.blue;
+        break;
+      case 'transaction_ongoing':
+        label = '成交进行中';
+        color = Colors.orange;
+        break;
+      case 'sold':
+        label = '已成交';
+        color = Colors.grey;
+        break;
+      default:
+        return null;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(3),
+      ),
+      child: Text(label,
+          style: TextStyle(
+              color: color,
+              fontSize: 10,
+              fontWeight: FontWeight.bold)),
+    );
+  }
 
   Widget? _buildMyRequestBadge() {
     if (_myRequestStatus == 'pending') {
@@ -544,6 +582,7 @@ class _SharedListingCard extends StatelessWidget {
     final unitPrice = area > 0 ? (priceWan * 10000 / area).round() : 0;
 
     final myRequestBadge = _buildMyRequestBadge();
+    final listingStatusBadge = _buildListingStatusBadge();
     final snapshot = {
       'community': community,
       'building': building,
@@ -666,6 +705,10 @@ class _SharedListingCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          if (listingStatusBadge != null) ...[
+                            const SizedBox(width: 4),
+                            listingStatusBadge,
+                          ],
                           if (myRequestBadge != null) ...[
                             const SizedBox(width: 4),
                             myRequestBadge,
