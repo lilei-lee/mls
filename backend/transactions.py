@@ -497,8 +497,11 @@ def _format(doc: dict, viewer_id: Optional[ObjectId] = None) -> dict:
     """
     is_la = viewer_id is not None and viewer_id == doc.get("la_agent_id")
     is_ba = viewer_id is not None and viewer_id == doc.get("ba_agent_id")
-    # 防伪触发条件:LA 视角 + 待确认状态
-    mask_ba = is_la and doc.get("status") == "pending_la_confirm"
+    # 防伪基石:未 confirmed 之前,双方互相隐藏对方填报数据
+    # 比价成功(status=confirmed)后才公开,因为已成交无保密必要
+    not_confirmed = doc.get("status") != "confirmed"
+    mask_ba = is_la and not_confirmed
+    mask_la = is_ba and not_confirmed
 
     return {
         "transaction_id": str(doc["_id"]),
@@ -522,12 +525,14 @@ def _format(doc: dict, viewer_id: Optional[ObjectId] = None) -> dict:
         if doc.get("ba_updated_at") else None,
         # 前端用这个字段判断"BA 是否已经提交"(不泄露价格)
         "ba_has_submitted": doc.get("ba_submitted_at") is not None,
-
-        "la_deal_price_yuan": doc.get("la_deal_price_yuan"),
-        "la_deal_date": doc["la_deal_date"].strftime("%Y-%m-%d")
-        if doc.get("la_deal_date") else None,
-        "la_submitted_at": doc["la_submitted_at"].isoformat()
-        if doc.get("la_submitted_at") else None,
+        "la_has_submitted": doc.get("la_submitted_at") is not None,
+        "la_deal_price_yuan": None if mask_la else doc.get("la_deal_price_yuan"),
+        "la_deal_date": None if mask_la else (
+            doc["la_deal_date"].strftime("%Y-%m-%d") if doc.get("la_deal_date") else None
+        ),
+        "la_submitted_at": None if mask_la else (
+            doc["la_submitted_at"].isoformat() if doc.get("la_submitted_at") else None
+        ),
 
         "status": doc["status"],
         "reject_kind": doc.get("reject_kind"),
