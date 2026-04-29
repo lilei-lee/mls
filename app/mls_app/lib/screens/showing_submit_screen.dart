@@ -67,7 +67,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
     setState(() => _picking = true);
     try {
       final xfile = await ImagePicker().pickImage(
-        source: ImageSource.camera,
+        source: ImageSource.gallery,
         imageQuality: 85,
         maxWidth: 1920,
       );
@@ -213,9 +213,6 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
             ],
           ),
           const SizedBox(height: 4),
-          const Text('仅支持实时相机拍摄,不能从相册选择',
-              style: TextStyle(color: Colors.orange, fontSize: 11)),
-          const SizedBox(height: 10),
           _buildPhotoGrid(),
           const SizedBox(height: 20),
 

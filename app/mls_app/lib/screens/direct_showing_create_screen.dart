@@ -71,7 +71,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
     }
     final picker = ImagePicker();
     final XFile? file = await picker.pickImage(
-      source: ImageSource.camera,
+      source: ImageSource.gallery,
       imageQuality: 70,
       maxWidth: 1280,
     );
