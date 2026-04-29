@@ -124,7 +124,7 @@ class _CollaborationListScreenState extends State<CollaborationListScreen>
     );
   }
 
-  void _onTap(Map<String, dynamic> data) {
+  Future<void> _onTap(Map<String, dynamic> data) async {
     // 根据当前阶段决定跳转哪个详情页
     final stage = data['stage'] as int;
     final settlementId = data['settlement_id'] as String?;
@@ -133,12 +133,14 @@ class _CollaborationListScreenState extends State<CollaborationListScreen>
 
     // 优先级:有结算 → 结算详情;有成交 → 成交详情;否则 → 申请详情
     if (stage >= 4 && settlementId != null) {
-      context.push('/settlements/$settlementId');
+      await context.push('/settlements/$settlementId');
     } else if (stage >= 3 && transactionId != null) {
-  context.push('/transaction/$transactionId');
+      await context.push('/transaction/$transactionId');
     } else if (requestId != null) {
-      context.push('/showing-request/$requestId');
+      await context.push('/showing-request/$requestId');
     }
+    // 详情页 pop 回来自动刷新列表(防止 LA 通过/驳回后 BA 端列表数据陈旧)
+    if (mounted) _refresh();
   }
 
   Widget _buildEmpty(String role) {
