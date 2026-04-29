@@ -134,6 +134,9 @@ def submit_showing(body: CreateShowingBody, ba_agent: dict) -> dict:
         "reject_reason": None,
         "ba_submitted_at": now,
         "la_reviewed_at": None,
+        "customer_id": req.get("customer_id"),
+        "customer_surname": req.get("customer_surname"),
+        "customer_gender": req.get("customer_gender"),
         "listing_cycle": None,  # 预留,模块五填
         "created_at": now,
         "updated_at": now,
