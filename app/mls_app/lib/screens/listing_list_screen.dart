@@ -521,6 +521,14 @@ class _StatusBadge extends StatelessWidget {
         label = '在售';
         color = Colors.green;
         break;
+      case 'deposit_paid':
+        label = '定金已付';
+        color = Colors.blue;
+        break;
+      case 'transaction_ongoing':
+        label = '成交进行中';
+        color = Colors.orange;
+        break;
       case 'paused':
         label = '暂停';
         color = Colors.orange;
