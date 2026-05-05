@@ -51,7 +51,7 @@ flutter run
 
 ## 开发流程
 
-本项目使用 Claude Code（接 Qwen 3.6 Plus）协助开发。新对话首次接触项目，请先完整阅读 `CLAUDE.md`。
+本项目使用 Claude Code协助开发。新对话首次接触项目，请先完整阅读 `CLAUDE.md`。
 
 ```cmd
 cd C:\projects\mls
