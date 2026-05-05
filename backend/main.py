@@ -242,7 +242,7 @@ def send_sms_code(req: SendSmsRequest):
     rate_limit_key = f"sms:ratelimit:{req.phone}"
     if redis_client.exists(rate_limit_key):
         raise HTTPException(status_code=429, detail="请求过于频繁,请60秒后再试")
-    code = f"{random.randint(100000, 999999)}"
+    code = "123456"  # 开发期固定，方便测试。生产前必须改回 random.randint(100000, 999999)
     redis_client.setex(f"sms:code:{req.phone}", 300, code)
     redis_client.setex(rate_limit_key, 60, "1")
     print(f"\n{'=' * 50}")
