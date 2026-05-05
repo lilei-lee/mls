@@ -126,10 +126,10 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
             }
 
             final data = snap.data!;
-            final customer = data['customer'] as Map<String, dynamic>;
+            final customer = Map<String, dynamic>.from(data['customer']);
             final events =
                 (data['events'] as List).cast<Map<String, dynamic>>();
-            final stats = data['stats'] as Map<String, dynamic>;
+            final stats = Map<String, dynamic>.from(data['stats']);
 
             return RefreshIndicator(
               onRefresh: _refresh,
@@ -377,7 +377,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
 
   Widget _timelineRow(Map<String, dynamic> event) {
     final type = event['type'] as String;
-    final snap = (event['listing_snapshot'] ?? {}) as Map<String, dynamic>;
+    final snap = Map<String, dynamic>.from(event['listing_snapshot'] ?? {});
     final community = (snap['community'] ?? '') as String;
     final status = (event['status'] ?? '') as String;
     final time = event['time'] as String?;
