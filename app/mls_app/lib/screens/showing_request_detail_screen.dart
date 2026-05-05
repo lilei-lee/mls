@@ -257,8 +257,8 @@ class _ShowingRequestDetailScreenState
           final status = ShowingRequestStatus.fromString(data['status']);
           final viewerRole = data['viewer_role'] as String;
           final isLA = viewerRole == 'listing_agent';
-          final snapshot = data['listing_snapshot'] as Map<String, dynamic>;
-          final counter = data['counterparty'] as Map<String, dynamic>;
+          final snapshot = Map<String, dynamic>.from(data['listing_snapshot']);
+          final counter = Map<String, dynamic>.from(data['counterparty']);
           final listingId = data['listing_id'] as String;
 
           return ListView(
