@@ -339,7 +339,7 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: Icons.assignment_outlined,
               color: Colors.orange,
               label: '带看申请',
-              onTap: () => context.push('/showing-request/received'),
+              onTap: () => context.push('/showing-requests/received'),
             ),
           ],
         ),
