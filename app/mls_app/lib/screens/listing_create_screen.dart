@@ -27,9 +27,9 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
 
   final _areaSqm = TextEditingController();
 
-  final _rooms = TextEditingController(text: '2');
-  final _halls = TextEditingController(text: '1');
-  final _bathrooms = TextEditingController(text: '1');
+  final _rooms = TextEditingController();
+  final _halls = TextEditingController();
+  final _bathrooms = TextEditingController();
 
   final _floor = TextEditingController();
   final _totalFloor = TextEditingController();
@@ -206,9 +206,9 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
     _unit.clear();
     _roomNo.clear();
     _areaSqm.clear();
-    _rooms.text = '2';
-    _halls.text = '1';
-    _bathrooms.text = '1';
+    _rooms.text = '';
+    _halls.text = '';
+    _bathrooms.text = '';
     _floor.clear();
     _totalFloor.clear();
     _priceWan.clear();
