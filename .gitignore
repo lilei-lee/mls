@@ -47,4 +47,6 @@ Thumbs.db
 _*.json
 
 # ===== 鏁版嵁搴撳浠藉鍑烘枃浠讹紙宸插湪 MongoDB 涓繚鐣欓泦鍚堝浠斤級 =====
-*_backup_*.json
+*_backup_*.json 
+# hello_mate40 是早期练手项目,不属于 MLS,从不入库(Day 19 push GitHub 前清理) 
+app/hello_mate40/ 
