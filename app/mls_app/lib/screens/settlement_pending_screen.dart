@@ -121,7 +121,7 @@ class _SettlementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sp = item['listing_snapshot'] as Map<String, dynamic>? ?? {};
+    final sp = Map<String, dynamic>.from(item['listing_snapshot'] ?? {});
     final role = item['viewer_role'] as String? ?? '';
     final status = item['status'] as String? ?? '';
     final bonus = (item['bonus_yuan'] as num?)?.toInt() ?? 0;
