@@ -150,7 +150,7 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
           final d = snap.data!;
           final status = d['status'] as String;
           final photos = (d['photos'] as List?)?.cast<String>() ?? [];
-          final sp = d['listing_snapshot'] as Map<String, dynamic>;
+          final sp = Map<String, dynamic>.from(d['listing_snapshot']);
           final notes = (d['notes'] as String?) ?? '';
           final isPending = status == 'pending_confirm';
 
