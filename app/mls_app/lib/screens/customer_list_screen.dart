@@ -54,13 +54,6 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('我的客户'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person_add),
-            tooltip: '新建客户',
-            onPressed: _goCreate,
-          ),
-        ],
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _future,
@@ -102,6 +95,11 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
             ),
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _goCreate,
+        icon: const Icon(Icons.person_add),
+        label: const Text('新建客户'),
       ),
     );
   }
