@@ -89,7 +89,7 @@ class _ShowingPendingConfirmScreenState
               separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (ctx, i) {
                 final it = items[i];
-                final sp = it['listing_snapshot'] as Map<String, dynamic>;
+                final sp = Map<String, dynamic>.from(it['listing_snapshot']);
                 return Card(
                   margin: EdgeInsets.zero,
                   child: InkWell(
