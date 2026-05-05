@@ -321,7 +321,7 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: Icons.add_home_outlined,
               color: Colors.blue,
               label: '录入房源',
-              onTap: () => context.push('/listings/new'),
+              onTap: () => context.push('/listing/new'),
             ),
             _quickActionTile(
               icon: Icons.storefront_outlined,
