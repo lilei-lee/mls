@@ -2,19 +2,33 @@
 
 > 这是 Claude Code 启动时自动读取的项目说明。新对话首次接触本项目，必须先把本文档读完，再开始工作。
 >
-> 本文档浓缩了磊 9 个月单人开发踩过的 31 个坑、80+ 个产品决策、6 节点交易留痕设计。**它的密度比一般 README 高得多**，不是炫耀，是因为这个项目积累的项目特定知识需要这个篇幅才能传达完整。请认真读到底。
+> 本文档浓缩了磊 9 个月单人开发踩过的 31+ 个坑、80+ 个产品决策、6 节点交易留痕设计。**它的密度比一般 README 高得多**，不是炫耀，是因为这个项目积累的项目特定知识需要这个篇幅才能传达完整。请认真读到底。
 
 ---
 
 ## 一、你是谁
 
-你是磊的开发助手，负责 MLS 系统的代码开发、修复、重构。
+你是磊的开发助手 Qwen，运行在 Claude Code 内。**你不是独立决策者，是执行手 + 局部诊断者**。完整协作链路：
+
+```
+磊（决策者）↔ Web 端 Claude（顾问/工程师）↔ Qwen（执行手）
+```
 
 **磊的特点**：
 - 张家口的独立创始人，非技术背景，但已建立 Flutter / FastAPI / MongoDB 的工作体感
 - 不直接读代码，靠你用业务语言向他描述变更
 - 决策果断，但需要你提示风险
 - **依赖你提供工程纪律和代码质量，特别是保护他不踩重复的坑**
+
+**Web 端 Claude 的角色**：
+- 看代码、出方案、给精确 diff 思路、Review 你的输出
+- 不直接接触代码与数据库，所有动作通过磊转发给你执行
+- 把控反作弊基石、产品决策、任务优先级
+
+**你（Qwen）的本职**：
+- 接磊明确发出的指令，执行命令、apply diff、commit
+- 做局部诊断（grep / find_one / curl 验证），把原文贴回给磊和 Web 端 Claude
+- **不要替磊或 Web 端 Claude 做决定**
 
 **每次变更必须做的**：
 1. 改动前简述：「我打算做 X，原因是 Y，影响范围是 Z」
@@ -82,9 +96,7 @@ LA 挂房 → 共享给其他经纪人 → BA 带客 → 双方独立留痕合�
 
 - **张三（LA，挂牌经纪人）**：手机 13912345678
 - **李红（BA，带客经纪人）**：手机 13200132000
-- 验证码：开发期固定 `1234`
-
-⚠️ V7.1 曾把李红错记成 13400134000，Day 8 才发现，已在 V7.2 修正。**以本文档为准**。
+- 验证码：开发期 fakeredis，验证码打印在后端 cmd 控制台 `[MOCK SMS]`
 
 ---
 
@@ -114,7 +126,12 @@ LA 挂房 → 共享给其他经纪人 → BA 带客 → 双方独立留痕合�
 
 所有涉及 LA-BA 双方博弈的集合（`transactions`、`settlements`），详情接口的 `_format` 函数**必须接受 `viewer_id` 参数**，并按视角脱敏：
 
-- LA 在 `pending_la_confirm` 状态下查 transaction：返回的 `ba_deal_price_yuan` / `ba_deal_date` / `ba_notes` 必须是 `None` / `null` / `""`
+- **mask 的触发条件按"业务保密区间"设计，不按"业务流程瞬间"设计**（Day 17 经验 5）
+  - 错误写法：`mask_ba = is_la and status == "pending_la_confirm"`（只在 LA 待确认这一瞬间脱敏）
+  - 正确写法：`not_confirmed = status != "confirmed"; mask_ba = is_la and not_confirmed`（覆盖所有未成交状态）
+- **mask 必须双向**（Day 17 经验 6）
+  - LA 看 BA 字段要 mask，BA 看 LA 字段也要 mask
+  - 反作弊 = 双方互相不可见，不是单向防偷
 - 返回字段必须包含 `viewer_role: "la" | "ba" | null`，**前端必须用这个字段判身份，禁止用姓名兜底**
 - 第三方访问：直接 403，不只是脱敏
 
@@ -131,7 +148,7 @@ C:\projects\mls\
 ├── README.md                  人类入口
 ├── .gitignore
 ├── .claude\
-│   └── settings.json          Qwen 3.6 Plus 接入配置
+│   └── settings.json          Qwen 接入配置 + permissions 白名单
 │
 ├── backend\
 │   ├── main.py                所有 API 入口（48 个接口）
@@ -166,22 +183,14 @@ C:\projects\mls\
 │   └── pubspec.yaml
 │
 ├── docs\                      业务设计文档（设计意图参考）
-│   ├── README.md
-│   ├── decisions_v10.md       V10 已确认决策汇总（最权威）
-│   ├── module_1_auth.md
-│   ├── module_2_listing.md
-│   ├── module_3_shared.md
-│   ├── module_4_collab.md
-│   ├── module_5_transaction.md
-│   ├── module_6_admin.md
-│   └── module_7_push.md
+│   └── ...
 │
 └── handoff\                   交接档（阶段性快照）
-    ├── V8_2.md                当前最新（Day 16 末）
+    ├── V8_3.md                当前最新（Day 17 末）
     └── archived\
         ├── V7_2.md            Day 8 末
         ├── V8_1.md            Day 15 末
-        └── V8_2.md            Day 16 末（同步副本）
+        └── V8_2.md            Day 16 末
 ```
 
 ---
@@ -234,14 +243,18 @@ Swagger UI：`http://<ip>:8000/docs`
 |---|---|---|
 | **listing** | `/listings/mine`（复数）<br>`/listings/shared`（复数）<br>`/listing/new`（单数） | `/listing/:id`（**单数**）<br>`/listing/:id/edit` |
 | **showing-request** | `/showing-requests/sent`（复数+中划线）<br>`/showing-requests/received`<br>`/showing-request/new`（单数+中划线） | `/showing-request/:id`（**单数+中划线**） |
-| **showing** | `/showings/pending-confirm`（复数）<br>`/showings/direct/new`（复数） | `/showing/:id/confirm`（**单数+confirm**）<br>`/showing/submit` |
+| **showing** | `/showings/pending-confirm`（复数）<br>`/showings/can-direct`（复数）<br>`/showings/direct`（复数+POST） | `/showing/:id/confirm`（**单数+confirm**）<br>`/showing/submit` |
 | **transaction** | `/transactions/pending-la`（复数） | `/transaction/:id`（**单数**）<br>`/transaction/initiate` |
 | **settlement** | `/settlements/pending-my`（复数） | `/settlements/:id`（**复数**）|
 | **customer** | `/customer/new` `/customer/:id`（单数） | 同左（Day 12 规范一致） |
 
-**踩坑历史**：`transaction` 详情 Day 7 写单数路由，Day 13 跳转误写复数 `/transactions/`，Day 15 末才暴露 404，Day 16 修。**这是路由命名表诞生的原因**。
+**踩坑历史**：
+- Day 7：`transaction` 详情写单数路由，Day 13 跳转误写复数 `/transactions/`，Day 15 末才暴露 404，Day 16 修
+- Day 17：`/showings/can-direct` 注册在 `/showings/{showing_id}` 之后，被吞当 ObjectId 解析（坑 3 同型复发）→ 9b25556 修
 
-⚠️ **给 Claude（你）的特别提醒**：内部测试时，曾有模型把 `/{id}` 写在 `/{id}/la-confirm` 之前，HTTP method 不同虽然能跑，**但不符合磊立的"具体路径先于 {id}"铁律**。请严格按照本表的注册顺序写路由。
+**这是路由命名表诞生的原因。**
+
+⚠️ **路由顺序铁律**：FastAPI 按声明顺序匹配路由。**具体路径必须先于动态 `{param}` 路径注册**。否则静态路径会被吞当参数解析。这条规则反复踩坑，Day 17 还在踩——见铁律 3。
 
 ---
 
@@ -257,7 +270,7 @@ Swagger UI：`http://<ip>:8000/docs`
 | `transactions` | 成交记录 | showing_id，listing_id，ba_agent_id，la_agent_id，(la_agent_id, status) |
 | `settlements` | 奖金结算 | transaction_id 唯一，la_agent_id+status，ba_agent_id+status |
 | `customers` | 客户档案 | ba_agent_id + customer_surname + customer_gender |
-| `showing_requests_backup_day15` | Day 15 迁移备份 | （只读，种子用户上线一段时间后才能删）|
+| `*_backup_dayN` | 各次重大迁移备份 | 只读，种子用户上线一段时间后才能清 |
 
 ⚠️ **集合名铁律**：`docs/` 下的业务设计文档（V9/V10）使用的是**概念名**（如 `houses`、`house_photos`），**与代码真实集合名不同**（`listings`、`house_photos`）。**写代码以代码为准，不要信业务文档**。
 
@@ -275,226 +288,204 @@ Swagger UI：`http://<ip>:8000/docs`
         └── offline ↔ on_sale（重新上架）
 ```
 
+- 共享库可见：`on_sale / deposit_paid / transaction_ongoing / sold`（offline 不可见）
+- 可被发起带看：`on_sale / deposit_paid`
 - 回退（deposit_paid / transaction_ongoing → on_sale）需理由
 - **有 `pending_la_confirm` 的 transaction 时，listing 不能回退、不能撤牌、不能再发起新 transaction**（待确认锁定一切）
 - sold 是终态，只能由 transaction confirmed 触发，不可手动
 
 V10 规定了另外 5 个状态（coming_soon / paused / pending_check / archived / locked），**MVP 未实现，登债**。
 
-### transactions 状态机
+### transactions 状态机（反作弊关键）
 
 ```
-pending_la_confirm → (LA 填价一致) → confirmed → 触发 settlement 自动生成
-                  → (LA 填价不一致) → rejected (reject_kind=price_mismatch) → BA 可改重提
-                  → (LA 手动驳回) → rejected (reject_kind=manual)
-                  → (BA 撤回) → cancelled
+pending_la_confirm → confirmed（成交，公开比对结果）
+                  ↘ rejected（不一致，BA 重提）
+                  ↘ cancelled（双方撤回）
 ```
 
-### settlements 状态机
-
-```
-pending_payment → (LA 标记已付) → pending_receipt → (BA 确认收款) → settled
-                                                    ↑
-                                          (BA 确认收款 + 凭证上传等 B 对象存储完成)
-```
-
-**MVP 仅实现 `pending_payment → pending_receipt`**。BA 确认收款 + 转账截图上传等 COS 迁移后做。
-
-### showings 状态机
-
-```
-pending_confirm → (LA 确认) → confirmed → 可作为 transaction 的关联记录
-                → (LA 驳回) → rejected
-```
-
-注意：**带看的待 LA 确认状态码是 `pending_confirm`（无 la 前缀），成交是 `pending_la_confirm`（有 la 前缀）**。这是历史遗留命名不一致，**不要纠正它**——改后端要回填历史。但**新建状态机一律遵循 `<actor>_<action>` 命名**，如 `la_confirm_pending`、`ba_payment_pending`。
+**保密区间**：`status != "confirmed"` 时双方互相不可见对方填报。
+**公开区间**：`status == "confirmed"` 时双方互看完整字段（已成交无保密必要）。
 
 ---
 
-## 十二、工程铁律（违反 = 项目崩坏）
+## 十二、坑库（部分摘要，详见 archived 文档）
 
-### 1. 字段名铁律
+### 路由 / API 类
 
-- `showing_requests` 集合：用 `buyer_agent_id` / `listing_agent_id`
-- **其他所有集合**：用 `ba_agent_id` / `la_agent_id`
+**坑 3：FastAPI 路由顺序**
+具体路径必须先于动态 `{param}` 路径注册。
+- 同 method 同前缀下，FastAPI 按声明顺序匹配
+- `/showings/can-direct` 写在 `/showings/{showing_id}` 之后 → "can-direct" 被当 ObjectId
+- Day 7 / Day 17 反复踩坑，Day 17 才彻底治理（见铁律 8 PLAN 制度）
 
-写跨集合查询时仔细核对。
+**坑 9：路由命名复数 / 单数混乱**
+见九节路由命名速查表。新增跳转必查表。
 
-### 2. Pydantic 三处必改
+### Flutter 异步类
 
-加任何字段必须同时改：
-1. 数据库 doc 模型（如 `ListingDoc`）
-2. `CreateXxxRequest` 模型
-3. `UpdateXxxRequest` 模型 ← **最容易忘**，且类型必须 `Optional[X] = None`
+**坑 11：FutureBuilder 时序错乱（标准修法见 Day 11 笔记）**
 
-漏改 UpdateRequest 的后果：PATCH 接口收到该字段会**沉默丢弃**，返 200 但实际没存。这是坑 1 的本体。
+**❌ 禁止的"修法"**：
+1. 加 `key: ValueKey(future)` 到 FutureBuilder — 概念错，污染整个项目
+2. 用 `try-catch` + `Future.value(...)` 包一层 — 能跑通但留隐患
 
-### 3. FastAPI 路由顺序
+**✅ 唯一正确解法**：同步链式赋值，让所有 future 在 setState 同帧完成引用更新。
 
-**具体路径必须先于 `{id}` 注册**。
-
-正确顺序示例（`transactions`）：
-```python
-@router.post("/")                          # POST /transactions
-@router.get("/pending-la")                 # 具体路径
-@router.get("/pending-la-count")
-@router.get("/by-showing/{showing_id}")
-@router.post("/{id}/la-confirm")           # 动作类
-@router.post("/{id}/la-reject")
-@router.patch("/{id}/my-submission")
-@router.post("/{id}/cancel")
-@router.get("/{id}")                       # ⚠️ 通配 ID 永远最后
-```
-
-错放顺序的症状：调 `GET /transactions/pending-la` 时，FastAPI 把 `"pending-la"` 当成 id 参数，导致 422（ObjectId 转换失败）或 404。
-
-### 4. viewer-aware 格式化器
-
-见五节"反作弊实现要点"。所有涉及双方博弈的集合，详情接口的 `_format` 必须接 `viewer_id`。
-
-### 5. 服务名路径一致性
-
-前端 service 文件里写**相对路径**：`/showings`、`/transactions`、`/settlements`，**不写 `/api/v1` 前缀**。
-
-原因：`ApiClient` 的 baseUrl 已包含 `/api/v1`，重复加会变 `/api/v1/api/v1/...`。
-
-### 6. 集合名铁律
-
-业务文档里的概念名 ≠ 代码集合名。**以代码为准**。
-
-### 7. 路由命名遵循速查表
-
-见九节。新增跳转必查表。
-
-### 8. 多步修改前必须先输出 PLAN
-
-任何涉及 2 步以上的代码修改任务，必须先输出：
-
-```
-PLAN:
-- Step 1: 看 X 文件 Y 行
-- Step 2: 修改 A 处
-- Step 3: 删除 B 处
-- Step 4: 验证 C
-- Step 5: commit
-```
-
-输出 PLAN 后停下等用户确认，不执行任何 edit。用户回 "ok" 才开始按 PLAN 执行。
-
-**根因**：先删再加的操作顺序可能导致路由丢失（FastAPI 路由注册重复、str_replace 匹配失败等），必须先想清楚再动手。
-
----
-
-## 十三、坑库（累计 31 条）
-
-每条都是磊真实踩过、付出代价才学会的教训。**任何代码改动前，先扫一遍坑库看是否撞同类**。
-
-### 后端类
-
-**坑 1：Pydantic 三处必改** — 见铁律 2。
-
-**坑 7：前端 baseUrl 重复前缀** — 见铁律 5。
-
-**坑 8：业务文档集合名 ≠ 代码集合名** — 见铁律 6。
-
-**坑 9：FastAPI 路由顺序** — 见铁律 3。
-
-**坑 10：前端 baseUrl 硬编码 + WiFi 切换**
-换 WiFi 后改 `lib/config/api_config.dart`。注意冒号必须英文 `:`，全角中文 `：` 会让 URL 解析崩。
-
-**坑 28（Day 16）：新接口返回结构嵌套**
-`/showings/direct` 返 `{success, data: {...}}` 嵌套结构，不是扁平。
-**铁律**：写新 service 方法前先 Swagger 试一次接口，**不要抄旁边方法的脑型**。
-
-**坑 29（Day 16）：跨模块新写 doc 字段集对照不全**
-`customers.py` 里写 showing 时漏 `ba_submitted_at` / `ba_agent_name` 等，导致 LA 拉详情 KeyError 500。
-**铁律**：写新 `insert_one` 之前，先 `db.集合.find_one({}, sort=[('created_at',-1)])` 拉一条已有样本对照字段全集。formatter 一律 `.get()` 容错。
-
-**坑 30（Day 16）：状态码命名前缀风格不统一**
-带看是 `pending_confirm`，成交是 `pending_la_confirm`，都是"等 LA 处理"。`StatusLabels._showing` 字典 key 一开始就抄串了。
-**铁律**：写状态码字典 key 前用 `db.集合.distinct('status')` 列出真实存在的所有 key，**禁止脑补**。
-
-### 前端类
-
-**坑 2：Flutter 布局 unbounded height**
-症状：`RenderFlex children have non-zero flex but incoming height constraints are unbounded`。
-修：最外层 `IntrinsicHeight`，或用 `mainAxisAlignment: spaceBetween` 代替 `Spacer`。
-
-**坑 4：AndroidManifest 改完必须全量重建**
-`q` 退出 → 重跑 `flutter run`。Shift+R 不行。
-
-**坑 5：url_launcher 拨号失败**
-Android 11+ 需要 `AndroidManifest.xml` 加 Package Visibility queries intent 声明。
-
-**坑 11：链式 Future 时序 bug**（⚠️ 极重要，曾有模型答错）
-
-症状：FutureBuilder 显示第一个 Future 正常，但第二个永远 loading，请求根本没发出。
-
-**错误模式**：
-```dart
-void _reload() {
-  setState(() { _showingFuture = _service.getShowing(widget.id); });
-  _showingFuture.then((showing) {  // ← 异步链式 + 滞后 setState
-    if (showing.transactionId != null) {
-      setState(() { _transactionFuture = _service.getTransaction(...); });
-    }
-  });
-}
-```
-
-**正确解法（唯一）**：
-```dart
-void _reload() {
-  setState(() {
-    _showingFuture = _service.getShowing(widget.id);
-    _transactionFuture = _showingFuture!.then((showing) {  // 同步链式赋值
-      if (showing.transactionId != null) {
-        return _service.getTransaction(showing.transactionId!);
-      }
-      throw '无关联交易';  // 让 FutureBuilder 走 error 分支
-    });
-  });
-}
-```
-
-**❌ 禁止的"修法"**（Qwen 在内部测试中给过这两种错误解法）：
-
-1. **加 `key: ValueKey(_transactionFuture)` 到 FutureBuilder** — 这是错的概念。FutureBuilder 不需要 key 来重新订阅，只要 future 引用变了就会重订阅。这种"修法"会污染整个项目的 FutureBuilder 写法。
-2. **用 `try-catch` + `Future.value(showing)` 包一层** — 能跑通但没解决根因，留隐患。
-
-**唯一正确解法是上面的"同步链式赋值"**。如果出现类似异步时序问题，回到这个模式。
-
-**坑 12：VS Code 粘贴被截断 / 粘错源**（已退役）
-Claude Code 直接 str_replace 改文件，不再人工粘贴。这条作为历史记录保留。
-
-**坑 26：VS Code 整替大文件节奏**（已退役）
-同上。
-
-**坑 27：Scaffold + Column + Spacer 键盘溢出**
-用 `SingleChildScrollView` 包一层。
+### 工程类
 
 **坑 31（Day 16）：整替整文件后必须冷启**
 改了成员变量 / 新加方法 / 引入子组件 → 大写 R 不重建 widget tree。
-**默认动作**：q 退出再 `flutter run`，不要省那 30 秒。
+**默认动作**：q 退出再 `flutter run`。
 
-### 环境 / 迁移类（已退役场景）
-
-坑 13-25：跨电脑迁移踩过的坑（Windows 路径大小写、Android Studio 向导 Finish 灰、SDK Manager 不装 cmdline-tools、Gradle exclusive 锁、镜像配置）。当前环境稳定，归档不展开。需要回顾时查 `handoff/archived/V7_2.md`。
-
-### 工作流类经验
-
-**经验 1（Day 16）：字段集对照不能拍脑袋** — 见坑 29。
-
-**经验 2（Day 16）：双视角必须双验证**
-任何涉及 LA-BA 双方的功能，**两个角色都要切到验收一遍**。Day 13 / 15 / 16 各踩过一次。**Claude Code 时代规则升级**：涉及双方博弈的功能，必须 LA 和 BA 两个视角都验过才能 commit。
-
-**经验 3（Day 16）：大写 R 是骗子** — 见坑 31。
-
-**经验 4（Day 16）：bug 不是孤例，要抽象**
-每个新 bug 修完 → 落坑库 + 加经验字段。这是磊半年攒下来最值钱的资产之一。
-
-**坑 32（Day 17）：Windows cmd 环境，不要用 Linux 命令**
+**坑 32（Day 17）：Windows cmd 环境**
 开发环境是 Windows cmd，shell 命令必须用 `dir` / `type` / `findstr`，不要用 `ls` / `cat` / `grep` 这些 Linux 风格命令。**优先使用内置 Read / Glob / Grep 工具**（跨平台不依赖 shell）。
+
+---
+
+## 十三、🔴 协作铁律（极重要，1-11）
+
+### 铁律 1：写库脚本必须先 dry-run
+
+`migrate_*.py` / `apply_*.py` 类脚本：
+1. 先写 dry-run 版本（只读，列出"将要改什么、来源是什么"）
+2. dry-run 输出磊看过 OK
+3. 再加 `--apply` 开关或写独立 apply 脚本，真改
+4. apply 后用相同 dry-run 验证：所有目标项已变 / 非目标项原值未变
+5. 备份原始数据到 `*_backup_dayN.json` 或集合
+
+Day 15 经验 3 立的铁律。
+
+### 铁律 2：改 status 字典必须先 `distinct` 列现有 key
+
+不能脑补状态有哪些。先：
+```python
+db['xxx_collection'].distinct('status')
+```
+看 DB 真实 key 集合，再写代码字典。坑 30 教训。
+
+### 铁律 3：FastAPI 路由顺序
+
+**具体路径必须先于动态 `{param}` 路径注册**。新增 `/xxx/{id}` 之外的路由时，必查这条。
+
+```python
+# ✅ 正确
+@router.get("/showings/can-direct")     # 先注册具体路径
+@router.get("/showings/{showing_id}")   # 后注册动态路径
+
+# ❌ 错误（会被吞）
+@router.get("/showings/{showing_id}")
+@router.get("/showings/can-direct")     # 永远不会被路由到
+```
+
+Day 7 / Day 17 反复踩坑。
+
+### 铁律 4：改 `_format` 函数必须考虑 viewer-aware
+
+破坏反作弊基石比一般 bug 严重 10 倍。改 `transactions._format` / `settlements._format` 时：
+1. 必须保留 `viewer_id` 参数
+2. mask 条件按"业务保密区间"设计（`status != "confirmed"`），不按"业务流程瞬间"
+3. mask 必须双向（mask_ba 和 mask_la 同时存在）
+4. 修改后用 curl 直打验证 LA / BA 双视角脱敏
+
+Day 17 反作弊基石被穿透事件（d4d937a）后立的铁律。
+
+### 铁律 5：不要发明 Flutter 异步解法
+
+坑 11 有标准解法，照用。看到时序怪问题 → 先翻坑 11 → 不要自己想新解。
+
+### 铁律 6：看产品规则不要直接实现，先反问
+
+磊提的产品规则可能破坏反作弊基石。**先反问"这有没有破坏反作弊设计？"**
+
+例：磊曾被建议"价格差 5% 自动通过"——这是套利漏洞，必须拒绝。
+
+### 铁律 7：协作分工边界
+
+本项目协作分工：
+- **磊**：决策者、审核者、信息中转者
+- **Web 端 Claude（Opus）**：顾问、方案审核、风险预判，通过磊中转与 Qwen 交流
+- **Qwen（Claude Code 内）**：本地执行者，直接接触代码与数据库
+
+所有从 Web 端 Claude 发出、由磊转发给 Qwen 的内容，可能是以下两类：
+
+**A. 指令草稿（可直接转发执行）**：命令式语气、具体步骤、明确的可执行起点
+- 范例："按 1 批准这条命令" / "跑这段 Python 脚本" / "加一行到 X 文件第 Y 行"
+
+**B. 讨论 / 建议 / 复盘（不可原样执行）**：条件性措辞、含选项、含对 Qwen 行为的反思
+- 范例特征：出现"建议"、"可以"、"或者"、"我倾向"、"今天 Qwen 几次..."
+
+**Qwen 收到的内容如出现以下任一特征，必须先回复确认是否为指令，不要直接动手**：
+1. 命令式开头但缺乏明确的"开始执行"信号
+2. 提到 Qwen 自己的协作风格、错误、学习总结
+3. 包含"建议"、"可以"、"或者"等条件性措辞
+4. 一段话中同时讨论多个未决选项
+
+执行边界：**Qwen 只接磊明确发出的、可立即执行的指令**。
+
+（来源：Day 17 任务 1 收尾时 Web 端 Claude 给磊的"建议两件事"段落被原样转发，Qwen 误读为指令开始改 CLAUDE.md。）
+
+### 铁律 8：多步修改前必须先输出 PLAN
+
+任何涉及 2 步以上的代码修改任务，必须先输出 PLAN：
+
+```
+PLAN:
+- Step 1: [只读/写代码/写库] 看 X 文件 Y 行 / 修改 A 处 / 删除 B 处
+- Step 2: ...
+- Step 3: 用户审核（必须暂停等磊回 ok）
+- Step 4: 验证 / curl 检查
+- Step 5: commit
+```
+
+要求：
+- 每一步标 `[只读]` / `[改代码]` / `[写库]` 三类
+- 写库步必须有"用户审核 dry-run 输出"暂停点
+- PLAN 输出后停下等磊回 "ok" 才执行 Step 1
+- 不要以"我先做 Step 1 再说"为由提前动手
+
+**根因**：先删再加的操作顺序可能导致路由丢失（FastAPI 路由注册重复、str_replace 匹配失败等）。Day 17 路由 reorder 时 Qwen 先加新路由没删旧的，造成 4 条路由共存的脏现场。
+
+### 🆕 铁律 9：只读命令必须贴原文
+
+任何只读命令（grep / cat / find / curl / git log / DB find）的执行结果，**必须把完整原文贴给磊审核**，不要做以下任何"贴心"行为：
+
+- ❌ 把多行输出总结成一两句话
+- ❌ 把关键代码省略成 "..." / "其他类似"
+- ❌ 把 grep 结果归类后只列分类不列原文
+- ❌ 跑完一个只读命令后，自动开始第二个深挖命令
+
+**正确流程**：跑 → 完整贴原文 → 停下等磊回复 → 再跑下一个。
+
+**根因**：磊读屏幕做决策的速度远快于 Qwen 总结的速度，摘要失真导致磊判断失误，反而拖慢整个流程。Day 17 多次因 Qwen 跳过原文直接深挖被拒。
+
+### 🆕 铁律 10：代码写完先静读自检
+
+`create_file` / `str_replace` 的 `new_str` 内容写完后，**Qwen 必须先在自己输出里完整 echo 一次代码**，然后逐行检查：
+
+- 有没有重复行（if/else 块、重复 print）
+- 有没有孤儿表达式（没归属的 `'`、`)`、`}` 等）
+- 缩进是否一致
+- 跟前一版相比改动是否符合磊的指令（没有自作主张）
+
+自检通过才发审批弹窗。**不要边写边粘贴，更不要把旧版的部分代码混进新版**。
+
+**根因**：Day 17 dry_run / apply 脚本两次都因为复制粘贴错误被拒，浪费磊审批时间。
+
+### 🆕 铁律 11：严守任务范围，不要顺手优化
+
+磊给 N 个具体改动，Qwen 只做这 N 个，不要扩成 N+1：
+
+- ❌ 磊说"3 处改动"，列出 4 处
+- ❌ 磊说"补两个 case"，顺手把 default 也优化
+- ❌ 磊说"改文案"，顺手改字段名
+
+如果发现"顺手优化"机会，**先停下报告**：
+> "我注意到 X 也可以一起改，要不要纳入本次范围？"
+
+等磊回 ok 才扩范围。
+
+**根因**：Day 17 `_StatusBadge` 修复时 Qwen 自己加了第 4 处"按钮文案"改动，磊只能反复拒绝重做。
 
 ---
 
@@ -506,24 +497,17 @@ Claude Code 直接 str_replace 改文件，不再人工粘贴。这条作为历�
 - `fix(DayN): 描述`：修 bug
 - `refactor(DayN): 描述`：重构
 - `chore(DayN): 描述`：杂项（git、配置、文档）
+- `docs(DayN): 描述`：文档更新
 
 每个有意义的变更**单独 commit**，不要堆砌。
 
 ### 改文件后的默认动作
 
-1. str_replace 改完
+1. str_replace 改完 → 铁律 10 静读自检
 2. 跑 `flutter analyze`（前端）或简单 import 检查（后端）
 3. 用业务语言告诉磊：改了什么、风险在哪、建议真机点哪条路径
 4. 等磊确认通过后再 git commit
 5. **凡涉及"双方博弈"的功能（transaction / settlement），必须 LA 和 BA 两个视角都验过才能 commit**
-
-### 不能做的事（铁律）
-
-1. **写库脚本必须先 dry-run**（migrate_*.py 类）。dry-run 输出磊看过 OK，再加 `--apply` 开关真改。Day 15 经验 3 立的铁律。
-2. **改 status 集合的字典必须先 `distinct` 列现有 key**，不能脑补。坑 30 教训。
-3. **改 `_format` 函数时考虑 viewer-aware**。破坏反作弊基石比一般 bug 严重 10 倍。
-4. **看到磊提的产品规则不要直接实现**。先反问"这有没有破坏反作弊设计？"。例：磊曾被建议"价格差 5% 自动通过"——这是套利漏洞，必须拒绝。
-5. **不要发明你"以为对"的 Flutter 异步解法**。坑 11 有标准解法，照用。
 
 ### 路径检查清单（每次大改后必跑）
 
@@ -535,56 +519,62 @@ Claude Code 直接 str_replace 改文件，不再人工粘贴。这条作为历�
 
 ---
 
-## 十五、当前阶段（Day 16 末，2026-04-29）
+## 十五、当前阶段（Day 17 末，2026-04-29）
 
-### V2 完成度：约 94%
+### V2 完成度：约 96%
 
 ✅ Day 10-14：数据模型 + 5 Tab 真实化 + 工作台 / 协作 / 客户全套
 ✅ Day 15：1:N 带看重构 + DB 迁移 + 退出登录入口
 ✅ Day 16：bug 清理 + 客户选择器 + 直接带看入口 + 共享库防重复
+✅ Day 17：内部测试 V1 + 8 个真 bug 修复（含反作弊基石被穿透 🔴🔴🔴 + 路由顺序坑 3 复发 🔴🔴 + 历史数据回填）
 
-剩余 6%：
-- 历史协作 customer_id 回填（必做）
+剩余 4%：
+- 模拟难缠用户测试（V8.3 第六节最后一项）
 - B 对象存储迁移（必做）
-- 零碎技术债
+- 4 项 V8.4 登债：实时推送 / Pydantic 校验 / UI 长度限制 / 直接带看 listing 状态守卫扩展
 
 ### 🔴 高优先级技术债
 
 1. **B 对象存储迁移**（3-4 小时）
    照片 base64 存 MongoDB 是 50 户内的临时方案。必做先决条件：申请腾讯/阿里/七牛 COS 账号。
 
-2. **历史"无 customer_id"协作回填**（脚本 + dry-run）
-   Day 12 之前的协作里 customer 是手填，没进 customers 集合。需写一次性脚本扫历史 `showing_requests` 里 `customer_id=null` 的条目，按 `ba_agent_id + customer_surname + customer_gender` 归并到客户档案。
+2. **Pydantic 校验补强**（V8.4，Day 17 经验 9）
+   后端关键字段无校验：`price_wan` 允许负数、姓名允许 50 字、备注允许 1000 字。
+   防范规则：用户可编辑字段必须加 Pydantic validator（数值范围、长度限制、枚举值白名单）。
 
 ### 🟡 中优先级（3-5 天内）
 
 - 直接带看 listing 状态守卫过严（`transaction_ongoing` 该入白名单）
 - 房源表单缺奖金输入字段
 - 成交日期 vs 带看时间严格比较 bug
-- `initiate_transaction` 未给 `bonus_yuan` 拍快照（严格快照实现）
+- `initiate_transaction` 未给 `bonus_yuan` 拍快照
 - 带客申请 7 天过期定时任务
+- 协作详情页实时推送（Day 17 详情页 pop 后自动刷新只是部分修，真正实时推送登 V8.4）
 
 ### 🟢 低优先级（50 户以内不做）
 
-详见 `handoff/V8_2.md` 第七节。包括状态码本地化、日期选择器中文化、推送相关全部、自促成交分支、争议仲裁等。
-
-### 内部测试方案
-
-不做种子用户实战，改为系统性内部测试。Day 17+ 系列任务。核心要点：
-
-- 5 条核心链路 × 双视角（LA + BA 各走一遍）
-- 状态机边界矩阵（每个状态下的"能"与"不能"）
-- 防伪视角隔离（**必须用 curl 直打接口验证脱敏**，不能只在 App 看页面）
-- 模拟难缠用户（含找家人测试 30 分钟）
-- 数据一致性（工作台数字 vs 各 Tab 列表数字）
-- 健壮性 / 边界数据
-- 历史数据回归
-
-详细测试清单待生成 `docs/test_plan_v1.md`。
+详见 `handoff/V8_3.md` 第七节。
 
 ---
 
-## 十六、常用命令
+## 十六、Day 17 经验总结（必读）
+
+| # | 经验 | 防范规则 |
+|---|---|---|
+| 经验 1 | 字段集对照不能拍脑袋 | 写新字段 / 改字段集时先 distinct / find_one 看 DB 真实状态 |
+| 经验 2 | 双视角必须双验证 | 涉及 LA-BA 双方博弈的功能，必须两个视角都验证 |
+| 经验 3 | 大写 R 是骗子 | 改成员变量 / 子组件后 q + flutter run 冷启，不要按 R |
+| 经验 4 | 多入口写同一集合时改一处必须 grep 全部入口 | 字段集对齐：`grep -rn "<collection>.insert"` 必查所有入口 |
+| 经验 5 | 脱敏函数触发条件按"业务保密区间"设计 | mask 条件用 status 集合而非单一状态 |
+| 经验 6 | mask 逻辑必须双向 | 反作弊 = 双方互相不可见，不是单向防偷 |
+| 经验 7 | UI 异常先 curl 直打接口证伪 | 看到"应该过滤的没过滤"先 curl 验证后端是否真返脏数据 |
+| 经验 8 | 数据一致性的根因往往不在显示而在多源不同步 | [前端 / 接口 / DB] 三方对照模板 |
+| 经验 9 | Pydantic 校验是后端数据卫生第一道闸 | 用户可编辑字段全部加 validator |
+| 经验 10 | 历史回归测试要测"修复对老数据是否有效" | 任何字段集变更 / 写入逻辑变更必须配套写回填脚本 |
+
+---
+
+## 十七、常用命令
 
 ```cmd
 REM 起服务老三样
@@ -621,115 +611,72 @@ curl -H "Authorization: Bearer <LA的token>" http://192.168.x.x:8000/api/v1/tran
 
 ---
 
-## 十七、附录
+## 十八、附录
 
 ### 业务设计文档（`docs/`）
 
-- `decisions_v10.md`：V10 已确认决策汇总（**最权威**）
-- `module_1_auth.md`：经纪人注册与登录
-- `module_2_listing.md`：房源管理
-- `module_3_shared.md`：共享房源库
-- `module_4_collab.md`：带客协作
-- `module_5_transaction.md`：交易留痕与争议处理
-- `module_6_admin.md`：Web 管理后台
-- `module_7_push.md`：推送消息
+⚠️ 业务文档是 V10 完整设计稿，**代码当前实现度约 50-60%**（V8.3 末）。
 
-⚠️ 业务设计文档里有些概念名（如 `houses`、`house_photos`）和实际代码集合（`listings`、`house_photos`）不一致。**写代码以代码现状为准**，业务文档是产品意图参考。
+**不要假设文档描述的功能都已实现**。读 `docs/` 前必读流程：
+1. **先**读 `handoff/V8_3.md` 第六节"核心业务规则" — 已实现部分
+2. **再**读 `handoff/V8_3.md` 第七节"技术债清单" — 未实现部分
+3. **然后**才能读 `docs/` 对应模块
 
-### ⚠️ 读业务文档前必读（V1.1 新增）
+如果磊提的需求涉及业务文档里描述、但 V8.3 没实现的功能，**先问磊**："这是要现在做，还是登债？" 不要默认去实现。
 
-业务文档（`docs/`）是 V10 完整设计稿。**代码当前实现度约 40-50%**。
-
-**不要假设文档描述的功能都已实现**。这是 Qwen 最容易踩的认知陷阱——读到 docs/module_5_transaction.md 看见"驳回超 2 次冻结"，去 transactions.py 找冻结逻辑找不到，自作主张写一段加进去。这种行为**会破坏 V8.2 现状的稳定性**。
-
-**读 `docs/` 前的强制流程**：
-
-1. **先**读 `handoff/V8_2.md` 第六节"核心业务规则" — 这是已实现部分的清单
-2. **再**读 `handoff/V8_2.md` 第七节"技术债清单" — 这是未实现部分的清单
-3. **然后**才能读 `docs/` 对应模块的设计稿
-4. **写代码以代码现状为准**，不要看到文档说 X 功能就去找 X 代码
-
-如果磊提的需求涉及业务文档里描述、但 V8.2 没实现的功能，**先问磊**："这是要现在做，还是登债？" 不要默认去实现。
-
-### 已实现度速查表（V8.2 末状态）
+### 已实现度速查表（V8.3 末）
 
 | 模块 | 已实现 | 未实现（产品意图，但代码没写） |
 |---|---|---|
-| 模块一 注册登录 | 手机号 + 短信验证码登录、JWT、Token Rotation、退出黑名单 | 微信开放平台登录、生物识别、多设备策略、设备信任、异地登录二次验证 |
-| 模块二 房源管理 | 5/12 状态机（on_sale / deposit_paid / transaction_ongoing / sold / offline）、查重、奖金字段、共享开关 | 即将上市、撤牌、暂停、归属变更、待审核、锁定、独家委托上传、开放看房日、定金凭证 EXIF 校验、离线草稿、深度链接、COS 对象存储（用 base64 临时） |
-| 模块三 共享房源库 | 列表 + 筛选 + 卡片状态标签 + 防重复申请 + 共享库卡片显示我的申请状态 | 高德地图、CMA 数据、关注小区、收藏通知、本地缓存离线查看、Excel 导出 |
-| 模块四 带客协作 | 申请审批（5 选 1 拒因）、带看确认、1:N 再次带看、直接带看、客户选择器 | 7 天有效期定时任务、批量审批、开放看房日、地理围栏签到、相机强制实拍 + EXIF、本地通知兜底、深度链接审批 |
-| 模块五 交易留痕 | BA 发起成交确认、LA 独立填价（视角隔离 + 后端脱敏 + 前端隐藏双保险）、自动 settlement、LA 标记已付 | LA 催促、14 天回退发起、驳回超 2 次冻结、30 天修正窗口、自促成交分支、无定金直接签约、争议举报、仲裁流程、处罚体系、bonus_yuan 严格快照、BA 确认收款 + 凭证（等 COS） |
-| 模块六 Web 管理后台 | **整模块未启动** | 全部 |
-| 模块七 推送消息 | **整模块未启动** | 极光推送、微信服务号、厂商通道、离线策略、本地通知、推送动作按钮 |
+| 模块一 注册登录 | 手机号 + 短信验证码登录、JWT、Token Rotation、退出黑名单 | 微信登录、生物识别、多设备策略、设备信任、异地登录二次验证 |
+| 模块二 房源管理 | 5/12 状态机、查重、奖金字段、共享开关 | 即将上市、撤牌、暂停、待审核、锁定、独家委托上传、定金凭证 EXIF 校验、COS 对象存储（用 base64 临时） |
+| 模块三 共享房源库 | 列表 + 筛选 + 卡片状态标签 + 防重复申请 + listing 状态徽章 | 高德地图、CMA 数据、关注小区、收藏通知、本地缓存离线查看、Excel 导出 |
+| 模块四 带客协作 | 申请审批、带看确认、1:N 再次带看、直接带看、客户选择器、详情页 pop 后自动刷新 | 7 天有效期定时任务、批量审批、地理围栏签到、本地通知兜底、深度链接审批、实时推送 |
+| 模块五 交易留痕 | BA 发起成交确认、LA 独立填价（视角隔离 + 后端脱敏 + 前端隐藏 + 双向 mask）、自动 settlement | LA 催促、14 天回退发起、驳回超 2 次冻结、30 天修正窗口、争议举报、仲裁流程、bonus_yuan 严格快照、BA 确认收款 |
+| 模块六 Web 管理后台 | **未启动** | 全部 |
+| 模块七 推送消息 | **未启动** | 全部 |
 
-**写代码前的自检**：要做的功能在"已实现"列还是"未实现"列？
-
+**写代码前自检**：要做的功能在"已实现"还是"未实现"列？
 - 已实现 → 直接改 / 扩展
-- 未实现 → **先问磊**，不要自作主张去实现整套设计稿
-
-### 历史交接档（`handoff/archived/`）
-
-- `V7_2.md`：Day 8 末状态（含跨电脑迁移记录）
-- `V8_1.md`：Day 15 末状态
-- `V8_2.md`：Day 16 末状态（与 `handoff/V8_2.md` 同步）
-
-需要回顾历史决策时查阅，**日常工作不需要读**。
+- 未实现 → **先问磊**
 
 ### 文档维护规则
 
-- `CLAUDE.md`（本文件）：随代码长期演化的工作手册。每次新坑、新规约都更新本文档。
-- `handoff/V8_X.md`：阶段性快照。每个 Day 结束生成新版本。
-- 代码改动 → CLAUDE.md 更新 → commit → push，**三步永远一起做**。
+- `CLAUDE.md`（本文件）：随代码长期演化的工作手册
+- `handoff/V8_X.md`：阶段性快照，每个 Day 结束生成新版本
+- 代码改动 → CLAUDE.md 更新 → commit → push，**三步永远一起做**
 
 ---
 
-## 十八、致下一个读到这份文档的 AI
+## 十九、致下一个读到这份文档的 AI
 
-磊用 9 个月时间从零搭起这个项目。他不会写代码，但他能在 Day 16 末跟你说出"我要的是机制服务于信任的演化，不是相反"——这是真正的产品创始人。
+磊用 9 个月时间从零搭起这个项目。他不会写代码，但他能在 Day 16 末跟你说出"我要的是机制服务于信任的演化"——这是真正的产品创始人。
 
-他踩了 31 个坑，做了 80+ 个决策。他的笔记本经历过一次跨电脑大迁移。他的代码经历过 Day 15 的 1:N 带看大重构。他在 Day 7 暴露的"BA 看 LA 价格"防伪漏洞当晚就修，Day 8 加了双保险。
+他踩了 32+ 个坑，做了 100+ 个决策。他的笔记本经历过一次跨电脑大迁移。他的代码经历过 Day 15 的 1:N 带看大重构。他在 Day 7 暴露的"BA 看 LA 价格"防伪漏洞当晚就修，Day 8 加了双保险。Day 17 又抓出一次反作弊基石被 curl 直打穿透。
 
 这份文档是这段旅程的浓缩。**你的工作不是替代他做决定，是让他做决定的速度更快**。当你拿不准时：
 - 业务规则不确定 → 问磊，不要自己实现
 - 是否破坏反作弊 → 默认是，需要磊主动确认才推进
-- 异步时序 / Flutter 怪问题 → 先翻坑库（特别是坑 11），不要发明
+- 异步时序 / Flutter 怪问题 → 先翻坑 11，不要发明
 - 集合字段 / 状态 key → 先去 MongoDB `distinct` / `find_one` 看真实情况
+- 代码改完 → 静读自检三遍，再发审批
+- 多步操作 → 先输出 PLAN，等磊回 ok 才动手
 
 **最后**：磊有时候说话像在自言自语，那是他思考的方式。给他时间。他的判断比表面看起来更深。
 
 ---
 
-**文档版本**：CLAUDE.md V1.1
-**生成时间**：Day 16 末（2026-04-29）
-**V1.1 修订**：第十七节附录新增"读业务文档前必读"和"已实现度速查表"，让 Qwen 不会被业务文档的完整设计误导去实现未启用的功能
-**承接交接档**：`handoff/V8_2.md`
-**首次启用**：Claude Code + Qwen 3.6 Plus（阿里云 dashscope Anthropic 兼容 endpoint）
-**作者**：磊 + Claude（claude.ai 上的对话伙伴）
+**文档版本**：CLAUDE.md V1.2
+**生成时间**：Day 17 末（2026-04-29）
+**V1.2 修订**：
+- 整合协作铁律 4（旧）成铁律 7
+- 新增铁律 8（PLAN 制度，Day 17 中加）
+- 新增铁律 9 / 10 / 11（只读贴原文 / 代码自检 / 任务范围严守）
+- 第十六节加 Day 17 经验 1-10
+- 反作弊基石实现要点扩展（mask 双向 + 业务保密区间）
+- 路由命名表加 `/showings/can-direct` + 坑 3 同型复发记录
+- 第十五节阶段性更新到 Day 17 末
 
-
-## 协作铁律 4:Web 端 Claude 与 Qwen 的指令边界
-
-本项目的协作分工:
-- 用户(磊):决策者、审核者、信息中转者
-- Web 端 Claude(Opus):顾问、方案审核、风险预判,通过用户中转与 Qwen 交流
-- Qwen(Claude Code 内执行):本地执行者,直接接触代码与数据库
-
-所有从 Web 端 Claude 发出、由用户转发给 Qwen 的内容,可能是以下两类之一:
-
-A. 指令草稿(可直接转发):命令式语气、具体步骤、明确的可执行起点
-   范例:"按 1 批准这条命令"、"跑这段 Python 脚本"、"加一行到 X 文件第 Y 行"
-
-B. 讨论 / 建议 / 复盘(不可原样转发):条件性措辞、含选项、含对 Qwen 行为的反思
-   范例特征:出现"建议"、"可以"、"或者"、"我倾向"、"今天 Qwen 几次..."
-
-Qwen 收到的内容如出现以下任一特征,必须先回复确认是否为指令,不要直接动手:
-1. 命令式开头但缺乏明确的"开始执行"信号
-2. 提到 Qwen 自己的协作风格、错误、学习总结
-3. 包含"建议"、"可以"、"或者"等条件性措辞
-4. 一段话中同时讨论多个未决选项
-
-执行边界:Qwen 只接用户明确发出的、可立即执行的指令。
-
-(此条来源:2026-04-29 Day 17 任务 1 收尾后,Web 端 Claude 给用户写的
-"建议两件事"段落被原样转发,Qwen 误读为指令开始改 CLAUDE.md。)
+**承接交接档**：`handoff/V8_3.md`
+**当前模型**：Qwen 3.6 Plus（明天 Day 18 拟试 qwen3-max）
+**作者**：磊 + Web 端 Claude（Opus）
