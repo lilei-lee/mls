@@ -99,7 +99,7 @@ final GoRouter appRouter = GoRouter(
         final extra = state.extra as Map<String, dynamic>;
         return ShowingRequestCreateScreen(
           listingId: extra['listing_id'] as String,
-          listingSnapshot: extra['snapshot'] as Map<String, dynamic>,
+          listingSnapshot: Map<String, dynamic>.from(extra['snapshot']),
         );
       },
     ),
@@ -128,7 +128,7 @@ final GoRouter appRouter = GoRouter(
         final extra = state.extra as Map<String, dynamic>;
         return DirectShowingCreateScreen(
           listingId: extra['listing_id'] as String,
-          listingSnapshot: extra['snapshot'] as Map<String, dynamic>,
+          listingSnapshot: Map<String, dynamic>.from(extra['snapshot']),
           customerLabel: extra['customer_label'] as String,
         );
       },
@@ -139,7 +139,7 @@ final GoRouter appRouter = GoRouter(
         final extra = state.extra as Map<String, dynamic>;
         return ShowingSubmitScreen(
           requestId: extra['request_id'] as String,
-          snapshot: extra['snapshot'] as Map<String, dynamic>,
+          snapshot: Map<String, dynamic>.from(extra['snapshot']),
         );
       },
     ),
@@ -160,7 +160,7 @@ final GoRouter appRouter = GoRouter(
         final extra = state.extra as Map<String, dynamic>;
         return TransactionInitiateScreen(
           showingId: extra['showing_id'] as String,
-          snapshot: extra['snapshot'] as Map<String, dynamic>,
+          snapshot: Map<String, dynamic>.from(extra['snapshot']),
           listingPriceWan: extra['listing_price_wan'].toString(),
         );
       },
