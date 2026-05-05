@@ -95,7 +95,7 @@ class _TransactionPendingLaScreenState
               separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (ctx, i) {
                 final it = items[i];
-                final sp = it['listing_snapshot'] as Map<String, dynamic>;
+                final sp = Map<String, dynamic>.from(it['listing_snapshot']);
                 final baPrice = it['ba_deal_price_yuan'] as int?;
                 final baWan = (baPrice != null && baPrice > 0)
                     ? (baPrice / 10000).toStringAsFixed(1)
