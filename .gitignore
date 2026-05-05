@@ -39,3 +39,12 @@ Thumbs.db
 # ===== 敏感信息 =====
 *.secrets
 .env.local
+
+# ===== Claude Code 本地配置（含 API key，永不入库） =====
+.claude/
+
+# ===== 临时调试 dump =====
+_*.json
+
+# ===== 数据库备份导出文件（已在 MongoDB 中保留集合备份） =====
+*_backup_*.json
