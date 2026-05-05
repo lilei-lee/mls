@@ -107,7 +107,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
             }
 
             final doc = snap.data!;
-            final sp = doc['listing_snapshot'] as Map<String, dynamic>? ?? {};
+            final sp = Map<String, dynamic>.from(doc['listing_snapshot'] ?? {});
             final status = doc['status'] as String;
             final role = doc['viewer_role'] as String?;
             final isLA = role == 'la';
