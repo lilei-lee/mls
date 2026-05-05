@@ -213,7 +213,7 @@ class _CollaborationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final snapshot = data['listing_snapshot'] as Map<String, dynamic>;
+    final snapshot = Map<String, dynamic>.from(data['listing_snapshot']);
     final community = (snapshot['community'] ?? '') as String;
     final building = (snapshot['building'] ?? '') as String;
     final unit = (snapshot['unit'] ?? '') as String;
