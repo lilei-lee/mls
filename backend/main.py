@@ -1144,7 +1144,7 @@ def api_dashboard_todos(
             "icon": "monetization_on",
             "title": f"奖金 ¥{bonus} · {snapshot.get('community','')} {snapshot.get('building','')}-{snapshot.get('unit','')}-{snapshot.get('room_no','')}",
             "subtitle": action_text,
-            "action_route": f"/settlement/{str(stl['_id'])}",
+            "action_route": f"/settlements/{str(stl['_id'])}",
             "created_at": stl["created_at"].isoformat() if stl.get("created_at") else None,
         })
 
