@@ -114,8 +114,8 @@ class _SentRequestCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final status = ShowingRequestStatus.fromString(item['status']);
-    final snapshot = item['listing_snapshot'] as Map<String, dynamic>;
-    final counter = item['counterparty'] as Map<String, dynamic>;
+    final snapshot = Map<String, dynamic>.from(item['listing_snapshot']);
+    final counter = Map<String, dynamic>.from(item['counterparty']);
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
