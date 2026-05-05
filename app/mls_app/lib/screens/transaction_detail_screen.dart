@@ -197,7 +197,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
           }
 
           final doc = snap.data!;
-          final sp = doc['listing_snapshot'] as Map<String, dynamic>;
+          final sp = Map<String, dynamic>.from(doc['listing_snapshot']);
           final status = doc['status'] as String;
 
           // V7.1 新:用后端返的 viewer_role 判身份,不再靠姓名兜底
