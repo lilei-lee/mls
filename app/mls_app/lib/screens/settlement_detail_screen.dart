@@ -151,9 +151,9 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _kvRow('Buyer\'s Agent', doc['ba_agent_name'] ?? '-'),
+                        _kvRow('买方经纪人', doc['ba_agent_name'] ?? '-'),
                         const SizedBox(height: 6),
-                        _kvRow('Listing Agent', doc['la_agent_name'] ?? '-'),
+                        _kvRow('卖方经纪人', doc['la_agent_name'] ?? '-'),
                         const Divider(height: 20),
                         _kvRow('成交价',
                             '¥${((doc['deal_price_yuan'] as num?)?.toInt() ?? 0)} 元'

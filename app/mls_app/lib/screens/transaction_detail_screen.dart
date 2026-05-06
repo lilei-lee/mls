@@ -378,7 +378,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
     return Column(
       children: [
         _submissionTile(
-          roleLabel: 'Buyer\'s Agent',
+          roleLabel: '买方经纪人',
           agentName: doc['ba_agent_name'] ?? '-',
           priceYuan: maskBa ? null : doc['ba_deal_price_yuan'] as int?,
           dateStr: maskBa ? null : doc['ba_deal_date'] as String?,
@@ -389,7 +389,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
         ),
         const SizedBox(height: 8),
         _submissionTile(
-          roleLabel: 'Listing Agent',
+          roleLabel: '卖方经纪人',
           agentName: doc['la_agent_name'] ?? '-',
           priceYuan: maskLa ? null : doc['la_deal_price_yuan'] as int?,
           dateStr: maskLa ? null : doc['la_deal_date'] as String?,
