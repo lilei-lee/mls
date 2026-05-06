@@ -218,9 +218,35 @@ def _compare_and_finalize(
     expected_status: 乐观锁条件,由 caller 显式传("pending_la_confirm" 或 "rejected")。
     extra_set: caller 侧已填的字段(LA 或 BA 的填报值),合并进原子 update。
     不负责 _format——caller 自己调。
+
+    反作弊比对字段清单(当前:价格 + 日期):
+    - ba_price_yuan / la_price_yuan: 成交价格(元,整数)
+    - ba_date / la_date: 成交日期(date 对象,天级精度零容差)
+    future 增加比对字段必须同步更新:此清单 + reject_reason 三分支表
+
+    reject_reason 三分支表:
+    | 价格一致 | 日期一致 | 结果 |
+    |---------|---------|------|
+    | ✅      | ✅      | confirmed(成交生效,房源→sold) |
+    | ❌      | ✅      | rejected:"成交价格不一致,请双方核实" |
+    | ✅      | ❌      | rejected:"成交时间不一致,请双方核实" |
+    | ❌      | ❌      | rejected:"成交价格及成交时间均不一致,请双方核实" |
+
+    字段缺失防御:任一比对字段为 None,helper 直接 raise ValueError
+    (deny by default,不依赖 caller 护栏——future 加 caller 必读此清单)
     """
+    # 反作弊基石防御:helper 不假设 caller 已校验,缺字段直接拒
+    # future 加 caller 必须读上方"反作弊比对字段清单",不可绕过此 guard
+    if ba_date is None or la_date is None:
+        raise ValueError("反作弊比对失败:成交日期缺失")
+    if ba_price_yuan is None or la_price_yuan is None:
+        raise ValueError("反作弊比对失败:成交价格缺失")
+
     price_match = (la_price_yuan == ba_price_yuan)
-    date_match = (la_date == ba_date)
+    # 归一化到 date 对象做天级比对,零容差(去掉时分秒防跨天边界)
+    date_match = (
+        la_date.date() == ba_date.date()
+    ) if la_date and ba_date else (la_date == ba_date)
 
     set_fields = dict(extra_set)
 
@@ -269,10 +295,18 @@ def _compare_and_finalize(
 
         return "confirmed"
     else:
+        # 三分支 reject_reason:区分价格不一致 / 时间不一致 / 双不一致
+        if not price_match and date_match:
+            reject_reason = "成交价格不一致,请双方核实"
+        elif price_match and not date_match:
+            reject_reason = "成交时间不一致,请双方核实"
+        else:
+            reject_reason = "成交价格及成交时间均不一致,请双方核实"
+
         set_fields.update({
             "status": "rejected",
             "reject_kind": "price_mismatch",
-            "reject_reason": "价格仍不一致,请双方核实",
+            "reject_reason": reject_reason,
             "rejected_at": now,
             "updated_at": now,
         })
