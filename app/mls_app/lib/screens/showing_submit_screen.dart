@@ -61,13 +61,47 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
     });
   }
 
-  Future<void> _takePhoto() async {
+  Future<void> _showSourceSheet() async {
+    await showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('拍照'),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _pickImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('从相册选择'),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.close),
+              title: const Text('取消'),
+              onTap: () => Navigator.of(ctx).pop(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
     if (_photos.length >= _maxPhotos || _picking) return;
 
     setState(() => _picking = true);
     try {
       final xfile = await ImagePicker().pickImage(
-        source: ImageSource.gallery,
+        source: source,
         imageQuality: 85,
         maxWidth: 1920,
       );
@@ -86,7 +120,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('拍照失败:$e')),
+        SnackBar(content: Text('选取失败:$e')),
       );
     } finally {
       if (mounted) setState(() => _picking = false);
@@ -305,7 +339,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
 
   Widget _buildAddTile(double size) {
     return InkWell(
-      onTap: _picking ? null : _takePhoto,
+      onTap: _picking ? null : _showSourceSheet,
       borderRadius: BorderRadius.circular(6),
       child: Container(
         width: size, height: size,

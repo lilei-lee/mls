@@ -64,16 +64,50 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
     });
   }
 
-  Future<void> _pickPhoto() async {
+  Future<void> _showSourceSheet() async {
+    await showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('拍照'),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _pickImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('从相册选择'),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.close),
+              title: const Text('取消'),
+              onTap: () => Navigator.of(ctx).pop(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
     if (_photos.length >= 3) {
       _snack('最多 3 张照片');
       return;
     }
     final picker = ImagePicker();
     final XFile? file = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 70,
-      maxWidth: 1280,
+      source: source,
+      imageQuality: 85,
+      maxWidth: 1920,
     );
     if (file == null) return;
     final bytes = await File(file.path).readAsBytes();
@@ -313,7 +347,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
               }),
               if (_photos.length < 3)
                 GestureDetector(
-                  onTap: _pickPhoto,
+                  onTap: _showSourceSheet,
                   child: Container(
                     width: 80,
                     height: 80,
