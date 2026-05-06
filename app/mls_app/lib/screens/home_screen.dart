@@ -248,10 +248,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _handleTodoTap(Map<String, dynamic> todo) {
+  Future<void> _handleTodoTap(Map<String, dynamic> todo) async {
     final route = todo['action_route'] as String?;
     if (route == null || route.isEmpty) return;
-    context.push(route);
+    await context.push(route);
+    _refresh();
   }
 
   // ============= 最近动态区 =============
@@ -431,6 +432,8 @@ class _TodoCard extends StatelessWidget {
         return Icons.gavel;
       case 'monetization_on':
         return Icons.monetization_on;
+      case 'edit':
+        return Icons.edit;
       default:
         return Icons.notifications_active;
     }

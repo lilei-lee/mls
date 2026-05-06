@@ -71,12 +71,14 @@ from transactions import (
     LaConfirmTransactionBody,
     LaRejectTransactionBody,
     UpdateMyTransactionBody,
+    LaUpdateMySubmissionBody,
     CancelTransactionBody,
     ensure_transactions_indexes,
     initiate_transaction,
     la_confirm_transaction,
     la_reject_transaction,
     update_my_transaction,
+    update_my_submission_la,
     cancel_transaction,
     get_by_id as get_transaction_by_id,
     get_by_showing as get_transaction_by_showing,
@@ -845,9 +847,33 @@ def update_my_transaction_api(
     body: UpdateMyTransactionBody,
     agent: dict = Depends(get_current_agent),
 ):
-    """BA 修改自己的填报并重提"""
-    doc = update_my_transaction(transaction_id, body, agent["_id"])
-    print(f"\n✏️  成交记录修改重提: tx={transaction_id} by {agent['name']}")
+    """BA/LA 修改自己的填报并重提
+
+    根据 caller 身份自动路由:
+    - BA: 改 ba_deal_price_yuan / ba_deal_date,清掉 LA 旧值,重提 pending_la_confirm
+    - LA: 改 la_deal_price_yuan / la_deal_date,复用比对逻辑
+    """
+    # 先查 doc 判身份(无法从 body 区分 BA/LA)
+    tx = db["transactions"].find_one({"_id": ObjectId(transaction_id)})
+    if not tx:
+        raise HTTPException(status_code=404, detail="成交记录不存在")
+    if agent["_id"] == tx["ba_agent_id"]:
+        doc = update_my_transaction(transaction_id, body, agent["_id"])
+        print(f"\n✏️  成交记录修改重提(BA): tx={transaction_id} by {agent['name']}")
+    elif agent["_id"] == tx["la_agent_id"]:
+        if body.deal_price_yuan is None or body.deal_date is None:
+            raise HTTPException(
+                status_code=400,
+                detail="修改填报需同时提供 deal_price_yuan 和 deal_date",
+            )
+        la_body = LaUpdateMySubmissionBody(
+            la_deal_price_yuan=body.deal_price_yuan,
+            la_deal_date=body.deal_date,
+        )
+        doc = update_my_submission_la(transaction_id, la_body, agent["_id"])
+        print(f"\n✏️  成交记录修改重提(LA): tx={transaction_id} by {agent['name']}")
+    else:
+        raise HTTPException(status_code=403, detail="无权修改此成交记录")
     return {"success": True, "data": doc}
 
 
@@ -1063,13 +1089,14 @@ def api_get_customer_timeline(
 def api_dashboard_todos(
     current_agent: dict = Depends(get_current_agent),
 ):
-    """工作台 · 逐条待办列表(最多 4 类,每类最多 5 条)
-    
-    4 类:
+    """工作台 · 逐条待办列表(最多 5 类,每类最多 5 条)
+
+    5 类:
     1. 待我审批的申请(LA 视角)
     2. 待我确认的带看(LA 视角)
     3. 待我确认的成交(LA 视角)
     4. 待我操作的奖金(LA / BA 都可能)
+    5. 成交被驳回(BA 视角)
     """
     agent_id = current_agent["_id"]
     todos = []
@@ -1146,6 +1173,24 @@ def api_dashboard_todos(
             "subtitle": action_text,
             "action_route": f"/settlements/{str(stl['_id'])}",
             "created_at": stl["created_at"].isoformat() if stl.get("created_at") else None,
+        })
+
+    # --- 5. 成交被驳回(BA) ---
+    rejected_txs = list(db["transactions"].find(
+        {"ba_agent_id": agent_id, "status": "rejected"},
+    ).sort("created_at", -1).limit(5))
+
+    for t in rejected_txs:
+        snapshot = t.get("listing_snapshot", {})
+        reject_reason = t.get("reject_reason", "")
+        todos.append({
+            "type": "transaction_rejected",
+            "priority": "high",
+            "icon": "edit",
+            "title": f"成交确认被驳回,待修改重提 · {snapshot.get('community', '')} {snapshot.get('building','')}-{snapshot.get('unit','')}-{snapshot.get('room_no','')}",
+            "subtitle": reject_reason or "请修改后重新提交",
+            "action_route": f"/transaction/{str(t['_id'])}",
+            "created_at": t["created_at"].isoformat() if t.get("created_at") else None,
         })
 
     return {
