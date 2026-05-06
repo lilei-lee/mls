@@ -765,6 +765,64 @@ class _ShowingRequestDetailScreenState
       );
     }
 
+    // 已撤回:BA 可重新发起,LA 看提示
+    if (tx['status'] == 'cancelled') {
+      if (isLA) {
+        return Card(
+          color: Colors.grey.withValues(alpha: 0.08),
+          child: const Padding(
+            padding: EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Icon(Icons.undo, color: Colors.grey, size: 18),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text('BA 已撤回此成交确认,等待重新发起',
+                      style: TextStyle(color: Colors.grey, fontSize: 14)),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+      return Column(
+        children: [
+          Card(
+            color: Colors.orange.withValues(alpha: 0.08),
+            child: const Padding(
+              padding: EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.orange, size: 18),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '你已撤回此成交确认,可重新发起。',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 48,
+            child: ElevatedButton.icon(
+              onPressed: () =>
+                  _goInitiateTransaction(showingId, snapshot, listingId),
+              icon: const Icon(Icons.gavel),
+              label: const Text('重新发起成交确认'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
     final txId = tx['transaction_id'] as String;
     final txStatus = tx['status'] as String;
     final baPrice = tx['ba_deal_price_yuan'] as int?;

@@ -131,11 +131,19 @@ class _CollaborationListScreenState extends State<CollaborationListScreen>
     final transactionId = data['transaction_id'] as String?;
     final requestId = data['request_id'] as String?;
 
-    // 优先级:有结算 → 结算详情;有成交 → 成交详情;否则 → 申请详情
+    // 优先级:有结算 → 结算详情;有成交 → 成交详情(cancelled 除外);否则 → 申请详情
+    final txStatus = data['transaction_status'] as String?;
     if (stage >= 4 && settlementId != null) {
       await context.push('/settlements/$settlementId');
     } else if (stage >= 3 && transactionId != null) {
-      await context.push('/transaction/$transactionId');
+      if (txStatus == 'cancelled') {
+        // cancelled 的 transaction 详情页无操作按钮(SizedBox.shrink),
+        // 跳到申请详情页找"重新发起成交确认"入口
+        await context.push('/showing-request/$requestId');
+      } else {
+        // pending_la_confirm / rejected / confirmed 直跳成交详情
+        await context.push('/transaction/$transactionId');
+      }
     } else if (requestId != null) {
       await context.push('/showing-request/$requestId');
     }

@@ -281,6 +281,7 @@ def list_my_collaborations(current_agent_id: str, role: str) -> list[dict]:
             "request_id": str(req["_id"]),
             "showing_id": str(latest_showing["_id"]) if latest_showing else None,
             "transaction_id": str(transaction["_id"]) if transaction else None,
+            "transaction_status": transaction.get("status") if transaction else None,  # 协作 Tab 路由判断用
             "settlement_id": str(settlement["_id"]) if settlement else None,
         })
 
