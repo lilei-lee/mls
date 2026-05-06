@@ -100,16 +100,15 @@ def submit_showing(body: CreateShowingBody, ba_agent: dict) -> dict:
     if showing_time > datetime.now() + timedelta(minutes=5):
         raise HTTPException(status_code=400, detail="带看时间不能晚于当前时间")
 
-    # 一申请最多一条 pending_confirm 或 confirmed
-    existing = showings_collection.find_one({
-        "showing_request_id": req_oid,
-        "status": {"$in": ["pending_confirm", "confirmed"]},
-    })
-    if existing:
-        if existing["status"] == "pending_confirm":
-            raise HTTPException(status_code=400, detail="已有带看记录正在等待 LA 确认")
-        else:
-            raise HTTPException(status_code=400, detail="该带客申请已有确认的带看记录")
+    # 只查最新一条 showing:1:N 每条独立,rejected 后可重提
+    latest = showings_collection.find_one(
+        {"showing_request_id": req_oid},
+        sort=[("_id", -1)],
+    )
+    if latest and latest["status"] == "pending_confirm":
+        raise HTTPException(status_code=400, detail="已有带看记录正在等待 LA 确认")
+    if latest and latest["status"] == "confirmed":
+        raise HTTPException(status_code=400, detail="最新带看记录已被 LA 确认,如需再次带看请使用'再次带看'入口")
 
     # 照片格式简单校验(data URL)
     for i, p in enumerate(body.photos):
