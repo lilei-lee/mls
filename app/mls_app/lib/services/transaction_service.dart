@@ -81,6 +81,22 @@ class TransactionService {
     return Map<String, dynamic>.from(resp.data['data']);
   }
 
+  /// LA 修改自己填报(rejected 后重填)
+  Future<Map<String, dynamic>> laUpdateMySubmission(
+    String transactionId, {
+    required int dealPriceYuan,
+    required String dealDate,
+  }) async {
+    final resp = await _dio.patch(
+      '/transactions/$transactionId/my-submission',
+      data: {
+        'deal_price_yuan': dealPriceYuan,
+        'deal_date': dealDate,
+      },
+    );
+    return Map<String, dynamic>.from(resp.data['data']);
+  }
+
   /// BA 撤回
   Future<Map<String, dynamic>> cancel(String transactionId,
       {String? reason}) async {

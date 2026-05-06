@@ -66,6 +66,12 @@ class UpdateMyTransactionBody(BaseModel):
     notes: Optional[str] = Field(None, max_length=200)
 
 
+class LaUpdateMySubmissionBody(BaseModel):
+    """LA 在 rejected 状态下修改自己的填报"""
+    la_deal_price_yuan: int = Field(..., gt=0, le=500_000_000)
+    la_deal_date: str = Field(..., pattern=r"^\d{4}-\d{2}-\d{2}$")
+
+
 class CancelTransactionBody(BaseModel):
     """撤回"""
     reason: Optional[str] = Field(None, max_length=100)
@@ -196,6 +202,91 @@ def initiate_transaction(body: InitiateTransactionBody, ba_agent: dict) -> dict:
     return {"transaction_id": str(result.inserted_id)}
 
 
+def _compare_and_finalize(
+    oid: ObjectId,
+    doc: dict,
+    ba_price_yuan: int,
+    ba_date,
+    la_price_yuan: int,
+    la_date,
+    expected_status: str,
+    extra_set: dict,
+    now: datetime,
+) -> str:
+    """比对 BA/LA 填报→终态 + 副作用。返回 'confirmed' 或 'rejected'。
+
+    expected_status: 乐观锁条件,由 caller 显式传("pending_la_confirm" 或 "rejected")。
+    extra_set: caller 侧已填的字段(LA 或 BA 的填报值),合并进原子 update。
+    不负责 _format——caller 自己调。
+    """
+    price_match = (la_price_yuan == ba_price_yuan)
+    date_match = (la_date == ba_date)
+
+    set_fields = dict(extra_set)
+
+    if price_match and date_match:
+        set_fields.update({
+            "status": "confirmed",
+            "confirmed_at": now,
+            "updated_at": now,
+        })
+        if expected_status == "rejected":
+            set_fields.update({
+                "reject_kind": None,
+                "reject_reason": None,
+                "rejected_at": None,
+            })
+
+        result = transactions_collection.update_one(
+            {"_id": oid, "status": expected_status},
+            {"$set": set_fields},
+        )
+        if result.matched_count == 0:
+            raise HTTPException(status_code=409, detail="状态已变更,请刷新后重试")
+
+        listings_collection.update_one(
+            {"_id": doc["listing_id"]},
+            {"$set": {
+                "status": "sold",
+                "sold_at": now,
+                "sold_price_yuan": la_price_yuan,
+                "sold_date": la_date,
+                "updated_at": now,
+            }},
+        )
+
+        bonus_yuan = doc.get("bonus_yuan_snapshot")
+        if bonus_yuan is None:
+            listing_doc = listings_collection.find_one({"_id": doc["listing_id"]})
+            bonus_yuan = int(listing_doc.get("bonus_yuan", 0) or 0) if listing_doc else 0
+        else:
+            bonus_yuan = int(bonus_yuan)
+
+        if bonus_yuan > 0:
+            latest_tx = transactions_collection.find_one({"_id": oid})
+            if latest_tx:
+                create_settlement_for_transaction(latest_tx, bonus_yuan)
+
+        return "confirmed"
+    else:
+        set_fields.update({
+            "status": "rejected",
+            "reject_kind": "price_mismatch",
+            "reject_reason": "价格仍不一致,请双方核实",
+            "rejected_at": now,
+            "updated_at": now,
+        })
+
+        result = transactions_collection.update_one(
+            {"_id": oid, "status": expected_status},
+            {"$set": set_fields},
+        )
+        if result.matched_count == 0:
+            raise HTTPException(status_code=409, detail="状态已变更,请刷新后重试")
+
+        return "rejected"
+
+
 def la_confirm_transaction(
     transaction_id: str,
     body: LaConfirmTransactionBody,
@@ -215,78 +306,21 @@ def la_confirm_transaction(
     deal_dt = _parse_date(body.deal_date)
     now = datetime.now()
 
-    # 价格 + 日期都要分毫不差
-    price_match = (body.deal_price_yuan == doc["ba_deal_price_yuan"])
-    date_match = (deal_dt == doc["ba_deal_date"])
-
-    if price_match and date_match:
-        # 一致 → confirmed + listing 自动 sold
-        result = transactions_collection.update_one(
-            {"_id": oid, "status": "pending_la_confirm"},  # 乐观锁
-            {"$set": {
-                "la_deal_price_yuan": body.deal_price_yuan,
-                "la_deal_date": deal_dt,
-                "la_submitted_at": now,
-                "status": "confirmed",
-                "confirmed_at": now,
-                "updated_at": now,
-            }}
-        )
-        if result.matched_count == 0:
-            raise HTTPException(status_code=409, detail="状态已变更,请刷新后重试")
-
-        # 副作用 1:listing 自动置 sold
-        listings_collection.update_one(
-            {"_id": doc["listing_id"]},
-            {"$set": {
-                "status": "sold",
-                "sold_at": now,
-                "sold_price_yuan": body.deal_price_yuan,
-                "sold_date": deal_dt,
-                "updated_at": now,
-            }}
-        )
-
-        # 副作用 2:节点⑥ - 奖金结算单自动生成(V10 决策)
-        # 金额锁定时点 = BA 提交成交确认时(读 transaction 上的快照)
-        # 快照存在 doc.bonus_yuan_snapshot(initiate_transaction 时写入)
-        # 老数据没快照,回落读 listing 当前值(向后兼容)
-        bonus_yuan = doc.get("bonus_yuan_snapshot")
-        if bonus_yuan is None:
-            listing_doc = listings_collection.find_one({"_id": doc["listing_id"]})
-            bonus_yuan = int(listing_doc.get("bonus_yuan", 0) or 0) if listing_doc else 0
-        else:
-            bonus_yuan = int(bonus_yuan)
-
-        if bonus_yuan > 0:
-            # 重新取最新 transaction doc 以便快照字段齐全
-            latest_tx = transactions_collection.find_one({"_id": oid})
-            if latest_tx:
-                create_settlement_for_transaction(latest_tx, bonus_yuan)
-    else:
-        # 不一致 → 系统自动 rejected(price_mismatch)
-        msgs = []
-        if not price_match:
-            msgs.append("成交价不一致")
-        if not date_match:
-            msgs.append("成交日期不一致")
-        reason = ";".join(msgs) + ",请双方核实后由 BA 修改重提"
-
-        result = transactions_collection.update_one(
-            {"_id": oid, "status": "pending_la_confirm"},
-            {"$set": {
-                "la_deal_price_yuan": body.deal_price_yuan,
-                "la_deal_date": deal_dt,
-                "la_submitted_at": now,
-                "status": "rejected",
-                "reject_kind": "price_mismatch",
-                "reject_reason": reason,
-                "rejected_at": now,
-                "updated_at": now,
-            }}
-        )
-        if result.matched_count == 0:
-            raise HTTPException(status_code=409, detail="状态已变更,请刷新后重试")
+    _compare_and_finalize(
+        oid=oid,
+        doc=doc,
+        ba_price_yuan=doc["ba_deal_price_yuan"],
+        ba_date=doc["ba_deal_date"],
+        la_price_yuan=body.deal_price_yuan,
+        la_date=deal_dt,
+        expected_status="pending_la_confirm",
+        extra_set={
+            "la_deal_price_yuan": body.deal_price_yuan,
+            "la_deal_date": deal_dt,
+            "la_submitted_at": now,
+        },
+        now=now,
+    )
 
     new_doc = transactions_collection.find_one({"_id": oid})
     return _format(new_doc, la_agent_id)
@@ -347,6 +381,11 @@ def update_my_transaction(
             status_code=400,
             detail=f"只有被驳回的成交可以修改重提(当前:{doc['status']})"
         )
+    if doc.get("reject_kind") == "manual":
+        raise HTTPException(
+            status_code=400,
+            detail="该成交确认被 LA 手动驳回,请联系 LA 沟通后重新发起,而非修改重提",
+        )
 
     # 至少改一个字段
     has_any = any(v is not None for v in [
@@ -355,40 +394,85 @@ def update_my_transaction(
     if not has_any:
         raise HTTPException(status_code=400, detail="未提供任何修改字段")
 
-    update = {}
+    now = datetime.now()
+    extra_set = {"ba_updated_at": now}
+
     if body.deal_price_yuan is not None:
-        update["ba_deal_price_yuan"] = body.deal_price_yuan
+        extra_set["ba_deal_price_yuan"] = body.deal_price_yuan
     if body.deal_date is not None:
         deal_dt = _parse_date(body.deal_date)
         if deal_dt > datetime.now():
             raise HTTPException(status_code=400, detail="成交日期不能晚于今天")
-        update["ba_deal_date"] = deal_dt
+        extra_set["ba_deal_date"] = deal_dt
     if body.notes is not None:
-        update["ba_notes"] = body.notes.strip()
+        extra_set["ba_notes"] = body.notes.strip()
 
-    # 重提:状态回到 pending_la_confirm,清掉 LA 旧填报和驳回痕迹
-    now = datetime.now()
-    update.update({
-        "ba_updated_at": now,
-        "status": "pending_la_confirm",
-        "la_deal_price_yuan": None,
-        "la_deal_date": None,
-        "la_submitted_at": None,
-        "reject_kind": None,
-        "reject_reason": None,
-        "rejected_at": None,
-        "updated_at": now,
-    })
+    # BA 新值 vs LA 已填值比对(对称于 LA 侧 _compare_and_finalize)
+    # 注:doc["la_deal_price_yuan"]/["la_deal_date"] 仅用于内部比对,
+    # _format(viewer_id=ba_agent_id) 返回时仍对 BA 脱敏 LA 字段
+    effective_ba_price = extra_set.get("ba_deal_price_yuan", doc["ba_deal_price_yuan"])
+    effective_ba_date = extra_set.get("ba_deal_date", doc["ba_deal_date"])
 
-    result = transactions_collection.update_one(
-        {"_id": oid, "status": "rejected"},
-        {"$set": update}
+    _compare_and_finalize(
+        oid=oid,
+        doc=doc,
+        ba_price_yuan=effective_ba_price,
+        ba_date=effective_ba_date,
+        la_price_yuan=doc["la_deal_price_yuan"],
+        la_date=doc["la_deal_date"],
+        expected_status="rejected",
+        extra_set=extra_set,
+        now=now,
     )
-    if result.matched_count == 0:
-        raise HTTPException(status_code=409, detail="状态已变更,请刷新后重试")
 
     new_doc = transactions_collection.find_one({"_id": oid})
     return _format(new_doc, ba_agent_id)
+
+
+def update_my_submission_la(
+    transaction_id: str,
+    body: LaUpdateMySubmissionBody,
+    la_agent_id: ObjectId,
+) -> dict:
+    """LA 修改自己的填报(rejected 后重填,复用比对逻辑)"""
+    oid = _to_oid(transaction_id, "无效的成交ID")
+    doc = transactions_collection.find_one({"_id": oid})
+    if not doc:
+        raise HTTPException(status_code=404, detail="成交记录不存在")
+    if doc["la_agent_id"] != la_agent_id:
+        raise HTTPException(status_code=403, detail="只有房源归属人可以修改")
+    if doc["status"] != "rejected":
+        raise HTTPException(
+            status_code=400,
+            detail=f"只有被驳回的成交可以修改(当前:{doc['status']})"
+        )
+    if doc.get("reject_kind") == "manual":
+        raise HTTPException(
+            status_code=400,
+            detail="该成交已被您手动驳回,如需恢复请联系 BA 重新发起",
+        )
+
+    deal_dt = _parse_date(body.la_deal_date)
+    now = datetime.now()
+
+    _compare_and_finalize(
+        oid=oid,
+        doc=doc,
+        ba_price_yuan=doc["ba_deal_price_yuan"],
+        ba_date=doc["ba_deal_date"],
+        la_price_yuan=body.la_deal_price_yuan,
+        la_date=deal_dt,
+        expected_status="rejected",
+        extra_set={
+            "la_deal_price_yuan": body.la_deal_price_yuan,
+            "la_deal_date": deal_dt,
+            "la_submitted_at": now,
+        },
+        now=now,
+    )
+
+    new_doc = transactions_collection.find_one({"_id": oid})
+    return _format(new_doc, la_agent_id)
 
 
 def cancel_transaction(

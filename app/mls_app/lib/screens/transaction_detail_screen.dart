@@ -129,6 +129,37 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
     }
   }
 
+  // ============ LA 修改自己填报 ============
+
+  Future<void> _openLaUpdateDialog(Map<String, dynamic> doc) async {
+    final result = await showDialog<_LaUpdateResult>(
+      context: context,
+      builder: (ctx) => _LaUpdateDialog(
+        currentPrice: doc['la_deal_price_yuan'] as int?,
+        currentDate: doc['la_deal_date'] as String?,
+      ),
+    );
+    if (result == null) return;
+
+    setState(() => _submitting = true);
+    try {
+      await TransactionService.instance.laUpdateMySubmission(
+        widget.transactionId,
+        dealPriceYuan: result.priceYuan,
+        dealDate: result.date,
+      );
+      if (!mounted) return;
+      _snack('已重新提交,等待系统比对');
+      _reload();
+    } on DioException catch (e) {
+      if (!mounted) return;
+      final msg = e.response?.data?['detail'] ?? e.message ?? '网络错误';
+      _snack('修改失败:$msg');
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
   // ============ BA 撤回 ============
 
   Future<void> _cancel() async {
@@ -534,44 +565,127 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
       }
     }
 
-    // rejected:BA 可修改重提
-    if (status == 'rejected' && isBA) {
-      return Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.blue.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.info_outline, color: Colors.blue, size: 18),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    '请与 LA 核对后修改填报重新提交',
-                    style: TextStyle(fontSize: 12),
+    // rejected:BA 可修改重提 / LA 可修改自己填报
+    if (status == 'rejected') {
+      if (isBA) {
+        final rejectKind = doc['reject_kind'] as String?;
+        if (rejectKind == 'manual') {
+          return Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.warning_amber, color: Colors.red, size: 18),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'LA 手动驳回了此成交确认,请联系 LA 沟通后重新发起',
+                        style: TextStyle(fontSize: 12, color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                height: 48,
+                child: OutlinedButton.icon(
+                  onPressed: _cancel,
+                  icon: const Icon(Icons.undo),
+                  label: const Text('撤回成交确认'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
                   ),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            height: 48,
-            child: ElevatedButton.icon(
-              onPressed: () => _openBaUpdateDialog(doc),
-              icon: const Icon(Icons.edit),
-              label: const Text('修改并重新提交'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
+              ),
+            ],
+          );
+        }
+        return Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue, size: 18),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '请与 LA 核对后修改填报重新提交',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
-      );
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 48,
+              child: ElevatedButton.icon(
+                onPressed: () => _openBaUpdateDialog(doc),
+                icon: const Icon(Icons.edit),
+                label: const Text('修改并重新提交'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        );
+      }
+      if (isLA) {
+        final rejectKind = doc['reject_kind'] as String?;
+        if (rejectKind == 'manual') {
+          return const SizedBox.shrink();
+        }
+        return Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.orange, size: 18),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '价格比对不一致,请核实后修改你的填报重新提交',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 48,
+              child: ElevatedButton.icon(
+                onPressed: () => _openLaUpdateDialog(doc),
+                icon: const Icon(Icons.edit),
+                label: const Text('修改我的填报'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        );
+      }
     }
 
     // confirmed / cancelled / 其他:只读展示
@@ -792,6 +906,164 @@ class _BaUpdateResult {
   final String? date;
   final String? notes;
   _BaUpdateResult({this.priceYuan, this.date, this.notes});
+}
+
+class _LaUpdateResult {
+  final int priceYuan;
+  final String date;
+  _LaUpdateResult({required this.priceYuan, required this.date});
+}
+
+class _LaUpdateDialog extends StatefulWidget {
+  final int? currentPrice;
+  final String? currentDate;
+  const _LaUpdateDialog({this.currentPrice, this.currentDate});
+
+  @override
+  State<_LaUpdateDialog> createState() => _LaUpdateDialogState();
+}
+
+class _LaUpdateDialogState extends State<_LaUpdateDialog> {
+  late final TextEditingController _priceController;
+  DateTime? _date;
+
+  @override
+  void initState() {
+    super.initState();
+    _priceController = TextEditingController(
+        text: widget.currentPrice?.toString() ?? '');
+    if (widget.currentDate != null) {
+      try {
+        _date = DateTime.parse(widget.currentDate!);
+      } catch (_) {}
+    }
+  }
+
+  @override
+  void dispose() {
+    _priceController.dispose();
+    super.dispose();
+  }
+
+  int? get _priceYuan =>
+      int.tryParse(_priceController.text.trim().isEmpty
+          ? '0'
+          : _priceController.text.trim());
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _date ?? now,
+      firstDate: now.subtract(const Duration(days: 365)),
+      lastDate: now,
+    );
+    if (picked != null && mounted) setState(() => _date = picked);
+  }
+
+  String _dateStr(DateTime d) {
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${d.year}-${two(d.month)}-${two(d.day)}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = _priceYuan;
+    final wan =
+        (p != null && p > 0) ? (p / 10000).toStringAsFixed(1) : '--';
+
+    return AlertDialog(
+      title: const Text('修改我的填报'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '⚠️ 你看不到 BA 填的价格,系统会独立比对。请如实填写你记录的成交价,单位:元。',
+              style: TextStyle(color: Colors.orange, fontSize: 12),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _priceController,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              maxLength: 10,
+              onChanged: (_) => setState(() {}),
+              decoration: const InputDecoration(
+                labelText: '成交价',
+                hintText: '例如 850000',
+                suffixText: '元',
+                border: OutlineInputBorder(),
+                counterText: '',
+              ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Text('约 $wan 万元',
+                style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            const SizedBox(height: 16),
+            InkWell(
+              onTap: _pickDate,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade400),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.calendar_today,
+                        size: 16, color: Colors.grey),
+                    const SizedBox(width: 8),
+                    Text(
+                      _date == null ? '选择成交日期' : _dateStr(_date!),
+                      style: TextStyle(
+                        color: _date == null ? Colors.grey : Colors.black,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('取消'),
+        ),
+        TextButton(
+          onPressed: () {
+            final p = _priceYuan;
+            if (p == null || p <= 0) {
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(const SnackBar(content: Text('请填写成交价')));
+              return;
+            }
+            if (p < 10000) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('金额过低,请确认单位为元')));
+              return;
+            }
+            if (_date == null) {
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(const SnackBar(content: Text('请选择成交日期')));
+              return;
+            }
+            Navigator.of(context).pop(_LaUpdateResult(
+              priceYuan: p,
+              date: _dateStr(_date!),
+            ));
+          },
+          child: const Text('重新提交', style: TextStyle(color: Colors.orange)),
+        ),
+      ],
+    );
+  }
 }
 
 class _BaUpdateDialog extends StatefulWidget {
