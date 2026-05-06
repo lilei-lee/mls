@@ -235,8 +235,10 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
           final role = doc['viewer_role'] as String?;
           final isBA = role == 'ba';
           final isLA = role == 'la';
-          // 防伪触发条件:LA 视角 + 待确认状态
-          final maskBa = isLA && status == 'pending_la_confirm';
+          // 视角隔离铁律:与后端 _format 的 not_confirmed 判断对称(transactions.py:586)
+          // 任何修改必须前后端同步,否则一边裸奔
+          final maskBa = isLA && status != 'confirmed';
+          final maskLa = isBA && status != 'confirmed';
 
           return ListView(
             padding: const EdgeInsets.all(16),
@@ -269,7 +271,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
               const SizedBox(height: 16),
 
               _sectionTitle('双方填报'),
-              _buildSubmissionCards(doc, maskBa: maskBa),
+              _buildSubmissionCards(doc, maskBa: maskBa, maskLa: maskLa),
               const SizedBox(height: 16),
 
               // BA 备注:LA 视角在 pending_la_confirm 下也要脱敏
@@ -369,7 +371,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
   }
 
   Widget _buildSubmissionCards(Map<String, dynamic> doc,
-      {required bool maskBa}) {
+      {required bool maskBa, required bool maskLa}) {
     // maskBa=true 时,BA 卡片强制脱敏;ba_has_submitted 用于判"填了还是没填"
     final baHasSubmitted = (doc['ba_has_submitted'] as bool?) ?? false;
 
@@ -389,11 +391,11 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
         _submissionTile(
           roleLabel: 'Listing Agent',
           agentName: doc['la_agent_name'] ?? '-',
-          priceYuan: doc['la_deal_price_yuan'] as int?,
-          dateStr: doc['la_deal_date'] as String?,
-          submittedAt: doc['la_submitted_at'] as String?,
+          priceYuan: maskLa ? null : doc['la_deal_price_yuan'] as int?,
+          dateStr: maskLa ? null : doc['la_deal_date'] as String?,
+          submittedAt: maskLa ? null : doc['la_submitted_at'] as String?,
           color: Colors.purple,
-          masked: false,
+          masked: maskLa,
           hasSubmitted: doc['la_submitted_at'] != null,
         ),
       ],
