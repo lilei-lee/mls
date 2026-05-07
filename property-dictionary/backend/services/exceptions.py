@@ -34,3 +34,11 @@ class DiscrepancyNotFound(DictionaryError):
 class DiscrepancyAlreadyReviewed(DictionaryError):
     """discrepancy 已复核,不能重复"""
     pass
+
+class InvalidTransactionData(DictionaryError):
+    """成交沉淀数据非法"""
+    pass
+
+class TransactionAlreadyRecorded(DictionaryError):
+    """成交已沉淀,不允许重复"""
+    pass

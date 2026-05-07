@@ -10,9 +10,11 @@ from services.property_service import (
     get_or_create_property, get_property_by_code, get_property_by_address,
 )
 from services.claim_service import submit_claims, list_claims_by_property
+from services.transaction_service import record_transaction, list_transaction_history
 from services.exceptions import (
     DictionaryError, CityNotFound, DistrictNotFound, CommunityNotFound,
     PropertyNotFound, InvalidIdentifier, InvalidClaimField, InvalidClaimValue,
+    InvalidTransactionData, TransactionAlreadyRecorded,
 )
 
 router = APIRouter(prefix="/v1", tags=["dictionary"])
@@ -23,8 +25,10 @@ router = APIRouter(prefix="/v1", tags=["dictionary"])
 def _map_exception(e: DictionaryError) -> HTTPException:
     if isinstance(e, (CityNotFound, DistrictNotFound, CommunityNotFound, PropertyNotFound)):
         return HTTPException(status_code=404, detail=str(e))
-    if isinstance(e, (InvalidClaimField, InvalidClaimValue)):
+    if isinstance(e, (InvalidClaimField, InvalidClaimValue, InvalidTransactionData)):
         return HTTPException(status_code=400, detail=str(e))
+    if isinstance(e, TransactionAlreadyRecorded):
+        return HTTPException(status_code=409, detail=str(e))
     if isinstance(e, InvalidIdentifier):
         return HTTPException(status_code=400, detail=str(e))
     return HTTPException(status_code=500, detail=str(e))
@@ -168,5 +172,36 @@ def post_claims(code: str, body: SubmitClaimsBody):
 def list_claims(code: str, field: Optional[str] = Query(None)):
     try:
         return {"property_code": code, "items": list_claims_by_property(code, field=field)}
+    except DictionaryError as e:
+        raise _map_exception(e)
+
+
+# ============ Transaction sink ============
+
+class RecordTransactionBody(BaseModel):
+    deal_price_yuan: int = Field(..., gt=0, description="成交价(元,整数)")
+    deal_date: str = Field(..., description="ISO 日期 YYYY-MM-DD")
+    source: str = Field("mls_internal", description="数据来源(枚举)")
+    transaction_id: Optional[str] = Field(None, description="MLS 端 tx _id 或外部唯一标识,用于幂等")
+    verified: bool = Field(False, description="是否已核实")
+
+
+@router.post("/properties/{code}/transactions")
+def post_transaction(code: str, body: RecordTransactionBody):
+    try:
+        return record_transaction(
+            property_code=code, deal_price_yuan=body.deal_price_yuan,
+            deal_date=body.deal_date, source=body.source,
+            transaction_id=body.transaction_id, verified=body.verified,
+        )
+    except DictionaryError as e:
+        raise _map_exception(e)
+
+
+@router.get("/properties/{code}/transactions")
+def list_transactions(code: str, source: Optional[str] = Query(None), limit: int = Query(100, ge=1, le=500)):
+    try:
+        items = list_transaction_history(code, source=source, limit=limit)
+        return {"property_code": code, "items": items, "total": len(items)}
     except DictionaryError as e:
         raise _map_exception(e)
