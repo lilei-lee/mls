@@ -72,6 +72,9 @@ def create_showing_request(req: CreateShowingRequestBody, buyer_agent: dict) -> 
         raise HTTPException(status_code=400, detail="无效的房源ID")
     if not listing:
         raise HTTPException(status_code=404, detail="房源不存在")
+    # V2.1 #14: sold 专属文案,#15 楼盘辞典实施时改 property 维度
+    if listing.get("status") == "sold":
+        raise HTTPException(status_code=400, detail="该房源已成交,无法发起新协作")
     if listing.get("status") != "on_sale":
         raise HTTPException(status_code=400, detail="该房源当前不接受带客申请")
 

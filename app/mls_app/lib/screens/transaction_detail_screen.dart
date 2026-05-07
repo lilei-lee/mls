@@ -396,7 +396,10 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
           submittedAt: maskLa ? null : doc['la_submitted_at'] as String?,
           color: Colors.purple,
           masked: maskLa,
-          hasSubmitted: doc['la_submitted_at'] != null,
+          // 反作弊基石规则:rejected/cancelled 状态下 *_submitted_at 会被后端
+          // mask 为 null,判定"是否已提交"必须用 la_has_submitted /
+          // ba_has_submitted 布尔字段,不能用时间戳是否为 null 反推。
+          hasSubmitted: (doc['la_has_submitted'] as bool?) ?? false,
         ),
       ],
     );

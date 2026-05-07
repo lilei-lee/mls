@@ -123,6 +123,9 @@ def initiate_transaction(body: InitiateTransactionBody, ba_agent: dict) -> dict:
     listing = listings_collection.find_one({"_id": showing["listing_id"]})
     if not listing:
         raise HTTPException(status_code=404, detail="房源不存在")
+    # V2.1 #14: sold 专属文案,#15 楼盘辞典实施时改 property 维度
+    if listing["status"] == "sold":
+        raise HTTPException(status_code=400, detail="该房源已成交,无法发起新协作")
     if listing["status"] not in ("deposit_paid", "transaction_ongoing"):
         raise HTTPException(
             status_code=400,
