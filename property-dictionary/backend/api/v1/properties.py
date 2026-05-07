@@ -1,5 +1,5 @@
 """community + property REST API"""
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import Optional
 
@@ -17,7 +17,12 @@ from services.exceptions import (
     InvalidTransactionData, TransactionAlreadyRecorded,
 )
 
-router = APIRouter(prefix="/v1", tags=["dictionary"])
+from api.auth import require_api_key, check_city_scope
+
+router = APIRouter(
+    prefix="/v1", tags=["dictionary"],
+    dependencies=[Depends(require_api_key)],
+)
 
 
 # ============ 异常映射 ============
@@ -89,7 +94,8 @@ class IdentifyPropertyBody(BaseModel):
 # ============ Endpoints ============
 
 @router.post("/communities/identify")
-def identify_community(body: IdentifyCommunityBody):
+def identify_community(body: IdentifyCommunityBody, api_key_meta: dict = Depends(require_api_key)):
+    check_city_scope(api_key_meta, body.city_id)
     try:
         doc = get_or_create_community(body.city_id, body.district_id, body.name)
         return _serialize_community(doc)
@@ -111,7 +117,9 @@ def list_communities(
     city_id: str = Query(..., description="城市 ID"),
     keyword: Optional[str] = Query(None, description="模糊搜索关键词"),
     limit: int = Query(50, ge=1, le=200),
+    api_key_meta: dict = Depends(require_api_key),
 ):
+    check_city_scope(api_key_meta, city_id)
     try:
         docs = list_communities_by_city(city_id, name_keyword=keyword, limit=limit)
         return {"items": [_serialize_community(d) for d in docs], "total": len(docs)}
@@ -120,7 +128,8 @@ def list_communities(
 
 
 @router.post("/properties/identify")
-def identify_property(body: IdentifyPropertyBody):
+def identify_property(body: IdentifyPropertyBody, api_key_meta: dict = Depends(require_api_key)):
+    check_city_scope(api_key_meta, body.city_id)
     try:
         doc = get_or_create_property(
             body.city_id, body.district_id, body.community_id,
@@ -136,7 +145,9 @@ def get_property_by_addr(
     city_id: str = Query(...), district_id: str = Query(...),
     community_id: str = Query(...), building: str = Query(...),
     unit: str = Query(...), room_no: str = Query(...),
+    api_key_meta: dict = Depends(require_api_key),
 ):
+    check_city_scope(api_key_meta, city_id)
     doc = get_property_by_address(city_id, district_id, community_id, building, unit, room_no)
     if not doc:
         raise HTTPException(status_code=404, detail="Property not found at this address")

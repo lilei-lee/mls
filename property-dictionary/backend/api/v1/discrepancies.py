@@ -1,5 +1,5 @@
 """discrepancy 查询 + 复核 REST API"""
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import Optional
 
@@ -11,7 +11,12 @@ from services.exceptions import (
     DiscrepancyNotFound, DiscrepancyAlreadyReviewed,
 )
 
-router = APIRouter(prefix="/v1", tags=["discrepancies"])
+from api.auth import require_api_key, check_city_scope
+
+router = APIRouter(
+    prefix="/v1", tags=["discrepancies"],
+    dependencies=[Depends(require_api_key)],
+)
 
 
 def _map_disc_exception(e: DictionaryError) -> HTTPException:
@@ -53,7 +58,10 @@ def _serialize_discrepancy(doc: dict) -> dict:
 def list_discrepancies(
     city_id: Optional[str] = Query(None),
     limit: int = Query(50, ge=1, le=200),
+    api_key_meta: dict = Depends(require_api_key),
 ):
+    if city_id:
+        check_city_scope(api_key_meta, city_id)
     docs = list_pending_discrepancies(city_id=city_id, limit=limit)
     return {"items": [_serialize_discrepancy(d) for d in docs], "total": len(docs)}
 
