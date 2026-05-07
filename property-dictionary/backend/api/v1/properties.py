@@ -9,9 +9,10 @@ from services.community_service import (
 from services.property_service import (
     get_or_create_property, get_property_by_code, get_property_by_address,
 )
+from services.claim_service import submit_claims, list_claims_by_property
 from services.exceptions import (
     DictionaryError, CityNotFound, DistrictNotFound, CommunityNotFound,
-    PropertyNotFound, InvalidIdentifier,
+    PropertyNotFound, InvalidIdentifier, InvalidClaimField, InvalidClaimValue,
 )
 
 router = APIRouter(prefix="/v1", tags=["dictionary"])
@@ -22,6 +23,8 @@ router = APIRouter(prefix="/v1", tags=["dictionary"])
 def _map_exception(e: DictionaryError) -> HTTPException:
     if isinstance(e, (CityNotFound, DistrictNotFound, CommunityNotFound, PropertyNotFound)):
         return HTTPException(status_code=404, detail=str(e))
+    if isinstance(e, (InvalidClaimField, InvalidClaimValue)):
+        return HTTPException(status_code=400, detail=str(e))
     if isinstance(e, InvalidIdentifier):
         return HTTPException(status_code=400, detail=str(e))
     return HTTPException(status_code=500, detail=str(e))
@@ -141,5 +144,29 @@ def get_property(code: str):
     try:
         doc = get_property_by_code(code)
         return _serialize_property(doc)
+    except DictionaryError as e:
+        raise _map_exception(e)
+
+
+# ============ Claim endpoints ============
+
+class SubmitClaimsBody(BaseModel):
+    agent_id: str = Field(..., description="提交者(经纪人)ID")
+    listing_id: str = Field(..., description="关联 listing ID")
+    claims: dict = Field(..., description="字段-值字典,如 {area_sqm: 105, floor: 5}")
+
+
+@router.post("/properties/{code}/claims")
+def post_claims(code: str, body: SubmitClaimsBody):
+    try:
+        return submit_claims(code, body.agent_id, body.listing_id, body.claims)
+    except DictionaryError as e:
+        raise _map_exception(e)
+
+
+@router.get("/properties/{code}/claims")
+def list_claims(code: str, field: Optional[str] = Query(None)):
+    try:
+        return {"property_code": code, "items": list_claims_by_property(code, field=field)}
     except DictionaryError as e:
         raise _map_exception(e)

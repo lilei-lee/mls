@@ -3,9 +3,11 @@ from fastapi import FastAPI
 from config import DICT_PORT, DICT_MONGO_DB, DICT_SECRET_KEY
 from database import ping_db
 from api.v1.properties import router as properties_router
+from api.v1.discrepancies import router as discrepancies_router
 
 app = FastAPI(title="Property Dictionary Service", version="0.1.0")
 app.include_router(properties_router)
+app.include_router(discrepancies_router)
 
 
 @app.on_event("startup")
