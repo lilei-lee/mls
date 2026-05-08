@@ -246,9 +246,8 @@ class _ListingListScreenState extends State<ListingListScreen>
                 return _ListingCard(
                   item: item,
                   onTap: () async {
-                    final changed = await context
-                        .push<bool>('/listing/${item['listing_id']}');
-                    if (changed == true) _refresh();
+                    await context.push('/listing/${item['listing_id']}');
+                    _refresh();
                   },
                 );
               },
