@@ -201,3 +201,100 @@ def test_list_listings_no_property_code_skipped(mock_client_class):
     result = _batch_fetch_props([{"property_code": None}, {"property_code": ""}])
     assert result == {}
     mock_client.batch_get_properties.assert_not_called()
+
+
+@patch("dictionary_client.DictionaryClient")
+def test_get_listing_my_last_claim_la_view(mock_client_class, agent, physical):
+    """LA 视角调 GET → my_last_claim 含自己最新 claim,旧值被新值覆盖"""
+    mock_client = MagicMock()
+    mock_client.identify_property.return_value = {"property_code": "MYCLAIM001"}
+    mock_client.submit_claim.return_value = {"total_claims_after": 1}
+    mock_client_class.return_value = mock_client
+
+    req = FakeReq()
+    r = create_listing(req, physical, agent)
+    lid = r["listing_id"]
+
+    # mock: LA(agent) 提交了 area_sqm old=100 new=105, floor=5
+    mock_client2 = MagicMock()
+    mock_client2.get_property.return_value = {
+        "attribute_claims": [
+            {"field": "area_sqm", "value": 100, "agent_id": str(agent["_id"]), "listing_id": lid, "claimed_at": "2026-05-01T00:00:00"},
+            {"field": "area_sqm", "value": 105, "agent_id": str(agent["_id"]), "listing_id": lid, "claimed_at": "2026-05-02T00:00:00"},
+            {"field": "floor",    "value": 8,   "agent_id": str(agent["_id"]), "listing_id": lid, "claimed_at": "2026-05-02T00:00:00"},
+        ],
+    }
+    mock_client_class.return_value = mock_client2
+
+    from listings import get_listing_by_id
+    detail = get_listing_by_id(lid, viewer_id=agent["_id"])
+    mc = detail["my_last_claim"]
+    assert mc["area_sqm"] == 105   # latest wins
+    assert mc["floor"] == 8
+    assert mc["rooms"] is None      # no claim
+    assert mc["halls"] is None
+    assert mc["bathrooms"] is None
+    assert mc["total_floor"] is None
+
+    from database import db
+    db["listings"].delete_one({"_id": ObjectId(lid)})
+
+
+@patch("dictionary_client.DictionaryClient")
+def test_get_listing_no_my_last_claim_ba_view(mock_client_class, agent, physical):
+    """BA 视角调 GET → 不含 my_last_claim 字段"""
+    mock_client = MagicMock()
+    mock_client.identify_property.return_value = {"property_code": "BACLAIM001"}
+    mock_client.submit_claim.return_value = {"total_claims_after": 1}
+    mock_client_class.return_value = mock_client
+
+    req = FakeReq()
+    r = create_listing(req, physical, agent)
+    lid = r["listing_id"]
+
+    mock_client2 = MagicMock()
+    mock_client2.get_property.return_value = {
+        "attribute_claims": [
+            {"field": "area_sqm", "value": 100, "agent_id": str(agent["_id"]), "listing_id": lid, "claimed_at": "2026-05-01T00:00:00"},
+        ],
+    }
+    mock_client_class.return_value = mock_client2
+
+    from listings import get_listing_by_id
+    ba_id = ObjectId()  # different agent
+    detail = get_listing_by_id(lid, viewer_id=ba_id)
+    assert "my_last_claim" not in detail
+
+    from database import db
+    db["listings"].delete_one({"_id": ObjectId(lid)})
+
+
+@patch("dictionary_client.DictionaryClient")
+def test_get_listing_my_last_claim_filter_only_self(mock_client_class, agent, physical):
+    """LA 视角只拿自己的 claim,不混入其他 LA 的"""
+    mock_client = MagicMock()
+    mock_client.identify_property.return_value = {"property_code": "FILTER001"}
+    mock_client.submit_claim.return_value = {"total_claims_after": 1}
+    mock_client_class.return_value = mock_client
+
+    req = FakeReq()
+    r = create_listing(req, physical, agent)
+    lid = r["listing_id"]
+
+    other_la = str(ObjectId())
+    mock_client2 = MagicMock()
+    mock_client2.get_property.return_value = {
+        "attribute_claims": [
+            {"field": "area_sqm", "value": 110, "agent_id": other_la, "listing_id": "x", "claimed_at": "2026-05-01T00:00:00"},
+            {"field": "area_sqm", "value": 99,  "agent_id": str(agent["_id"]), "listing_id": lid, "claimed_at": "2026-05-02T00:00:00"},
+        ],
+    }
+    mock_client_class.return_value = mock_client2
+
+    from listings import get_listing_by_id
+    detail = get_listing_by_id(lid, viewer_id=agent["_id"])
+    mc = detail["my_last_claim"]
+    assert mc["area_sqm"] == 99  # only self, not 110 from other LA
+
+    from database import db
+    db["listings"].delete_one({"_id": ObjectId(lid)})

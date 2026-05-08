@@ -592,7 +592,7 @@ def get_listing_api(
     listing_id: str,
     agent: dict = Depends(get_current_agent),
 ):
-    doc = get_listing_by_id(listing_id)
+    doc = get_listing_by_id(listing_id, viewer_id=agent["_id"])
     if not doc:
         raise HTTPException(status_code=404, detail="房源不存在")
     return {"success": True, "data": doc}

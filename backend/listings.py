@@ -391,7 +391,7 @@ def count_shared_listings(
     return listings_collection.count_documents(query)
 
 
-def get_listing_by_id(listing_id: str) -> dict | None:
+def get_listing_by_id(listing_id: str, viewer_id=None) -> dict | None:
     try:
         doc = listings_collection.find_one({"_id": ObjectId(listing_id)})
     except Exception:
@@ -400,12 +400,15 @@ def get_listing_by_id(listing_id: str) -> dict | None:
         return None
     result = _format_listing_full(doc)
     # V2.1 #15: 尝试从辞典侧补物理字段,失败时保持 None 占位(graceful degrade)
-    _enrich_from_dictionary(result, doc)
+    _enrich_from_dictionary(result, doc, viewer_id)
     return result
 
 
-def _enrich_from_dictionary(result: dict, doc: dict) -> None:
-    """尝试从辞典 get_property 拿物理字段富化 listing 详情,不抛异常"""
+def _enrich_from_dictionary(result: dict, doc: dict, viewer_id=None) -> None:
+    """尝试从辞典 get_property 拿物理字段富化 listing 详情,不抛异常。
+
+    如 viewer_id 与 listing.owner_agent_id 相同(LA 视角),附加 my_last_claim。
+    """
     property_code = doc.get("property_code")
     if not property_code:
         return
@@ -432,6 +435,22 @@ def _enrich_from_dictionary(result: dict, doc: dict) -> None:
                 if c.get("field") == field and c.get("value") is not None:
                     result[field] = c["value"]
                     break
+
+    # V2.1 #15 段 7.5: LA 视角附加"我上次提交"的物理值
+    if viewer_id and str(viewer_id) == str(doc.get("owner_agent_id", "")):
+        my_claims = [
+            c for c in claims_list
+            if str(c.get("agent_id", "")) == str(viewer_id)
+        ]
+        my_claims_sorted = sorted(
+            my_claims, key=lambda c: c.get("claimed_at") or "", reverse=True
+        )
+        my_last_claim = {field: None for field in DICT_PHYSICAL_FIELDS}
+        for c in my_claims_sorted:
+            field = c.get("field")
+            if field in my_last_claim and my_last_claim[field] is None:
+                my_last_claim[field] = c.get("value")
+        result["my_last_claim"] = my_last_claim
 
 
 # ==================== 更新 / 下架 / 重新上架 ====================
