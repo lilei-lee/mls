@@ -104,7 +104,7 @@ def _stage_status_label(stage, status, is_failed):
             return "已过期"
         return "已终止"
     if status == "in_progress":
-        return f"{STAGE_LABELS[stage]}中"
+        return f"{STAGE_LABELS[stage]}(进行中)"
     if status == "done" and stage == STAGE_COMPLETED:
         return "已完成"
     return STAGE_LABELS[stage]
