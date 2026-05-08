@@ -15,6 +15,8 @@ from bson import ObjectId
 from jose import jwt, JWTError
 from listings import (
     CreateListingRequest,
+    PostListingRequest,
+    _extract_physical_attrs,
     CreateListingResponse,
     MarkDepositPaidBody,
     MarkTransactionOngoingBody,
@@ -474,10 +476,11 @@ def get_me(agent: dict = Depends(get_current_agent)):
 
 @app.post("/api/v1/listings", response_model=CreateListingResponse)
 def create_listing_api(
-    req: CreateListingRequest,
+    req: PostListingRequest,
     agent: dict = Depends(get_current_agent),
 ):
-    result = create_listing(req, agent)
+    physical_attrs = _extract_physical_attrs(req)
+    result = create_listing(req, physical_attrs, agent)
     print(f"\n🏠 新房源录入: {req.community} {req.building}-{req.unit}-{req.room_no} by {agent['name']}")
     return CreateListingResponse(
         success=True,

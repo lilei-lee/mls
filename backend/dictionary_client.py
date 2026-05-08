@@ -93,11 +93,11 @@ class DictionaryClient:
         return self._request("GET", f"/properties/{code}")
 
     # ── 物理属性层 ──
-    def submit_claim(self, code, attrs, agent_id, listing_id):
-        return self._request("POST", f"/properties/{code}/claims", body={
-            "agent_id": agent_id, "listing_id": listing_id,
-            "claims": attrs,
-        })
+    def submit_claim(self, code, attrs, agent_id, listing_id=None):
+        body = {"agent_id": agent_id, "claims": attrs}
+        if listing_id:
+            body["listing_id"] = listing_id
+        return self._request("POST", f"/properties/{code}/claims", body=body)
 
     def get_claims(self, code, field=None):
         params = {"field": field} if field else None

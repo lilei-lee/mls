@@ -44,7 +44,8 @@ def _validate_claim_field(field: str, value) -> None:
 def submit_claims(property_code: str, agent_id, listing_id, claims: dict) -> dict:
     prop = get_property_by_code(property_code)
     agent_oid = _to_oid(agent_id, "Invalid agent_id")
-    listing_oid = _to_oid(listing_id, "Invalid listing_id")
+    # V2.1 #15 段 7.3: listing_id 允许为空(MLS 挂牌时 listing 还没写库)
+    listing_oid = _to_oid(listing_id, "Invalid listing_id") if listing_id else None
 
     if not isinstance(claims, dict) or not claims:
         raise InvalidClaimField("claims must be a non-empty dict")
@@ -85,7 +86,8 @@ def submit_claims(property_code: str, agent_id, listing_id, claims: dict) -> dic
         "claims_added": [
             {
                 "field": e["field"], "value": e["value"],
-                "agent_id": str(e["agent_id"]), "listing_id": str(e["listing_id"]),
+                "agent_id": str(e["agent_id"]),
+                "listing_id": str(e["listing_id"]) if e["listing_id"] else None,
                 "claimed_at": e["claimed_at"].isoformat(),
             }
             for e in claim_entries

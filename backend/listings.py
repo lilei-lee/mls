@@ -101,6 +101,23 @@ class CreateListingRequest(BaseModel):
     photos: Optional[List[PhotoItem]] = Field(default=None, description="完整照片列表")
 
 
+class PostListingRequest(CreateListingRequest):
+    """LA 挂牌请求,继承 CreateListingRequest + 6 物理字段 + 辞典身份字段(调辞典后不写本地)"""
+    city_id: Optional[str] = Field(None, description="城市 ID(调辞典用)")
+    district_id: Optional[str] = Field(None, description="区县 ID(调辞典用)")
+    area_sqm: float = Field(..., gt=0, le=2000, description="面积(调辞典 claim,不持久化到 listing)")
+    floor: int = Field(..., ge=-5, le=200, description="楼层(调辞典 claim,不持久化到 listing)")
+    total_floor: int = Field(..., ge=1, le=200, description="总楼层(调辞典 claim,不持久化到 listing)")
+    rooms: int = Field(..., ge=0, le=20, description="室(调辞典 claim,不持久化到 listing)")
+    halls: int = Field(..., ge=0, le=10, description="厅(调辞典 claim,不持久化到 listing)")
+    bathrooms: int = Field(..., ge=0, le=10, description="卫(调辞典 claim,不持久化到 listing)")
+
+
+def _extract_physical_attrs(req) -> dict:
+    """从请求中提取 6 物理字段,用于调辞典 submit_claim"""
+    return {field: getattr(req, field) for field in DICT_PHYSICAL_FIELDS}
+
+
 class CreateListingResponse(BaseModel):
     success: bool
     listing_id: str
@@ -137,7 +154,14 @@ def _layout_text(rooms: int, halls: int, bathrooms: int) -> str:
     return f"{rooms}室{halls}厅{bathrooms}卫"
 
 
-def create_listing(req: CreateListingRequest, agent: dict) -> dict:
+def create_listing(req, physical_attrs: dict, agent: dict) -> dict:
+    """LA 挂牌。physical_attrs = {area_sqm, floor, total_floor, rooms, halls, bathrooms}。
+
+    V2.1 #15: 先调辞典 identify + claim,成功后写本地 listing(仅营销字段 +
+    property_code)。辞典不可达 → 503; claim 冲突 → 409 + diff。
+    """
+    from dictionary_client import DictionaryClient, DictionaryUnavailableError, DictionaryForbiddenError
+
     house_code = generate_house_code(
         req.community, req.building, req.unit, req.room_no
     )
@@ -168,6 +192,35 @@ def create_listing(req: CreateListingRequest, agent: dict) -> dict:
         except Exception:
             raise HTTPException(status_code=400, detail="无效的小区ID")
 
+    # ── 1. 调辞典 identify + claim(需要 city_id / district_id) ──
+    d = DictionaryClient()
+    city_id = getattr(req, "city_id", None)
+    district_id = getattr(req, "district_id", None)
+    community_id_str = str(community_oid) if community_oid else None
+
+    if city_id and district_id and community_id_str:
+        try:
+            prop = d.identify_property(
+                city_id, district_id, community_id_str,
+                req.building.strip(), req.unit.strip(), req.room_no.strip(),
+            )
+            property_code = prop["property_code"]
+            # V8.7 铁律修正:辞典 always-accept claim,冲突旁路写 discrepancy 工单
+            d.submit_claim(property_code, physical_attrs, str(agent["_id"]))
+        except (DictionaryUnavailableError, DictionaryForbiddenError) as e:
+            raise HTTPException(status_code=503, detail=f"辞典服务不可达: {e}")
+    else:
+        # graceful degrade: 没有辞典身份字段 → 跳过, property_code = None
+        property_code = None
+
+    # ── 2. 派生 layout ──
+    layout = _layout_text(
+        physical_attrs.get("rooms", 0),
+        physical_attrs.get("halls", 0),
+        physical_attrs.get("bathrooms", 0),
+    )
+
+    # ── 3. 写本地 listing ──
     now = datetime.now()
     doc = {
         "house_code": house_code,
@@ -177,9 +230,8 @@ def create_listing(req: CreateListingRequest, agent: dict) -> dict:
         "building": req.building.strip(),
         "unit": req.unit.strip(),
         "room_no": req.room_no.strip(),
-        "layout": "",
-        # V2.1 #15: property_code 段 7.3 接辞典侧 identify_property 后再写
-        "property_code": None,
+        "property_code": property_code,
+        "layout": layout,
         "orientation": req.orientation,
         "price_wan": req.price_wan,
         "remarks": req.remarks or "",
@@ -337,7 +389,33 @@ def get_listing_by_id(listing_id: str) -> dict | None:
         return None
     if not doc:
         return None
-    return _format_listing_full(doc)
+    result = _format_listing_full(doc)
+    # V2.1 #15: 尝试从辞典侧补物理字段,失败时保持 None 占位(graceful degrade)
+    _enrich_from_dictionary(result, doc)
+    return result
+
+
+def _enrich_from_dictionary(result: dict, doc: dict) -> None:
+    """尝试从辞典 get_property 拿物理字段富化 listing 详情,不抛异常"""
+    property_code = doc.get("property_code")
+    if not property_code:
+        return
+    try:
+        from dictionary_client import DictionaryClient
+        prop = DictionaryClient().get_property(property_code)
+    except Exception:
+        return
+    # authoritative_attrs 优先
+    auth = prop.get("authoritative_attrs", {}) or {}
+    for field in DICT_PHYSICAL_FIELDS:
+        val = auth.get(field)
+        if val is not None:
+            result[field] = val
+    # attribute_claims_latest 兜底(仅填 authoritative_attrs 缺失的字段)
+    claims = prop.get("attribute_claims_latest", {}) or {}
+    for field in DICT_PHYSICAL_FIELDS:
+        if result.get(field) is None and field in claims:
+            result[field] = claims[field]
 
 
 # ==================== 更新 / 下架 / 重新上架 ====================

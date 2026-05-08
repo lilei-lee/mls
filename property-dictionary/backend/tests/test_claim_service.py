@@ -117,3 +117,11 @@ def test_list_claims_filtered_by_field(fresh_property, fake_agent_listing):
     assert len(list_claims_by_property(fresh_property["property_code"], field="area_sqm")) == 1
     assert len(list_claims_by_property(fresh_property["property_code"], field="floor")) == 1
     assert len(list_claims_by_property(fresh_property["property_code"])) == 2
+
+
+def test_submit_claim_listing_id_none(fresh_property):
+    """V2.1 #15: listing_id 为空时(MLS 挂牌 listing 还没写库),正常写 claim"""
+    from bson import ObjectId
+    r = submit_claims(fresh_property["property_code"], ObjectId(), None, {"area_sqm": 99})
+    assert r["total_claims_after"] == 1
+    assert r["claims_added"][0]["listing_id"] is None
