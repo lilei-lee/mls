@@ -25,6 +25,11 @@ class _CollaborationListScreenState extends State<CollaborationListScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        _refresh();
+      }
+    });
     _buyerFuture = _load('buyer');
     _sellerFuture = _load('seller');
   }
