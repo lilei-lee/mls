@@ -67,9 +67,35 @@ def _serialize_property(doc: dict) -> dict:
         "community_id": str(doc["community_id"]),
         "building": doc["building"], "unit": doc["unit"], "room_no": doc["room_no"],
         "authoritative_attrs": doc.get("authoritative_attrs", {}),
-        "attribute_claims": doc.get("attribute_claims", []),
-        "transaction_history": doc.get("transaction_history", []),
-        "listing_history": doc.get("listing_history", []),
+        "attribute_claims": [
+            {
+                "field": c["field"], "value": c["value"],
+                "agent_id": str(c["agent_id"]) if c.get("agent_id") else None,
+                "listing_id": str(c["listing_id"]) if c.get("listing_id") else None,
+                "claimed_at": c["claimed_at"].isoformat() if c.get("claimed_at") else None,
+            }
+            for c in doc.get("attribute_claims", [])
+        ],
+        "transaction_history": [
+            {
+                "deal_price_yuan": t["deal_price_yuan"], "deal_date": t["deal_date"],
+                "transaction_id": str(t["transaction_id"]) if t.get("transaction_id") else None,
+                "source": t["source"], "verified": t.get("verified", False),
+                "created_at": t["created_at"].isoformat() if t.get("created_at") else None,
+            }
+            for t in doc.get("transaction_history", [])
+        ],
+        "listing_history": [
+            {
+                "list_price_wan": l["list_price_wan"],
+                "listed_at": l["listed_at"].isoformat() if l.get("listed_at") else None,
+                "delisted_at": l["delisted_at"].isoformat() if l.get("delisted_at") else None,
+                "sold": l.get("sold", False),
+                "listing_id": str(l["listing_id"]) if l.get("listing_id") else None,
+                "source": l["source"],
+            }
+            for l in doc.get("listing_history", [])
+        ],
         "standard_assets": doc.get("standard_assets", {}),
         "created_at": doc["created_at"].isoformat() if doc.get("created_at") else None,
         "updated_at": doc["updated_at"].isoformat() if doc.get("updated_at") else None,
