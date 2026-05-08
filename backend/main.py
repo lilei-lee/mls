@@ -28,6 +28,7 @@ from listings import (
     list_shared_listings,
     count_shared_listings,
     get_listing_by_id,
+    sync_physical_to_dict,
     update_listing,
     offline_listing,
     reactivate_listing,
@@ -585,6 +586,14 @@ def reactivate_listing_api(
     doc = reactivate_listing(listing_id, agent["_id"])
     print(f"\n♻️  房源重新上架: {doc['community']} by {agent['name']}")
     return {"success": True, "data": doc}
+
+
+@app.post("/api/v1/listings/{listing_id}/sync-physical")
+def sync_listing_physical_api(
+    listing_id: str,
+    agent: dict = Depends(get_current_agent),
+):
+    return sync_physical_to_dict(listing_id, agent["_id"])
 
 
 @app.get("/api/v1/listings/{listing_id}")

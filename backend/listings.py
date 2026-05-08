@@ -681,6 +681,64 @@ def rollback_listing_to_on_sale(
     return _format_listing_full(listings_collection.find_one({"_id": oid}))
 
 
+# ==================== V2.1 #15 sync-physical ====================
+
+def sync_physical_to_dict(listing_id: str, viewer_id) -> dict:
+    """LA 一键同步权威值:取辞典 authoritative_attrs,提交 claim 对齐。
+
+    只允许 listing.owner_agent_id 调用;需 listing.property_code 存在。
+    """
+    from dictionary_client import DictionaryClient, DictionaryUnavailableError, DictionaryNotFoundError
+
+    try:
+        oid = ObjectId(listing_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的房源ID")
+
+    doc = listings_collection.find_one({"_id": oid})
+    if not doc:
+        raise HTTPException(status_code=404, detail="房源不存在")
+    if str(doc.get("owner_agent_id")) != str(viewer_id):
+        raise HTTPException(status_code=403, detail="只有房源归属人可以同步权威值")
+
+    property_code = doc.get("property_code")
+    if not property_code:
+        raise HTTPException(status_code=400, detail="该房源未关联辞典 property,无法同步")
+
+    try:
+        prop = DictionaryClient().get_property(property_code)
+    except DictionaryNotFoundError:
+        raise HTTPException(status_code=500, detail="辞典 property 不存在(数据不一致)")
+    except DictionaryUnavailableError as e:
+        raise HTTPException(status_code=503, detail=f"辞典服务暂时不可达: {e}")
+
+    authoritative = prop.get("authoritative_attrs", {}) or {}
+    if not authoritative:
+        raise HTTPException(status_code=400, detail="辞典 property 暂无权威值,无法同步")
+
+    attrs = {}
+    for field in DICT_PHYSICAL_FIELDS:
+        if field in authoritative and authoritative[field] is not None:
+            attrs[field] = authoritative[field]
+
+    if not attrs:
+        raise HTTPException(status_code=400, detail="辞典 authoritative_attrs 所有字段为空")
+
+    try:
+        DictionaryClient().submit_claim(
+            code=property_code, attrs=attrs,
+            agent_id=str(viewer_id), listing_id=str(listing_id),
+        )
+    except DictionaryUnavailableError as e:
+        raise HTTPException(status_code=503, detail=f"辞典服务暂时不可达: {e}")
+
+    return {
+        "synced_fields": list(attrs.keys()),
+        "synced_values": attrs,
+        "listing_id": listing_id,
+    }
+
+
 # ==================== V2.1 #15 batch 富化 ====================
 
 def _batch_fetch_props(docs: list) -> dict:
