@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../services/api_client.dart';
 import '../widgets/photo_picker.dart';
 
-/// 房源编辑页 - 地址和行政区不可改,可以改户型、楼层、报价、照片等
+/// 房源编辑页 - V2.1 #15 段 7.5:物理字段移到辞典,编辑页只改营销字段
 class ListingEditScreen extends StatefulWidget {
   final String listingId;
   final Map<String, dynamic> original;
@@ -22,11 +22,6 @@ class ListingEditScreen extends StatefulWidget {
 class _ListingEditScreenState extends State<ListingEditScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  late final TextEditingController _rooms;
-  late final TextEditingController _halls;
-  late final TextEditingController _bathrooms;
-  late final TextEditingController _floor;
-  late final TextEditingController _totalFloor;
   late final TextEditingController _orientation;
   late final TextEditingController _priceWan;
   late final TextEditingController _bonusYuan;
@@ -36,18 +31,12 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
   String? _coverThumbnail;
 
   bool _submitting = false;
+  bool _syncing = false;
 
   @override
   void initState() {
     super.initState();
     final o = widget.original;
-    _rooms = TextEditingController(text: (o['rooms'] ?? 0).toString());
-    _halls = TextEditingController(text: (o['halls'] ?? 0).toString());
-    _bathrooms =
-        TextEditingController(text: (o['bathrooms'] ?? 0).toString());
-    _floor = TextEditingController(text: o['floor']?.toString() ?? '');
-    _totalFloor =
-        TextEditingController(text: o['total_floor']?.toString() ?? '');
     _orientation =
         TextEditingController(text: o['orientation']?.toString() ?? '');
     _priceWan = TextEditingController(text: o['price_wan']?.toString() ?? '');
@@ -55,7 +44,6 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
         text: (o['bonus_yuan'] ?? 0).toString());
     _remarks = TextEditingController(text: o['remarks']?.toString() ?? '');
 
-    // 段 8:初始化照片列表(从详情里读 photos 数组)
     final rawPhotos = (o['photos'] as List?) ?? [];
     _photos = rawPhotos
         .map((e) => PickedPhoto.fromJson(e as Map<String, dynamic>))
@@ -65,11 +53,6 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
 
   @override
   void dispose() {
-    _rooms.dispose();
-    _halls.dispose();
-    _bathrooms.dispose();
-    _floor.dispose();
-    _totalFloor.dispose();
     _orientation.dispose();
     _priceWan.dispose();
     _bonusYuan.dispose();
@@ -83,22 +66,11 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
     setState(() => _submitting = true);
 
     try {
-      final roomsVal = int.tryParse(_rooms.text.trim());
-      final hallsVal = int.tryParse(_halls.text.trim());
-      final bathroomsVal = int.tryParse(_bathrooms.text.trim());
-      final floorVal = int.tryParse(_floor.text.trim());
-      final totalFloorVal = int.tryParse(_totalFloor.text.trim());
       final priceVal = double.tryParse(_priceWan.text.trim());
-
-      if (roomsVal == null ||
-          hallsVal == null ||
-          bathroomsVal == null ||
-          floorVal == null ||
-          totalFloorVal == null ||
-          priceVal == null) {
+      if (priceVal == null) {
         setState(() => _submitting = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('有字段格式不正确,请检查')),
+          const SnackBar(content: Text('报价格式不正确')),
         );
         return;
       }
@@ -106,20 +78,14 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
       final bonusVal = int.tryParse(_bonusYuan.text.trim()) ?? 0;
 
       final payload = {
-        'rooms': roomsVal,
-        'halls': hallsVal,
-        'bathrooms': bathroomsVal,
-        'floor': floorVal,
-        'total_floor': totalFloorVal,
         'orientation': _orientation.text.trim(),
         'price_wan': priceVal,
         'bonus_yuan': bonusVal,
         'remarks': _remarks.text.trim(),
-        // 段 8
         'cover_thumbnail': _coverThumbnail,
         'photos': _photos.map((p) => p.toJson()).toList(),
       };
-      
+
       await ApiClient.instance.dio.patch(
         '/listings/${widget.listingId}',
         data: payload,
@@ -140,6 +106,48 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
     }
   }
 
+  Future<void> _syncToAuthority() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('确认采用辞典权威值?'),
+        content: const Text(
+          '这将提交一条新的物理信息记录,你的旧记录保留为历史。',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('确认同步', style: TextStyle(color: Colors.orange)),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+
+    setState(() => _syncing = true);
+    try {
+      await ApiClient.instance.dio.post(
+        '/listings/${widget.listingId}/sync-physical',
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('已同步,正在刷新...')),
+      );
+      context.pop(true);
+    } on DioException catch (e) {
+      if (!mounted) return;
+      final msg = e.response?.data?['detail'] ?? e.message ?? '网络错误';
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('同步失败:$msg')));
+    } finally {
+      if (mounted) setState(() => _syncing = false);
+    }
+  }
+
   String? _req(String? v, String label) =>
       (v == null || v.trim().isEmpty) ? '$label不能为空' : null;
 
@@ -157,6 +165,7 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            _BuildSyncBanner(original: o, syncing: _syncing, onSync: _syncToAuthority),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -193,7 +202,6 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
             ),
             const SizedBox(height: 20),
 
-            // 段 8:照片选择器(在最前面,用户最关注)
             PhotoPicker(
               initialPhotos: _photos,
               onChanged: (list) => setState(() => _photos = list),
@@ -204,24 +212,9 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
             const SizedBox(height: 20),
 
             _sectionTitle('户型'),
-            Row(
-              children: [
-                Expanded(child: _tf(_rooms, '卧室', numeric: true)),
-                const SizedBox(width: 12),
-                Expanded(child: _tf(_halls, '客厅', numeric: true)),
-                const SizedBox(width: 12),
-                Expanded(child: _tf(_bathrooms, '卫生间', numeric: true)),
-              ],
-            ),
+            _readOnlyField('户型', o['layout'] as String? ?? '户型未知'),
             const SizedBox(height: 20),
             _sectionTitle('楼层与朝向'),
-            Row(
-              children: [
-                Expanded(child: _tf(_floor, '所在楼层', numeric: true)),
-                const SizedBox(width: 12),
-                Expanded(child: _tf(_totalFloor, '总楼层', numeric: true)),
-              ],
-            ),
             _tf(_orientation, '朝向'),
             const SizedBox(height: 20),
             _sectionTitle('报价与合作奖金'),
@@ -273,6 +266,22 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
     );
   }
 
+  Widget _readOnlyField(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          const SizedBox(height: 4),
+          Text(value,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
   Widget _tf(
     TextEditingController c,
     String label, {
@@ -304,6 +313,109 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
           isDense: true,
         ),
         validator: required ? (v) => _req(v, label) : null,
+      ),
+    );
+  }
+}
+
+// ==================== 黄条 widget ====================
+
+class _BuildSyncBanner extends StatelessWidget {
+  final Map<String, dynamic> original;
+  final bool syncing;
+  final VoidCallback onSync;
+
+  const _BuildSyncBanner({
+    required this.original,
+    required this.syncing,
+    required this.onSync,
+  });
+
+  static const _fieldLabels = {
+    'area_sqm': '面积',
+    'floor': '楼层',
+    'total_floor': '总楼层',
+    'rooms': '卧室数',
+    'halls': '客厅数',
+    'bathrooms': '卫生间数',
+  };
+
+  static const _fieldUnits = {
+    'area_sqm': '㎡',
+    'floor': '',
+    'total_floor': '',
+    'rooms': '',
+    'halls': '',
+    'bathrooms': '',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final myClaim = original['my_last_claim'] as Map<String, dynamic>?;
+    if (myClaim == null) return const SizedBox.shrink();
+
+    final diffs = <Map<String, dynamic>>[];
+    for (final field in _fieldLabels.keys) {
+      final authVal = original[field];
+      final myVal = myClaim[field];
+      if (authVal != null && myVal != null && authVal != myVal) {
+        diffs.add({'field': field, 'auth': authVal, 'my': myVal});
+      }
+    }
+
+    if (diffs.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.amber.shade100,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.amber.shade700, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.warning_amber, color: Colors.orange, size: 20),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '你提交的物理信息与权威值不符',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          for (final d in diffs)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4, left: 28),
+              child: Text(
+                '${_fieldLabels[d['field']]}: '
+                '${d['auth']}${_fieldUnits[d['field']]}(权威) '
+                'vs ${d['my']}${_fieldUnits[d['field']]}(你)',
+                style: const TextStyle(fontSize: 12),
+              ),
+            ),
+          const SizedBox(height: 8),
+          Center(
+            child: syncing
+                ? const SizedBox(
+                    width: 20, height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2))
+                : ElevatedButton.icon(
+                    onPressed: onSync,
+                    icon: const Icon(Icons.sync, size: 16),
+                    label: const Text('一键同步权威值'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+          ),
+        ],
       ),
     );
   }
