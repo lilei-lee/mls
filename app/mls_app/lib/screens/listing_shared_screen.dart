@@ -115,7 +115,8 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
         final community = (item['community'] ?? '').toString();
         if (!community.contains(_keyword)) return false;
       }
-      if (!_filters.matches(item)) return false;
+      // V8.7 坑 49: filters 空时不调 matches(area_sqm 等段 7.2 后为 null → 默认值 0 < minArea 30)
+      if (_filters.isActive && !_filters.matches(item)) return false;
       return true;
     }).toList();
 
