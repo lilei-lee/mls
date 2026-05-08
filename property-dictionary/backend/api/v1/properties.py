@@ -167,7 +167,7 @@ def get_property(code: str):
 
 class SubmitClaimsBody(BaseModel):
     agent_id: str = Field(..., description="提交者(经纪人)ID")
-    listing_id: str = Field(..., description="关联 listing ID")
+    listing_id: Optional[str] = Field(None, description="关联 listing ID(V2.1:MLS 挂牌时 listing 还未写库,可为空)")
     claims: dict = Field(..., description="字段-值字典,如 {area_sqm: 105, floor: 5}")
 
 
