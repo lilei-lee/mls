@@ -104,6 +104,64 @@ def _parse_date(s: str) -> datetime:
         raise HTTPException(status_code=400, detail="日期格式错误,需 YYYY-MM-DD")
 
 
+# ==================== 辞典 sink ====================
+
+def sink_transaction_to_dict(tx: dict, listing: dict | None) -> str:
+    """V2.1 #15: 成交 confirmed 时沉淀到辞典 transaction_history。
+
+    返回 'synced' / 'no_property_code' / 'queued'。
+    异常不抛出,不阻断主流程。
+    """
+    property_code = listing.get("property_code") if listing else None
+    if not property_code:
+        print(f"[sink] WARNING: no property_code — tx={tx.get('_id')} listing={tx.get('listing_id')}")
+        return "no_property_code"
+
+    from dictionary_client import DictionaryClient, DictionaryUnavailableError, DictionaryForbiddenError
+
+    try:
+        DictionaryClient().sink_transaction(
+            code=property_code,
+            deal_price_yuan=tx["la_deal_price_yuan"],
+            deal_date=tx["la_deal_date"].strftime("%Y-%m-%d")
+            if hasattr(tx["la_deal_date"], "strftime") else str(tx["la_deal_date"]),
+            source="mls_internal",
+            transaction_id=str(tx["_id"]),
+            verified=True,
+        )
+        return "synced"
+    except DictionaryUnavailableError as e:
+        db["pending_dict_sinks"].insert_one({
+            "transaction_id": tx["_id"],
+            "property_code": property_code,
+            "deal_price_yuan": tx["la_deal_price_yuan"],
+            "deal_date": tx["la_deal_date"].strftime("%Y-%m-%d")
+            if hasattr(tx["la_deal_date"], "strftime") else str(tx["la_deal_date"]),
+            "ba_agent_id": tx.get("ba_agent_id"),
+            "la_agent_id": tx.get("la_agent_id"),
+            "retry_count": 0,
+            "last_error": str(e),
+            "created_at": datetime.now(),
+        })
+        print(f"[sink] ALERT: degraded to retry queue — tx={tx['_id']} error={e}")
+        return "queued"
+    except (DictionaryForbiddenError, ValueError) as e:
+        db["pending_dict_sinks"].insert_one({
+            "transaction_id": tx["_id"],
+            "property_code": property_code,
+            "deal_price_yuan": tx["la_deal_price_yuan"],
+            "deal_date": tx["la_deal_date"].strftime("%Y-%m-%d")
+            if hasattr(tx["la_deal_date"], "strftime") else str(tx["la_deal_date"]),
+            "ba_agent_id": tx.get("ba_agent_id"),
+            "la_agent_id": tx.get("la_agent_id"),
+            "retry_count": 0,
+            "last_error": str(e),
+            "created_at": datetime.now(),
+        })
+        print(f"[sink] ALERT: non-retryable failure — tx={tx['_id']} error={e}")
+        return "queued"
+
+
 # ==================== 业务函数 ====================
 
 def initiate_transaction(body: InitiateTransactionBody, ba_agent: dict) -> dict:
@@ -164,7 +222,10 @@ def initiate_transaction(body: InitiateTransactionBody, ba_agent: dict) -> dict:
         "showing_id": showing_oid,
         "showing_request_id": showing["showing_request_id"],
         "listing_id": showing["listing_id"],
-        "listing_snapshot": showing.get("listing_snapshot", {}),
+        "listing_snapshot": {
+            **showing.get("listing_snapshot", {}),
+            "property_code": listing.get("property_code"),
+        },
         "ba_agent_id": showing["ba_agent_id"],
         "ba_agent_name": showing["ba_agent_name"],
         "ba_agent_phone": showing.get("ba_agent_phone", ""),
@@ -284,9 +345,14 @@ def _compare_and_finalize(
             }},
         )
 
+        # V2.1 #15: 成交事实沉淀到辞典(异常不阻断)
+        listing_for_sink = listings_collection.find_one({"_id": doc["listing_id"]})
+        sink_tx = {**doc, **set_fields}  # merged: la_deal_price_yuan/date 已写入
+        sink_transaction_to_dict(sink_tx, listing_for_sink)
+
         bonus_yuan = doc.get("bonus_yuan_snapshot")
         if bonus_yuan is None:
-            listing_doc = listings_collection.find_one({"_id": doc["listing_id"]})
+            listing_doc = listing_for_sink  # reuse
             bonus_yuan = int(listing_doc.get("bonus_yuan", 0) or 0) if listing_doc else 0
         else:
             bonus_yuan = int(bonus_yuan)
