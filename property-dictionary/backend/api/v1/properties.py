@@ -216,3 +216,57 @@ def list_transactions(code: str, source: Optional[str] = Query(None), limit: int
         return {"property_code": code, "items": items, "total": len(items)}
     except DictionaryError as e:
         raise _map_exception(e)
+
+
+# ============ Batch ============
+
+class BatchGetBody(BaseModel):
+    codes: list[str] = Field(..., min_length=1, max_length=100, description="property_code 列表(1-100)")
+
+
+def _serialize_batch_item(doc: dict) -> dict:
+    claims = doc.get("attribute_claims", []) or []
+    latest_claims = {}
+    if claims:
+        sorted_claims = sorted(claims, key=lambda c: c.get("claimed_at") or "", reverse=True)
+        seen = set()
+        for c in sorted_claims:
+            if c["field"] not in seen:
+                latest_claims[c["field"]] = c["value"]
+                seen.add(c["field"])
+
+    return {
+        "property_code": doc["property_code"],
+        "city_id": str(doc["city_id"]),
+        "district_id": str(doc["district_id"]),
+        "community_id": str(doc["community_id"]),
+        "building": doc["building"],
+        "unit": doc["unit"],
+        "room_no": doc["room_no"],
+        "authoritative_attrs": doc.get("authoritative_attrs", {}),
+        "attribute_claims_latest": latest_claims if latest_claims else None,
+        "standard_assets": doc.get("standard_assets", {}),
+        "transaction_history_count": len(doc.get("transaction_history", [])),
+    }
+
+
+@router.post("/properties/batch")
+def batch_get_properties(body: BatchGetBody, api_key_meta: dict = Depends(require_api_key)):
+    try:
+        from models.property import properties_collection
+        codes = body.codes
+        docs = list(properties_collection.find({"property_code": {"$in": codes}}))
+        by_code = {d["property_code"]: d for d in docs}
+
+        # city_scope: check all found properties
+        for doc in docs:
+            check_city_scope(api_key_meta, str(doc["city_id"]))
+
+        result = {}
+        for code in codes:
+            doc = by_code.get(code)
+            result[code] = _serialize_batch_item(doc) if doc else None
+
+        return result
+    except DictionaryError as e:
+        raise _map_exception(e)
