@@ -466,7 +466,16 @@ class _ListingCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            '${item['layout']} · ${item['area_sqm']}㎡ · ${item['floor']}/${item['total_floor']}层',
+                            () {
+                              final p = <String>[];
+                              final ly = item['layout'];
+                              if (ly != null && ly.toString().isNotEmpty) p.add(ly.toString());
+                              final a = item['area_sqm'];
+                              if (a != null) p.add('${a}㎡');
+                              final fl = item['floor'], tf = item['total_floor'];
+                              if (fl != null && tf != null) p.add('$fl/$tf层');
+                              return p.join(' · ');
+                            }(),
                             style: const TextStyle(
                                 color: Colors.grey, fontSize: 12),
                           ),
