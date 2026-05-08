@@ -63,6 +63,30 @@ def ensure_showing_indexes():
 
 # ==================== 业务函数 ====================
 
+# V2.1 #15: 辞典侧 6 物理字段,与 listings.DICT_PHYSICAL_FIELDS 对齐
+_SR_PHYSICAL_FIELDS = ("area_sqm", "floor", "total_floor", "rooms", "halls", "bathrooms")
+
+
+def _enrich_snapshot_from_dict(listing: dict) -> None:
+    """尝试从辞典 get_property 补 listing 的 6 物理字段(in-place)。
+    失败不抛异常,保持 listing 原有 None 值。
+    """
+    code = listing.get("property_code")
+    if not code:
+        return
+    try:
+        from dictionary_client import DictionaryClient
+        prop = DictionaryClient().get_property(code)
+    except Exception:
+        return
+    auth = prop.get("authoritative_attrs", {}) or {}
+    claims = prop.get("attribute_claims_latest", {}) or {}
+    for field in _SR_PHYSICAL_FIELDS:
+        val = auth.get(field) if auth.get(field) is not None else claims.get(field)
+        if val is not None:
+            listing[field] = val
+
+
 def create_showing_request(req: CreateShowingRequestBody, buyer_agent: dict) -> dict:
     """BA 发起带客申请"""
     # 1. 查房源
@@ -99,7 +123,10 @@ def create_showing_request(req: CreateShowingRequestBody, buyer_agent: dict) -> 
         if customer_doc["owner_agent_id"] != buyer_agent["_id"]:
             raise HTTPException(status_code=403, detail="不能用他人的客户发起申请")
 
-    # 4. 插入申请
+    # 4. V2.1 #15: 尝试从辞典补物理字段到快照
+    _enrich_snapshot_from_dict(listing)
+
+    # 5. 插入申请
     now = datetime.now()
     doc = {
         "listing_id": listing["_id"],
@@ -109,7 +136,7 @@ def create_showing_request(req: CreateShowingRequestBody, buyer_agent: dict) -> 
             "unit": listing["unit"],
             "room_no": listing["room_no"],
             "layout": listing.get("layout", ""),
-            "area_sqm": listing["area_sqm"],
+            "area_sqm": listing.get("area_sqm"),
             "price_wan": listing["price_wan"],
         },
         "buyer_agent_id": buyer_agent["_id"],

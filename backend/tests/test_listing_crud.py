@@ -134,3 +134,67 @@ def test_get_listing_no_enrich_without_property_code(mock_client_class, agent, p
 
     from database import db
     db["listings"].delete_one({"_id": ObjectId(lid)})
+
+
+@patch("dictionary_client.DictionaryClient")
+def test_list_my_listings_batch_enriched(mock_client_class, agent, physical):
+    """list_my_listings batch 富化"""
+    mock_client = MagicMock()
+    mock_client.identify_property.return_value = {"property_code": "BATCH01"}
+    mock_client.submit_claim.return_value = {"total_claims_after": 1}
+    mock_client_class.return_value = mock_client
+
+    from listings import list_my_listings
+    req = FakeReq()
+    r = create_listing(req, physical, agent)
+
+    mock_client2 = MagicMock()
+    mock_client2.batch_get_properties.return_value = {
+        "BATCH01": {"authoritative_attrs": {"area_sqm": 105.0, "rooms": 3}},
+    }
+    mock_client_class.return_value = mock_client2
+
+    results = list_my_listings(agent["_id"])
+    assert len(results) == 1
+    assert results[0]["area_sqm"] == 105.0
+    assert results[0]["rooms"] == 3
+
+    from database import db
+    db["listings"].delete_one({"_id": ObjectId(r["listing_id"])})
+
+
+@patch("dictionary_client.DictionaryClient")
+def test_list_my_listings_dict_unavailable_graceful(mock_client_class, agent, physical):
+    """辞典挂,列表仍返 200,物理字段全 None"""
+    mock_client = MagicMock()
+    mock_client.identify_property.return_value = {"property_code": "GRACE01"}
+    mock_client.submit_claim.return_value = {"total_claims_after": 1}
+    mock_client_class.return_value = mock_client
+
+    req = FakeReq()
+    r = create_listing(req, physical, agent)
+
+    mock_client2 = MagicMock()
+    mock_client2.batch_get_properties.side_effect = Exception("down")
+    mock_client_class.return_value = mock_client2
+
+    from listings import list_my_listings
+    results = list_my_listings(agent["_id"])
+    assert len(results) >= 1
+    for item in results:
+        assert item["area_sqm"] is None
+
+    from database import db
+    db["listings"].delete_one({"_id": ObjectId(r["listing_id"])})
+
+
+@patch("dictionary_client.DictionaryClient")
+def test_list_listings_no_property_code_skipped(mock_client_class):
+    """property_code=None → batch 传空 codes,不调辞典"""
+    mock_client = MagicMock()
+    mock_client_class.return_value = mock_client
+
+    from listings import _batch_fetch_props
+    result = _batch_fetch_props([{"property_code": None}, {"property_code": ""}])
+    assert result == {}
+    mock_client.batch_get_properties.assert_not_called()

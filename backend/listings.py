@@ -272,7 +272,12 @@ def list_my_listings(agent_id: ObjectId, skip: int = 0, limit: int = 20) -> list
         .skip(skip)
         .limit(limit)
     )
-    return [_format_listing_lite(doc) for doc in cursor]
+    docs = list(cursor)
+    props_map = _batch_fetch_props(docs)
+    results = [_format_listing_lite(doc) for doc in docs]
+    for r in results:
+        _enrich_physical_fields(r, props_map)
+    return results
 
 
 def count_my_listings(agent_id: ObjectId) -> int:
@@ -359,13 +364,17 @@ def list_shared_listings(
     listing_oids = [d["_id"] for d in docs]
     my_status_map = _build_my_request_status_map(listing_oids, current_agent_id)
 
-    return [
+    props_map = _batch_fetch_props(docs)
+    results = [
         _format_listing_anonymous_lite(
             doc,
             my_request_status=my_status_map.get(str(doc["_id"])),
         )
         for doc in docs
     ]
+    for r in results:
+        _enrich_physical_fields(r, props_map)
+    return results
 
 
 def count_shared_listings(
@@ -644,6 +653,41 @@ def rollback_listing_to_on_sale(
         }}
     )
     return _format_listing_full(listings_collection.find_one({"_id": oid}))
+
+
+# ==================== V2.1 #15 batch 富化 ====================
+
+def _batch_fetch_props(docs: list) -> dict:
+    """批量调辞典 batch_get_properties,返回 {code: prop_dict_or_null}。失败返 {}。"""
+    codes = [d.get("property_code") for d in docs if d.get("property_code")]
+    if not codes:
+        return {}
+    try:
+        from dictionary_client import DictionaryClient
+        return DictionaryClient().batch_get_properties(codes)
+    except Exception:
+        return {}
+
+
+def _enrich_physical_fields(result: dict, props_map: dict) -> None:
+    """用 batch 返回的 property 数据替换 result 中的 6 物理字段 null 占位。"""
+    code = result.get("property_code")
+    if not code:
+        return
+    prop = props_map.get(code)
+    if not prop:
+        return
+    # authoritative_attrs 优先
+    auth = prop.get("authoritative_attrs", {}) or {}
+    for field in DICT_PHYSICAL_FIELDS:
+        val = auth.get(field)
+        if val is not None:
+            result[field] = val
+    # attribute_claims_latest 兜底
+    claims = prop.get("attribute_claims_latest", {}) or {}
+    for field in DICT_PHYSICAL_FIELDS:
+        if result.get(field) is None and field in claims:
+            result[field] = claims[field]
 
 
 # ==================== 格式化器 ====================
