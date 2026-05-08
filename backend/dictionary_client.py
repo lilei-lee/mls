@@ -4,6 +4,8 @@ import time
 import requests
 from typing import Optional
 
+from dotenv import load_dotenv
+load_dotenv()
 
 DICT_BASE_URL = os.getenv("DICT_BASE_URL", "http://localhost:8001/v1")
 DICT_API_KEY = os.getenv("DICT_API_KEY", "")
@@ -57,6 +59,8 @@ class DictionaryClient:
                     return r.json()
                 if r.status_code == 400:
                     raise ValueError(r.text[:500])
+                if r.status_code == 401:
+                    raise DictionaryForbiddenError(f"401 Unauthorized: {r.text[:300]}")
                 if r.status_code == 403:
                     raise DictionaryForbiddenError(r.text[:500])
                 if r.status_code == 404:

@@ -20,7 +20,7 @@ from typing import Optional, List
 from pydantic import BaseModel, Field
 from bson import ObjectId
 from fastapi import HTTPException
-from database import db
+from database import db, client
 
 listings_collection = db["listings"]
 showing_requests_collection = db["showing_requests"]
@@ -103,8 +103,10 @@ class CreateListingRequest(BaseModel):
 
 class PostListingRequest(CreateListingRequest):
     """LA 挂牌请求,继承 CreateListingRequest + 6 物理字段 + 辞典身份字段(调辞典后不写本地)"""
-    city_id: Optional[str] = Field(None, description="城市 ID(调辞典用)")
-    district_id: Optional[str] = Field(None, description="区县 ID(调辞典用)")
+    # V8.7 坑 38: city_id/district_id Optional 但后端会自动 lookup(从 req.district 字符串),
+    # 未来 Flutter 加城市选择器后再改必填
+    city_id: Optional[str] = Field(None, description="城市 ID(调辞典用,可选)")
+    district_id: Optional[str] = Field(None, description="区县 ID(调辞典用,可选)")
     area_sqm: float = Field(..., gt=0, le=2000, description="面积(调辞典 claim,不持久化到 listing)")
     floor: int = Field(..., ge=-5, le=200, description="楼层(调辞典 claim,不持久化到 listing)")
     total_floor: int = Field(..., ge=1, le=200, description="总楼层(调辞典 claim,不持久化到 listing)")
@@ -192,26 +194,56 @@ def create_listing(req, physical_attrs: dict, agent: dict) -> dict:
         except Exception:
             raise HTTPException(status_code=400, detail="无效的小区ID")
 
-    # ── 1. 调辞典 identify + claim(需要 city_id / district_id) ──
+    # ── 1. 调辞典 identify + claim ──
     d = DictionaryClient()
-    city_id = getattr(req, "city_id", None)
-    district_id = getattr(req, "district_id", None)
     community_id_str = str(community_oid) if community_oid else None
 
-    if city_id and district_id and community_id_str:
-        try:
-            prop = d.identify_property(
-                city_id, district_id, community_id_str,
-                req.building.strip(), req.unit.strip(), req.room_no.strip(),
+    # V8.7 坑 38: city_id/district_id 自动 lookup
+    # 张家口是 V2.1 唯一城市,district 字符串匹配辞典 districts.name
+    city_id = getattr(req, "city_id", None) or None
+    district_id = getattr(req, "district_id", None) or None
+
+    if not city_id or not district_id:
+        # 从 property_dict 数据库直接查(同 Mongo 实例,不同 database)
+        dict_db = client.get_database("property_dict")
+        if not city_id:
+            zjk = dict_db["cities"].find_one({"name": "张家口"})
+            if zjk:
+                city_id = str(zjk["_id"])
+        if not district_id:
+            district_name = getattr(req, "district", "")
+            if district_name:
+                dist = dict_db["districts"].find_one({"name": district_name})
+                if dist:
+                    district_id = str(dist["_id"])
+
+        if not city_id or not district_id:
+            raise HTTPException(
+                status_code=400,
+                detail="缺少 city_id/district_id,自动 lookup 也失败。请确认 district 字段与辞典 districts.name 一致"
             )
-            property_code = prop["property_code"]
-            # V8.7 铁律修正:辞典 always-accept claim,冲突旁路写 discrepancy 工单
-            d.submit_claim(property_code, physical_attrs, str(agent["_id"]))
-        except (DictionaryUnavailableError, DictionaryForbiddenError) as e:
-            raise HTTPException(status_code=503, detail=f"辞典服务不可达: {e}")
-    else:
-        # graceful degrade: 没有辞典身份字段 → 跳过, property_code = None
-        property_code = None
+
+    # V8.7 坑 38: MLS community_id 是 mls.communities 集合的 ObjectId,
+    # 不是辞典 communities 的 ObjectId。通过 community name 调辞典 identify 拿到辞典侧 community_id
+    community_name = getattr(req, "community", "").strip()
+    try:
+        dict_community = d.identify_community(city_id, district_id, community_name)
+        dict_community_id = dict_community["_id"]
+    except DictionaryNotFoundError:
+        dict_community = d.identify_community(city_id, district_id, community_name)
+        dict_community_id = dict_community["_id"]
+
+    try:
+        prop = d.identify_property(
+            city_id, district_id, dict_community_id,
+            req.building.strip(), req.unit.strip(), req.room_no.strip(),
+        )
+        property_code = prop["property_code"]
+        d.submit_claim(property_code, physical_attrs, str(agent["_id"]))
+    except DictionaryUnavailableError as e:
+        raise HTTPException(status_code=503, detail=f"辞典服务不可达: {e}")
+    except DictionaryForbiddenError as e:
+        raise HTTPException(status_code=503, detail=f"辞典鉴权失败(配置问题): {e}")
 
     # ── 2. 派生 layout ──
     layout = _layout_text(
