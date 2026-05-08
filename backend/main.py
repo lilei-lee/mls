@@ -17,6 +17,7 @@ from listings import (
     CreateListingRequest,
     PostListingRequest,
     _extract_physical_attrs,
+    SyncPhysicalBody,
     CreateListingResponse,
     MarkDepositPaidBody,
     MarkTransactionOngoingBody,
@@ -591,9 +592,10 @@ def reactivate_listing_api(
 @app.post("/api/v1/listings/{listing_id}/sync-physical")
 def sync_listing_physical_api(
     listing_id: str,
+    body: SyncPhysicalBody = SyncPhysicalBody(),
     agent: dict = Depends(get_current_agent),
 ):
-    return sync_physical_to_dict(listing_id, agent["_id"])
+    return sync_physical_to_dict(listing_id, body, agent["_id"])
 
 
 @app.get("/api/v1/listings/{listing_id}")

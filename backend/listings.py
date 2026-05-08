@@ -715,8 +715,22 @@ def rollback_listing_to_on_sale(
 
 # ==================== V2.1 #15 sync-physical ====================
 
-def sync_physical_to_dict(listing_id: str, viewer_id) -> dict:
-    """LA 一键同步权威值:取辞典 authoritative_attrs,提交 claim 对齐。
+class SyncPhysicalBody(BaseModel):
+    area_sqm: Optional[float] = Field(None, description="面积(㎡),不传则自动从权威值读")
+    floor: Optional[int] = Field(None, description="所在楼层")
+    total_floor: Optional[int] = Field(None, description="总楼层")
+    rooms: Optional[int] = Field(None, description="室")
+    halls: Optional[int] = Field(None, description="厅")
+    bathrooms: Optional[int] = Field(None, description="卫")
+    force: bool = Field(False, description="True=冲突仍接受,写 discrepancy 工单")
+
+
+def sync_physical_to_dict(listing_id: str, body, viewer_id) -> dict:
+    """LA 同步物理字段到辞典。
+
+    - body 全 None → 自动从 authoritative_attrs 拉
+    - body 有值 → 用 LA 填的值调 submit_claim
+    - force=True → 冲突仍接受
 
     只允许 listing.owner_agent_id 调用;需 listing.property_code 存在。
     """
@@ -737,37 +751,49 @@ def sync_physical_to_dict(listing_id: str, viewer_id) -> dict:
     if not property_code:
         raise HTTPException(status_code=400, detail="该房源未关联辞典 property,无法同步")
 
-    try:
-        prop = DictionaryClient().get_property(property_code)
-    except DictionaryNotFoundError:
-        raise HTTPException(status_code=500, detail="辞典 property 不存在(数据不一致)")
-    except DictionaryUnavailableError as e:
-        raise HTTPException(status_code=503, detail=f"辞典服务暂时不可达: {e}")
-
-    authoritative = prop.get("authoritative_attrs", {}) or {}
-    if not authoritative:
-        raise HTTPException(status_code=400, detail="辞典 property 暂无权威值,无法同步")
-
+    # Determine attrs: body values first, fallback to authoritative_attrs
+    has_body = any(getattr(body, f, None) is not None for f in DICT_PHYSICAL_FIELDS)
     attrs = {}
-    for field in DICT_PHYSICAL_FIELDS:
-        if field in authoritative and authoritative[field] is not None:
-            attrs[field] = authoritative[field]
+
+    if has_body:
+        for f in DICT_PHYSICAL_FIELDS:
+            v = getattr(body, f, None)
+            if v is not None:
+                attrs[f] = v
+    else:
+        try:
+            prop = DictionaryClient().get_property(property_code)
+        except DictionaryNotFoundError:
+            raise HTTPException(status_code=500, detail="辞典 property 不存在(数据不一致)")
+        except DictionaryUnavailableError as e:
+            raise HTTPException(status_code=503, detail=f"辞典服务暂时不可达: {e}")
+
+        authoritative = prop.get("authoritative_attrs", {}) or {}
+        if not authoritative:
+            raise HTTPException(status_code=400, detail="辞典 property 暂无权威值,无法同步")
+        for field in DICT_PHYSICAL_FIELDS:
+            if field in authoritative and authoritative[field] is not None:
+                attrs[field] = authoritative[field]
 
     if not attrs:
-        raise HTTPException(status_code=400, detail="辞典 authoritative_attrs 所有字段为空")
+        raise HTTPException(status_code=400, detail="没有可同步的物理字段")
 
     try:
-        DictionaryClient().submit_claim(
+        result = DictionaryClient().submit_claim(
             code=property_code, attrs=attrs,
             agent_id=str(viewer_id), listing_id=str(listing_id),
         )
     except DictionaryUnavailableError as e:
         raise HTTPException(status_code=503, detail=f"辞典服务暂时不可达: {e}")
 
+    # Return comparison_results for 黄条
+    comparison = result.get("comparison_results", [])
+
     return {
         "synced_fields": list(attrs.keys()),
         "synced_values": attrs,
         "listing_id": listing_id,
+        "comparison_results": comparison,
     }
 
 
