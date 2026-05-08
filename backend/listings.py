@@ -27,6 +27,9 @@ showing_requests_collection = db["showing_requests"]
 
 MAX_PHOTOS = 6
 
+# V2.1 #15: 辞典侧 6 物理字段名,与 property-dictionary/models/property.py attribute_claims dict 严格对齐
+DICT_PHYSICAL_FIELDS = ("area_sqm", "floor", "total_floor", "rooms", "halls", "bathrooms")
+
 
 # ==================== 张家口行政区字典 ====================
 
@@ -88,12 +91,6 @@ class CreateListingRequest(BaseModel):
     building: str = Field(..., min_length=1, max_length=20)
     unit: str = Field(..., min_length=1, max_length=10)
     room_no: str = Field(..., min_length=1, max_length=10)
-    area_sqm: float = Field(..., gt=0, le=2000)
-    rooms: int = Field(..., ge=0, le=20)
-    halls: int = Field(..., ge=0, le=10)
-    bathrooms: int = Field(..., ge=0, le=10)
-    floor: int = Field(..., ge=-5, le=200)
-    total_floor: int = Field(..., ge=1, le=200)
     orientation: str = Field(..., max_length=20)
     price_wan: float = Field(..., gt=0)
     remarks: Optional[str] = Field(None, max_length=500)
@@ -134,6 +131,9 @@ class RollbackStatusBody(BaseModel):
 # ==================== 业务函数 ====================
 
 def _layout_text(rooms: int, halls: int, bathrooms: int) -> str:
+    """V2.1 #15: 物理字段迁移到辞典后,layout 由 claim 引擎反推。
+    CAUTION: caller 必须从 property attribute_claims_latest 拿到 rooms/halls/bathrooms 再调此函数。
+    """
     return f"{rooms}室{halls}厅{bathrooms}卫"
 
 
@@ -177,13 +177,9 @@ def create_listing(req: CreateListingRequest, agent: dict) -> dict:
         "building": req.building.strip(),
         "unit": req.unit.strip(),
         "room_no": req.room_no.strip(),
-        "area_sqm": req.area_sqm,
-        "rooms": req.rooms,
-        "halls": req.halls,
-        "bathrooms": req.bathrooms,
-        "layout": _layout_text(req.rooms, req.halls, req.bathrooms),
-        "floor": req.floor,
-        "total_floor": req.total_floor,
+        "layout": "",
+        # V2.1 #15: property_code 段 7.3 接辞典侧 identify_property 后再写
+        "property_code": None,
         "orientation": req.orientation,
         "price_wan": req.price_wan,
         "remarks": req.remarks or "",
@@ -367,10 +363,9 @@ def update_listing(
         raise HTTPException(status_code=400,
                             detail=f"「{STATUS_LABELS.get(doc['status'])}」状态的房源不能编辑")
 
+    # V2.1 #15: 物理字段(rooms/halls/bathrooms/floor/total_floor)已迁移到辞典
     allowed = {
-        "rooms", "halls", "bathrooms",
-        "floor", "total_floor", "orientation",
-        "price_wan", "remarks",
+        "orientation", "price_wan", "remarks",
         "bonus_yuan",
         "cover_thumbnail", "photos",
     }
@@ -380,12 +375,6 @@ def update_listing(
     }
     if not clean_fields:
         raise HTTPException(status_code=400, detail="没有有效的更新字段")
-
-    if any(k in clean_fields for k in ("rooms", "halls", "bathrooms")):
-        rooms = clean_fields.get("rooms", doc.get("rooms", 0))
-        halls = clean_fields.get("halls", doc.get("halls", 0))
-        bathrooms = clean_fields.get("bathrooms", doc.get("bathrooms", 0))
-        clean_fields["layout"] = _layout_text(rooms, halls, bathrooms)
 
     if "photos" in clean_fields:
         photos = clean_fields["photos"]
@@ -591,13 +580,15 @@ def _format_listing_full(doc: dict) -> dict:
         "building": doc["building"],
         "unit": doc["unit"],
         "room_no": doc["room_no"],
-        "area_sqm": doc["area_sqm"],
-        "rooms": doc.get("rooms", 0),
-        "halls": doc.get("halls", 0),
-        "bathrooms": doc.get("bathrooms", 0),
+        "property_code": doc.get("property_code"),
+        # V2.1 段 7.2 临时占位,段 7.5 删除
+        "area_sqm": None,
+        "floor": None,
+        "total_floor": None,
+        "rooms": None,
+        "halls": None,
+        "bathrooms": None,
         "layout": doc.get("layout", ""),
-        "floor": doc["floor"],
-        "total_floor": doc["total_floor"],
         "orientation": doc["orientation"],
         "price_wan": doc["price_wan"],
         "remarks": doc.get("remarks", ""),
@@ -630,13 +621,15 @@ def _format_listing_lite(doc: dict) -> dict:
         "building": doc["building"],
         "unit": doc["unit"],
         "room_no": doc["room_no"],
-        "area_sqm": doc["area_sqm"],
-        "rooms": doc.get("rooms", 0),
-        "halls": doc.get("halls", 0),
-        "bathrooms": doc.get("bathrooms", 0),
+        "property_code": doc.get("property_code"),
+        # V2.1 段 7.2 临时占位,段 7.5 删除
+        "area_sqm": None,
+        "floor": None,
+        "total_floor": None,
+        "rooms": None,
+        "halls": None,
+        "bathrooms": None,
         "layout": doc.get("layout", ""),
-        "floor": doc["floor"],
-        "total_floor": doc["total_floor"],
         "orientation": doc["orientation"],
         "price_wan": doc["price_wan"],
         "remarks": doc.get("remarks", ""),
@@ -673,13 +666,15 @@ def _format_listing_anonymous_lite(
         "building": doc["building"],
         "unit": doc["unit"],
         "room_no": doc["room_no"],
-        "area_sqm": doc["area_sqm"],
-        "rooms": doc.get("rooms", 0),
-        "halls": doc.get("halls", 0),
-        "bathrooms": doc.get("bathrooms", 0),
+        "property_code": doc.get("property_code"),
+        # V2.1 段 7.2 临时占位,段 7.5 删除
+        "area_sqm": None,
+        "floor": None,
+        "total_floor": None,
+        "rooms": None,
+        "halls": None,
+        "bathrooms": None,
         "layout": doc.get("layout", ""),
-        "floor": doc["floor"],
-        "total_floor": doc["total_floor"],
         "orientation": doc["orientation"],
         "price_wan": doc["price_wan"],
         "remarks": doc.get("remarks", ""),
