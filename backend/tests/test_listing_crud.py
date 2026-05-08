@@ -104,7 +104,10 @@ def test_get_listing_enriched(mock_client_class, agent, physical):
     mock_client2 = MagicMock()
     mock_client2.get_property.return_value = {
         "authoritative_attrs": {"area_sqm": 105.0, "rooms": 3},
-        "attribute_claims_latest": {"halls": 1, "bathrooms": 1},
+        "attribute_claims": [
+            {"field": "halls", "value": 1, "agent_id": "a1", "listing_id": "l1", "claimed_at": "2026-05-01T00:00:00"},
+            {"field": "bathrooms", "value": 1, "agent_id": "a1", "listing_id": "l1", "claimed_at": "2026-05-01T00:00:00"},
+        ],
     }
     mock_client_class.return_value = mock_client2
 

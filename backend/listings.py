@@ -420,11 +420,18 @@ def _enrich_from_dictionary(result: dict, doc: dict) -> None:
         val = auth.get(field)
         if val is not None:
             result[field] = val
-    # attribute_claims_latest 兜底(仅填 authoritative_attrs 缺失的字段)
-    claims = prop.get("attribute_claims_latest", {}) or {}
-    for field in DICT_PHYSICAL_FIELDS:
-        if result.get(field) is None and field in claims:
-            result[field] = claims[field]
+    # attribute_claims 兜底:单条 endpoint 返 list(含 agent_id),
+    # 压缩为 {field: latest_value} 填 authoritative_attrs 缺失的字段
+    claims_list = prop.get("attribute_claims", []) or []
+    if claims_list:
+        claims_list_sorted = sorted(claims_list, key=lambda c: c.get("claimed_at") or "")
+        for field in DICT_PHYSICAL_FIELDS:
+            if result.get(field) is not None:
+                continue
+            for c in reversed(claims_list_sorted):
+                if c.get("field") == field and c.get("value") is not None:
+                    result[field] = c["value"]
+                    break
 
 
 # ==================== 更新 / 下架 / 重新上架 ====================
