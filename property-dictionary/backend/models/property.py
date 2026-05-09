@@ -45,6 +45,9 @@ class PropertyDoc(BaseModel):
     room_no: str
     authoritative_attrs: dict = Field(default_factory=dict)
     attribute_claims: list[dict] = Field(default_factory=list)
+    # V2.2: 新增 claim 字段(与物理 6 字段同流程)
+    objective_features: Optional[list[str]] = None
+    decoration: Optional[str] = None
     transaction_history: list[TransactionHistoryEntry] = Field(default_factory=list)
     listing_history: list[ListingHistoryEntry] = Field(default_factory=list)
     standard_assets: PropertyStandardAssets = Field(default_factory=PropertyStandardAssets)

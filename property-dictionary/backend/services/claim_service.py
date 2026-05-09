@@ -16,6 +16,8 @@ CLAIM_FIELD_WHITELIST = {
     "rooms": int,
     "halls": int,
     "bathrooms": int,
+    "objective_features": list,
+    "decoration": str,
 }
 
 
