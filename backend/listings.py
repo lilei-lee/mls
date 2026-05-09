@@ -567,6 +567,8 @@ def get_listing_by_id(listing_id: str, viewer_id=None) -> dict | None:
     result = _format_listing_full(doc)
     # V2.1 #15: 尝试从辞典侧补物理字段,失败时保持 None 占位(graceful degrade)
     _enrich_from_dictionary(result, doc, viewer_id)
+    # V2.2 #1: 从 property_dict 补社区特征字段
+    _enrich_community_from_dict(result, doc)
     # V2.2 #1: 权限分层 — 非协作方隐藏 agent_remarks / showing_instructions / LA 手机号
     from utils.collaboration_status import is_collaboration_unlocked
     if not is_collaboration_unlocked(viewer_id, listing_id):
@@ -624,6 +626,38 @@ def _enrich_from_dictionary(result: dict, doc: dict, viewer_id=None) -> None:
             if field in my_last_claim and my_last_claim[field] is None:
                 my_last_claim[field] = c.get("value")
         result["my_last_claim"] = my_last_claim
+
+
+def _enrich_community_from_dict(result: dict, doc: dict) -> None:
+    """V2.2 #1: 从 property_dict 按社区名查特征字段,富化到 listing 详情。"""
+    name = doc.get("community")
+    if not name:
+        return
+    try:
+        dict_db = client.get_database("property_dict")
+        comm = dict_db["communities"].find_one({"name": name})
+        if not comm:
+            return
+        result["community_features"] = {
+            "bld_year_start": comm.get("bld_year_start"),
+            "bld_year_end": comm.get("bld_year_end"),
+            "total_buildings": comm.get("total_buildings"),
+            "total_units": comm.get("total_units"),
+            "plot_ratio": comm.get("plot_ratio"),
+            "green_ratio": comm.get("green_ratio"),
+            "property_company": comm.get("property_company"),
+            "property_fee_yuan": comm.get("property_fee_yuan"),
+            "building_types": comm.get("building_types"),
+            "heating_type": comm.get("heating_type"),
+            "primary_school": comm.get("primary_school"),
+            "middle_school": comm.get("middle_school"),
+            "nearest_highway": comm.get("nearest_highway"),
+            "nearest_train_station": comm.get("nearest_train_station"),
+            "parking_total": comm.get("parking_total"),
+            "parking_ratio": comm.get("parking_ratio"),
+        }
+    except Exception:
+        pass
 
 
 # ==================== 更新 / 下架 / 重新上架 ====================
