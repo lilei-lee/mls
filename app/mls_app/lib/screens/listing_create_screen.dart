@@ -6,8 +6,9 @@ import '../services/api_client.dart';
 import '../services/meta_service.dart';
 import '../widgets/photo_picker.dart';
 import '../widgets/community_picker.dart';
+import '../constants/sale_points_library.dart';
 
-/// 房源录入页
+/// 房源录入页  V2.2: +4 字段(sale_points / 3 remarks / objective_features / decoration)
 class ListingCreateScreen extends StatefulWidget {
   const ListingCreateScreen({super.key});
 
@@ -19,7 +20,7 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
   final _formKey = GlobalKey<FormState>();
 
   String? _selectedDistrict;
-  PickedCommunity? _pickedCommunity;  // V4:从小区库选的小区
+  PickedCommunity? _pickedCommunity;
 
   final _building = TextEditingController();
   final _unit = TextEditingController();
@@ -37,7 +38,20 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
 
   final _priceWan = TextEditingController();
   final _bonusYuan = TextEditingController(text: '0');
-  final _remarks = TextEditingController();
+
+  // V2.2: 3 remarks
+  final _publicRemarks = TextEditingController();
+  final _agentRemarks = TextEditingController();
+  final _showingInstructions = TextEditingController();
+
+  // V2.2: 格局特点(辞典 claim)
+  List<String> _selectedObjectiveFeatures = [];
+  String? _selectedDecoration;
+
+  // V2.2: 卖点标签
+  List<String> _selectedSalePoints = [];
+  List<String> _customSalePoints = [];
+  final _customSalePointController = TextEditingController();
 
   List<PickedPhoto> _photos = [];
   String? _coverThumbnail;
@@ -64,9 +78,7 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _loadingDistricts = false;
-        });
+        setState(() => _loadingDistricts = false);
         _showSnack('加载行政区失败,请刷新');
       }
     }
@@ -74,65 +86,123 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
 
   @override
   void dispose() {
-    _building.dispose();
-    _unit.dispose();
-    _roomNo.dispose();
-    _areaSqm.dispose();
-    _rooms.dispose();
-    _halls.dispose();
-    _bathrooms.dispose();
-    _floor.dispose();
-    _totalFloor.dispose();
-    _orientation.dispose();
-    _priceWan.dispose();
-    _bonusYuan.dispose();
-    _remarks.dispose();
+    _building.dispose(); _unit.dispose(); _roomNo.dispose();
+    _areaSqm.dispose(); _rooms.dispose(); _halls.dispose(); _bathrooms.dispose();
+    _floor.dispose(); _totalFloor.dispose(); _orientation.dispose();
+    _priceWan.dispose(); _bonusYuan.dispose();
+    _publicRemarks.dispose(); _agentRemarks.dispose(); _showingInstructions.dispose();
+    _customSalePointController.dispose();
     super.dispose();
   }
 
+  // ── 卖点标签辅助 ──
+  int get _totalSalePointCount => _selectedSalePoints.length + _customSalePoints.length;
+
+  void _addCustomSalePoint() {
+    final raw = _customSalePointController.text.trim();
+    if (raw.isEmpty) return;
+    if (raw.length > SalePointsLibrary.customMaxLength) {
+      _showSnack('自定义标签最多${SalePointsLibrary.customMaxLength}字');
+      return;
+    }
+    if (SalePointsLibrary.allPreset.contains(raw) || _customSalePoints.contains(raw)) {
+      _showSnack('标签已存在');
+      return;
+    }
+    if (_customSalePoints.length >= SalePointsLibrary.customMaxCount) {
+      _showSnack('自定义标签最多${SalePointsLibrary.customMaxCount}个');
+      return;
+    }
+    if (_totalSalePointCount >= SalePointsLibrary.maxTotal) {
+      _showSnack('标签总数最多${SalePointsLibrary.maxTotal}个');
+      return;
+    }
+    setState(() {
+      _customSalePoints.add(raw);
+      _customSalePointController.clear();
+    });
+  }
+
+  void _toggleSalePoint(String tag) {
+    setState(() {
+      if (_selectedSalePoints.contains(tag)) {
+        _selectedSalePoints.remove(tag);
+      } else {
+        if (_totalSalePointCount >= SalePointsLibrary.maxTotal) {
+          _showSnack('标签总数最多${SalePointsLibrary.maxTotal}个');
+          return;
+        }
+        _selectedSalePoints.add(tag);
+      }
+    });
+  }
+
+  void _removeCustomSalePoint(String tag) {
+    setState(() => _customSalePoints.remove(tag));
+  }
+
+  // ── 提交 ──
   Future<void> _submit() async {
-    if (_pickedCommunity == null) {
-      _showSnack('请选择或添加小区');
-      return;
-    }
-    if (_selectedDistrict == null) {
-      _showSnack('请选择行政区');
-      return;
-    }
+    if (_pickedCommunity == null) { _showSnack('请选择或添加小区'); return; }
+    if (_selectedDistrict == null) { _showSnack('请选择行政区'); return; }
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _submitting = true);
 
     try {
-      final response = await ApiClient.instance.dio.post(
-        '/listings',
-        data: {
-          'district': _selectedDistrict,
-          'community': _pickedCommunity!.name,
-          'community_id': _pickedCommunity!.id,  // V4:关联小区库
-          'building': _building.text.trim(),
-          'unit': _unit.text.trim(),
-          'room_no': _roomNo.text.trim(),
-          'area_sqm': double.parse(_areaSqm.text),
-          'rooms': int.parse(_rooms.text),
-          'halls': int.parse(_halls.text),
-          'bathrooms': int.parse(_bathrooms.text),
-          'floor': int.parse(_floor.text),
-          'total_floor': int.parse(_totalFloor.text),
-          'orientation': _orientation.text.trim(),
-          'price_wan': double.parse(_priceWan.text),
-          'bonus_yuan': int.tryParse(_bonusYuan.text.trim()) ?? 0,
-          'remarks': _remarks.text.trim(),
-          'cover_thumbnail': _coverThumbnail,
-          'photos': _photos.map((p) => p.toJson()).toList(),
-        },
-      );
+      // Step A: POST /listings 带所有字段
+      final allSalePoints = [..._selectedSalePoints, ..._customSalePoints];
+      final response = await ApiClient.instance.dio.post('/listings', data: {
+        'district': _selectedDistrict,
+        'community': _pickedCommunity!.name,
+        'community_id': _pickedCommunity!.id,
+        'building': _building.text.trim(),
+        'unit': _unit.text.trim(),
+        'room_no': _roomNo.text.trim(),
+        'area_sqm': double.parse(_areaSqm.text),
+        'rooms': int.parse(_rooms.text),
+        'halls': int.parse(_halls.text),
+        'bathrooms': int.parse(_bathrooms.text),
+        'floor': int.parse(_floor.text),
+        'total_floor': int.parse(_totalFloor.text),
+        'orientation': _orientation.text.trim(),
+        'price_wan': double.parse(_priceWan.text),
+        'bonus_yuan': int.tryParse(_bonusYuan.text.trim()) ?? 0,
+        'cover_thumbnail': _coverThumbnail,
+        'photos': _photos.map((p) => p.toJson()).toList(),
+        // V2.2: 4 新字段
+        'sale_points': allSalePoints,
+        'public_remarks': _publicRemarks.text.trim(),
+        'agent_remarks': _agentRemarks.text.trim(),
+        'showing_instructions': _showingInstructions.text.trim(),
+        'objective_features': _selectedObjectiveFeatures.isNotEmpty ? _selectedObjectiveFeatures : null,
+        'decoration': _selectedDecoration,
+      });
 
-      final data = response.data;
+      final listingId = response.data['listing_id'];
+
+      // Step B: sync-physical (objective_features + decoration)
+      // 失败不阻塞 listing 创建
+      if (_selectedObjectiveFeatures.isNotEmpty || _selectedDecoration != null) {
+        try {
+          final syncBody = <String, dynamic>{};
+          if (_selectedObjectiveFeatures.isNotEmpty) {
+            syncBody['objective_features'] = _selectedObjectiveFeatures;
+          }
+          if (_selectedDecoration != null) {
+            syncBody['decoration'] = _selectedDecoration;
+          }
+          await ApiClient.instance.dio.post(
+            '/listings/$listingId/sync-physical', data: syncBody);
+        } catch (_) {
+          // sync-physical 失败不阻塞，listing 已创建
+        }
+      }
+
       if (mounted) {
         await _showSuccessDialog(
-          houseCode: data['house_code'],
-          listingId: data['listing_id'],
+          houseCode: response.data['house_code'],
+          listingId: listingId,
         );
       }
     } on DioException catch (e) {
@@ -150,45 +220,20 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
     }
   }
 
-  Future<void> _showSuccessDialog({
-    required String houseCode,
-    required String listingId,
-  }) async {
+  Future<void> _showSuccessDialog({required String houseCode, required String listingId}) async {
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         icon: const Icon(Icons.check_circle, size: 60, color: Colors.green),
         title: const Text('录入成功'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('一户一码:'),
-            const SizedBox(height: 4),
-            SelectableText(
-              houseCode,
-              style: const TextStyle(
-                fontFamily: 'monospace',
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
+        content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('一户一码:'),
+          const SizedBox(height: 4),
+          SelectableText(houseCode, style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold)),
+        ]),
         actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              _resetForm();
-            },
-            child: const Text('继续录入'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              if (mounted) context.go('/home');
-            },
-            child: const Text('返回工作台'),
-          ),
+          TextButton(onPressed: () { Navigator.of(ctx).pop(); _resetForm(); }, child: const Text('继续录入')),
+          TextButton(onPressed: () { Navigator.of(ctx).pop(); if (mounted) context.go('/home'); }, child: const Text('返回工作台')),
         ],
       ),
     );
@@ -201,51 +246,41 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
       _pickedCommunity = null;
       _photos = [];
       _coverThumbnail = null;
+      _selectedObjectiveFeatures = [];
+      _selectedDecoration = null;
+      _selectedSalePoints = [];
+      _customSalePoints = [];
     });
-    _building.clear();
-    _unit.clear();
-    _roomNo.clear();
-    _areaSqm.clear();
-    _rooms.text = '';
-    _halls.text = '';
-    _bathrooms.text = '';
-    _floor.clear();
-    _totalFloor.clear();
-    _priceWan.clear();
-    _bonusYuan.text = '0';
-    _remarks.clear();
+    _building.clear(); _unit.clear(); _roomNo.clear(); _areaSqm.clear();
+    _rooms.text = ''; _halls.text = ''; _bathrooms.text = '';
+    _floor.clear(); _totalFloor.clear(); _priceWan.clear(); _bonusYuan.text = '0';
+    _publicRemarks.clear(); _agentRemarks.clear(); _showingInstructions.clear();
+    _customSalePointController.clear();
   }
 
   Future<void> _showDuplicateDialog(dynamic detail) async {
     final message = detail is Map ? detail['message'] : '该房源已被录入';
-
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        icon: const Icon(Icons.warning_amber_rounded,
-            size: 60, color: Colors.orange),
+        icon: const Icon(Icons.warning_amber_rounded, size: 60, color: Colors.orange),
         title: const Text('房源已被录入'),
         content: Text('$message\n\n根据"一户一码"规则,同一套房源只能由一位经纪人录入为卖方房源。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('知道了'),
-          ),
-        ],
+        actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('知道了'))],
       ),
     );
   }
 
   void _showSnack(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), duration: const Duration(seconds: 3)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), duration: const Duration(seconds: 3)));
   }
 
   String? _required(String? v, String label) {
     if (v == null || v.trim().isEmpty) return '$label不能为空';
     return null;
   }
+
+  // ════════════════ UI ════════════════
 
   @override
   Widget build(BuildContext context) {
@@ -259,145 +294,211 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
                 padding: const EdgeInsets.all(16),
                 children: [
                   _sectionTitle('地址信息'),
-
-                  // V4:小区选择器(替代原来的小区名输入框)
                   CommunityPicker(
                     initial: _pickedCommunity,
                     districts: _districts,
                     onChanged: (picked) {
                       setState(() {
                         _pickedCommunity = picked;
-                        // 选小区时自动回填行政区
                         _selectedDistrict = picked.district;
                       });
                     },
                   ),
-
-                  // 行政区(选了小区会自动回填,但仍可改)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: DropdownButtonFormField<String>(
                       value: _selectedDistrict,
                       decoration: const InputDecoration(
-                        labelText: '行政区',
-                        border: OutlineInputBorder(),
-                        isDense: true,
+                        labelText: '行政区', border: OutlineInputBorder(), isDense: true,
                         prefixIcon: Icon(Icons.location_on_outlined),
                         helperText: '选择小区后自动回填,可修改',
                       ),
-                      items: _districts
-                          .map((d) => DropdownMenuItem(
-                                value: d,
-                                child: Text(d),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedDistrict = value;
-                        });
-                      },
+                      items: _districts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
+                      onChanged: (value) => setState(() => _selectedDistrict = value),
                     ),
                   ),
-
-                  Row(
-                    children: [
-                      Expanded(child: _textField(_building, '楼号', hint: '3')),
-                      const SizedBox(width: 12),
-                      Expanded(child: _textField(_unit, '单元', hint: '2')),
-                      const SizedBox(width: 12),
-                      Expanded(
-                          child: _textField(_roomNo, '门牌号', hint: '502')),
-                    ],
-                  ),
+                  Row(children: [
+                    Expanded(child: _textField(_building, '楼号', hint: '3')),
+                    const SizedBox(width: 12),
+                    Expanded(child: _textField(_unit, '单元', hint: '2')),
+                    const SizedBox(width: 12),
+                    Expanded(child: _textField(_roomNo, '门牌号', hint: '502')),
+                  ]),
                   const SizedBox(height: 20),
                   _sectionTitle('户型'),
-                  Row(
-                    children: [
-                      Expanded(child: _textField(_rooms, '卧室', numeric: true)),
-                      const SizedBox(width: 12),
-                      Expanded(child: _textField(_halls, '客厅', numeric: true)),
-                      const SizedBox(width: 12),
-                      Expanded(
-                          child: _textField(_bathrooms, '卫生间', numeric: true)),
-                    ],
-                  ),
+                  Row(children: [
+                    Expanded(child: _textField(_rooms, '卧室', numeric: true)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _textField(_halls, '客厅', numeric: true)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _textField(_bathrooms, '卫生间', numeric: true)),
+                  ]),
                   const SizedBox(height: 20),
                   _sectionTitle('房源信息'),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _textField(
-                          _areaSqm,
-                          '建筑面积(㎡)',
-                          hint: '89.5',
-                          numeric: true,
-                          allowDecimal: true,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(child: _textField(_orientation, '朝向')),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _textField(
-                          _floor,
-                          '所在楼层',
-                          hint: '5',
-                          numeric: true,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _textField(
-                          _totalFloor,
-                          '总楼层',
-                          hint: '18',
-                          numeric: true,
-                        ),
-                      ),
-                    ],
-                  ),
+                  Row(children: [
+                    Expanded(child: _textField(_areaSqm, '建筑面积(㎡)', hint: '89.5', numeric: true, allowDecimal: true)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _textField(_orientation, '朝向')),
+                  ]),
+                  Row(children: [
+                    Expanded(child: _textField(_floor, '所在楼层', hint: '5', numeric: true)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _textField(_totalFloor, '总楼层', hint: '18', numeric: true)),
+                  ]),
                   const SizedBox(height: 20),
                   _sectionTitle('报价与合作奖金'),
-                  _textField(
-                    _priceWan,
-                    '报价(万元)',
-                    hint: '88.8',
-                    numeric: true,
-                    allowDecimal: true,
-                  ),
-                  _textField(
-                    _bonusYuan,
-                    '合作奖金(元)',
-                    hint: '0 表示无奖金',
-                    numeric: true,
-                    required: false,
-                  ),
+                  _textField(_priceWan, '报价(万元)', hint: '88.8', numeric: true, allowDecimal: true),
+                  _textField(_bonusYuan, '合作奖金(元)', hint: '0 表示无奖金', numeric: true, required: false),
                   const Padding(
                     padding: EdgeInsets.only(bottom: 16, left: 4),
-                    child: Text(
-                      '💡 奖金 = 成交后您从中介费里拿出激励 BA 的金额,鼓励同行优先带客。示例:2000-5000 元',
-                      style: TextStyle(fontSize: 11, color: Colors.grey),
+                    child: Text('💡 奖金 = 成交后您从中介费里拿出激励 BA 的金额,鼓励同行优先带客。示例:2000-5000 元',
+                        style: TextStyle(fontSize: 11, color: Colors.grey)),
+                  ),
+
+                  // ═══ V2.2 Section 1: 格局特点(辞典 claim) ═══
+                  _sectionTitle('格局特点(客观,辞典存档)'),
+                  const Text('客观特征(可多选)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8, runSpacing: 4,
+                    children: SalePointsLibrary.objectiveFeatures.map((f) {
+                      final sel = _selectedObjectiveFeatures.contains(f);
+                      return FilterChip(
+                        label: Text(f, style: TextStyle(fontSize: 13)),
+                        selected: sel,
+                        onSelected: (_) {
+                          setState(() {
+                            if (sel) { _selectedObjectiveFeatures.remove(f); }
+                            else { _selectedObjectiveFeatures.add(f); }
+                          });
+                        },
+                        selectedColor: Colors.blue.shade50,
+                        checkmarkColor: Colors.blue,
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('装修情况(单选)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8, runSpacing: 4,
+                    children: SalePointsLibrary.decorationOptions.map((d) {
+                      final sel = _selectedDecoration == d;
+                      return ChoiceChip(
+                        label: Text(d, style: TextStyle(fontSize: 13)),
+                        selected: sel,
+                        onSelected: (_) {
+                          setState(() => _selectedDecoration = sel ? null : d);
+                        },
+                        selectedColor: Colors.blue.shade50,
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // ═══ V2.2 Section 2: 卖点标签(MLS 主观) ═══
+                  _sectionTitle('卖点标签(营销,可不选)'),
+                  // 已选标签
+                  if (_selectedSalePoints.isNotEmpty || _customSalePoints.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Wrap(
+                        spacing: 6, runSpacing: 4,
+                        children: [
+                          ..._selectedSalePoints.map((t) => Chip(
+                                label: Text(t, style: const TextStyle(fontSize: 12)),
+                                deleteIcon: const Icon(Icons.close, size: 16),
+                                onDeleted: () => _toggleSalePoint(t),
+                                backgroundColor: Colors.red.shade50,
+                                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              )),
+                          ..._customSalePoints.map((t) => Chip(
+                                label: Text(t, style: const TextStyle(fontSize: 12)),
+                                deleteIcon: const Icon(Icons.close, size: 16),
+                                onDeleted: () => _removeCustomSalePoint(t),
+                                backgroundColor: Colors.deepOrange.shade50,
+                                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              )),
+                        ],
+                      ),
                     ),
+                  // 预设标签分组
+                  ...SalePointsLibrary.presetGroups.entries.map((group) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(group.key, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                          const SizedBox(height: 4),
+                          Wrap(
+                            spacing: 6, runSpacing: 4,
+                            children: group.value.map((tag) {
+                              final sel = _selectedSalePoints.contains(tag);
+                              return FilterChip(
+                                label: Text(tag, style: TextStyle(fontSize: 12)),
+                                selected: sel,
+                                onSelected: (_) => _toggleSalePoint(tag),
+                                selectedColor: Colors.blue.shade50,
+                                checkmarkColor: Colors.blue,
+                                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              );
+                            }).toList(),
+                          ),
+                        ]),
+                      )),
+                  // 自定义标签输入
+                  Row(children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 40,
+                        child: TextField(
+                          controller: _customSalePointController,
+                          decoration: const InputDecoration(
+                            hintText: '自定义标签(≤12字)',
+                            border: OutlineInputBorder(), isDense: true,
+                            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                          ),
+                          style: const TextStyle(fontSize: 13),
+                          maxLength: SalePointsLibrary.customMaxLength,
+                          buildCounter: (_, {required currentLength, required maxLength, required bool isFocused}) => null,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      height: 40,
+                      child: ElevatedButton(
+                        onPressed: (_totalSalePointCount >= SalePointsLibrary.maxTotal ||
+                                _customSalePoints.length >= SalePointsLibrary.customMaxCount)
+                            ? null
+                            : _addCustomSalePoint,
+                        child: const Text('添加', style: TextStyle(fontSize: 13)),
+                      ),
+                    ),
+                  ]),
+                  Text('${_totalSalePointCount}/${SalePointsLibrary.maxTotal} 标签  |  自定义 ${_customSalePoints.length}/${SalePointsLibrary.customMaxCount}',
+                      style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                  const SizedBox(height: 20),
+
+                  // ═══ V2.2 Section 3: 房源描述 ═══
+                  _sectionTitle('房源描述'),
+                  _textField(_publicRemarks, '公开描述', required: false, maxLines: 3,
+                      hint: '所有看房经纪人都能看到'),
+                  _textField(_agentRemarks, '同行私话', required: false, maxLines: 3,
+                      hint: '经纪人间私话,客户看不到'),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 4, bottom: 12),
+                    child: Text('议价空间 / 业主诚意度 / 内部消息', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                  ),
+                  _textField(_showingInstructions, '看房安排', required: false, maxLines: 2,
+                      hint: '申请通过后展示'),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 4, bottom: 16),
+                    child: Text('约看时间 / 业主时段 / 注意事项', style: TextStyle(fontSize: 11, color: Colors.grey)),
                   ),
 
                   PhotoPicker(
                     initialPhotos: _photos,
                     onChanged: (list) => setState(() => _photos = list),
-                    onCoverThumbnailChanged: (thumb) {
-                      setState(() => _coverThumbnail = thumb);
-                    },
-                  ),
-                  const SizedBox(height: 20),
-
-                  _sectionTitle('备注'),
-                  _textField(
-                    _remarks,
-                    '备注',
-                    required: false,
-                    maxLines: 3,
+                    onCoverThumbnailChanged: (thumb) => setState(() => _coverThumbnail = thumb),
                   ),
                   const SizedBox(height: 32),
                   SizedBox(
@@ -405,14 +506,7 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
                     child: ElevatedButton(
                       onPressed: _submitting ? null : _submit,
                       child: _submitting
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
+                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                           : const Text('提交', style: TextStyle(fontSize: 16)),
                     ),
                   ),
@@ -423,49 +517,24 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
     );
   }
 
-  Widget _sectionTitle(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12, top: 4),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: Colors.grey,
-        ),
-      ),
-    );
-  }
+  Widget _sectionTitle(String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 12, top: 4),
+    child: Text(text, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey)),
+  );
 
-  Widget _textField(
-    TextEditingController controller,
-    String label, {
-    String? hint,
-    bool numeric = false,
-    bool allowDecimal = false,
-    bool required = true,
-    int maxLines = 1,
-  }) {
+  Widget _textField(TextEditingController controller, String label,
+      {String? hint, bool numeric = false, bool allowDecimal = false, bool required = true, int maxLines = 1}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextFormField(
         controller: controller,
-        keyboardType: numeric
-            ? TextInputType.numberWithOptions(decimal: allowDecimal)
-            : TextInputType.text,
+        keyboardType: numeric ? TextInputType.numberWithOptions(decimal: allowDecimal) : TextInputType.text,
         inputFormatters: numeric
-            ? [
-                FilteringTextInputFormatter.allow(
-                  allowDecimal ? RegExp(r'[0-9.]') : RegExp(r'[0-9]'),
-                )
-              ]
+            ? [FilteringTextInputFormatter.allow(allowDecimal ? RegExp(r'[0-9.]') : RegExp(r'[0-9]'))]
             : null,
         maxLines: maxLines,
         decoration: InputDecoration(
-          labelText: label,
-          hintText: hint,
-          border: const OutlineInputBorder(),
-          isDense: true,
+          labelText: label, hintText: hint, border: const OutlineInputBorder(), isDense: true,
         ),
         validator: required ? (v) => _required(v, label) : null,
       ),

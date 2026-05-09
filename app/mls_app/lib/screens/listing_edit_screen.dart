@@ -4,7 +4,9 @@ import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/api_client.dart';
 import '../widgets/photo_picker.dart';
+import '../constants/sale_points_library.dart';
 
+/// V2.2: +4 字段编辑(格局特点 / 卖点标签 / 3 remarks) + 双流程提交
 class ListingEditScreen extends StatefulWidget {
   final String listingId;
   final Map<String, dynamic> original;
@@ -16,9 +18,19 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
   final _formKey = GlobalKey<FormState>();
 
   // 营销字段
-  late final TextEditingController _orientation, _priceWan, _bonusYuan, _remarks;
+  late final TextEditingController _orientation, _priceWan, _bonusYuan;
+  late final TextEditingController _publicRemarks, _agentRemarks, _showingInstructions;
   // 物理字段(Bug B)
   late final TextEditingController _area, _floor, _totalFloor, _rooms, _halls, _bathrooms;
+
+  // V2.2: 格局特点(辞典 claim)
+  List<String> _selectedObjectiveFeatures = [];
+  String? _selectedDecoration;
+
+  // V2.2: 卖点标签
+  final List<String> _selectedSalePoints = [];
+  final List<String> _customSalePoints = [];
+  final _customSalePointController = TextEditingController();
 
   late List<PickedPhoto> _photos;
   String? _coverThumbnail;
@@ -34,15 +46,43 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
     _orientation = TextEditingController(text: o['orientation']?.toString() ?? '');
     _priceWan = TextEditingController(text: o['price_wan']?.toString() ?? '');
     _bonusYuan = TextEditingController(text: (o['bonus_yuan'] ?? 0).toString());
-    _remarks = TextEditingController(text: o['remarks']?.toString() ?? '');
 
-    // 预填: my_last_claim 优先(上次 LA 提交值),否则 null
+    // V2.2: new remarks
+    _publicRemarks = TextEditingController(text: o['public_remarks']?.toString() ?? '');
+    _agentRemarks = TextEditingController(text: o['agent_remarks']?.toString() ?? '');
+    _showingInstructions = TextEditingController(text: o['showing_instructions']?.toString() ?? '');
+
+    // 预填物理: my_last_claim 优先
     _area = TextEditingController(text: (mc['area_sqm'] ?? o['area_sqm'])?.toString() ?? '');
     _floor = TextEditingController(text: (mc['floor'] ?? o['floor'])?.toString() ?? '');
     _totalFloor = TextEditingController(text: (mc['total_floor'] ?? o['total_floor'])?.toString() ?? '');
     _rooms = TextEditingController(text: (mc['rooms'] ?? o['rooms'])?.toString() ?? '');
     _halls = TextEditingController(text: (mc['halls'] ?? o['halls'])?.toString() ?? '');
     _bathrooms = TextEditingController(text: (mc['bathrooms'] ?? o['bathrooms'])?.toString() ?? '');
+
+    // V2.2: 预填格局特点(my_last_claim 优先,否则 authoritative_attrs / original)
+    final mcOf = mc['objective_features'];
+    if (mcOf is List) {
+      _selectedObjectiveFeatures = List<String>.from(mcOf.cast<String>());
+    } else if (o['objective_features'] is List) {
+      _selectedObjectiveFeatures = List<String>.from((o['objective_features'] as List).cast<String>());
+    }
+    _selectedDecoration = (mc['decoration'] ?? o['decoration'])?.toString();
+
+    // V2.2: 预填卖点标签
+    if (o['sale_points'] is List) {
+      final allSp = (o['sale_points'] as List).cast<String>();
+      final presets = <String>[], customs = <String>[];
+      for (final t in allSp) {
+        if (SalePointsLibrary.allPreset.contains(t)) {
+          presets.add(t);
+        } else {
+          customs.add(t);
+        }
+      }
+      _selectedSalePoints = presets;
+      _customSalePoints = customs;
+    }
 
     final rawPhotos = (o['photos'] as List?) ?? [];
     _photos = rawPhotos.map((e) => PickedPhoto.fromJson(e as Map<String, dynamic>)).toList();
@@ -51,10 +91,62 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
 
   @override
   void dispose() {
-    _orientation.dispose(); _priceWan.dispose(); _bonusYuan.dispose(); _remarks.dispose();
+    _orientation.dispose(); _priceWan.dispose(); _bonusYuan.dispose();
+    _publicRemarks.dispose(); _agentRemarks.dispose(); _showingInstructions.dispose();
     _area.dispose(); _floor.dispose(); _totalFloor.dispose();
     _rooms.dispose(); _halls.dispose(); _bathrooms.dispose();
+    _customSalePointController.dispose();
     super.dispose();
+  }
+
+  // ── 卖点标签辅助 ──
+  int get _totalSalePointCount => _selectedSalePoints.length + _customSalePoints.length;
+
+  void _addCustomSalePoint() {
+    final raw = _customSalePointController.text.trim();
+    if (raw.isEmpty) return;
+    if (raw.length > SalePointsLibrary.customMaxLength) {
+      _showSnack('自定义标签最多${SalePointsLibrary.customMaxLength}字');
+      return;
+    }
+    if (SalePointsLibrary.allPreset.contains(raw) || _customSalePoints.contains(raw)) {
+      _showSnack('标签已存在');
+      return;
+    }
+    if (_customSalePoints.length >= SalePointsLibrary.customMaxCount) {
+      _showSnack('自定义标签最多${SalePointsLibrary.customMaxCount}个');
+      return;
+    }
+    if (_totalSalePointCount >= SalePointsLibrary.maxTotal) {
+      _showSnack('标签总数最多${SalePointsLibrary.maxTotal}个');
+      return;
+    }
+    setState(() {
+      _customSalePoints.add(raw);
+      _customSalePointController.clear();
+    });
+  }
+
+  void _toggleSalePoint(String tag) {
+    setState(() {
+      if (_selectedSalePoints.contains(tag)) {
+        _selectedSalePoints.remove(tag);
+      } else {
+        if (_totalSalePointCount >= SalePointsLibrary.maxTotal) {
+          _showSnack('标签总数最多${SalePointsLibrary.maxTotal}个');
+          return;
+        }
+        _selectedSalePoints.add(tag);
+      }
+    });
+  }
+
+  void _removeCustomSalePoint(String tag) {
+    setState(() => _customSalePoints.remove(tag));
+  }
+
+  void _showSnack(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), duration: const Duration(seconds: 3)));
   }
 
   // ── 提交 ──
@@ -74,20 +166,22 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
         'orientation': _orientation.text.trim(),
         'price_wan': p,
         'bonus_yuan': int.tryParse(_bonusYuan.text.trim()) ?? 0,
-        'remarks': _remarks.text.trim(),
         'cover_thumbnail': _coverThumbnail,
         'photos': _photos.map((x) => x.toJson()).toList(),
+        // V2.2: 4 新字段
+        'public_remarks': _publicRemarks.text.trim(),
+        'agent_remarks': _agentRemarks.text.trim(),
+        'showing_instructions': _showingInstructions.text.trim(),
+        'sale_points': [..._selectedSalePoints, ..._customSalePoints],
       });
 
-      // Step B: 收集物理字段 → 调 sync-physical
+      // Step B: 调 sync-physical(物理 6 + 客观 2)
       final phys = _collectPhysical();
       if (phys.isNotEmpty) {
         phys['force'] = false;
         try {
-          await ApiClient.instance.dio.post(
-            '/listings/${widget.listingId}/sync-physical', data: phys);
+          await ApiClient.instance.dio.post('/listings/${widget.listingId}/sync-physical', data: phys);
         } on DioException catch (e) {
-          // 409 / other → handled below
           if (!mounted) return;
           _handleSyncError(e);
           return;
@@ -119,6 +213,9 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
     addInt(_rooms, 'rooms');
     addInt(_halls, 'halls');
     addInt(_bathrooms, 'bathrooms');
+    // V2.2: 客观字段(非 null 才入 body)
+    if (_selectedObjectiveFeatures.isNotEmpty) m['objective_features'] = _selectedObjectiveFeatures;
+    if (_selectedDecoration != null) m['decoration'] = _selectedDecoration;
     return m;
   }
 
@@ -255,6 +352,140 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
             ]),
             const SizedBox(height: 20),
 
+            // ═══ V2.2 Section 1: 格局特点 ═══
+            _sectionTitle('格局特点(客观,辞典存档)'),
+            const Text('客观特征(可多选)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8, runSpacing: 4,
+              children: SalePointsLibrary.objectiveFeatures.map((f) {
+                final sel = _selectedObjectiveFeatures.contains(f);
+                return FilterChip(
+                  label: Text(f, style: TextStyle(fontSize: 13)),
+                  selected: sel,
+                  onSelected: (_) {
+                    setState(() {
+                      if (sel) { _selectedObjectiveFeatures.remove(f); }
+                      else { _selectedObjectiveFeatures.add(f); }
+                    });
+                  },
+                  selectedColor: Colors.blue.shade50,
+                  checkmarkColor: Colors.blue,
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+            const Text('装修情况(单选)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8, runSpacing: 4,
+              children: SalePointsLibrary.decorationOptions.map((d) {
+                final sel = _selectedDecoration == d;
+                return ChoiceChip(
+                  label: Text(d, style: TextStyle(fontSize: 13)),
+                  selected: sel,
+                  onSelected: (_) {
+                    setState(() => _selectedDecoration = sel ? null : d);
+                  },
+                  selectedColor: Colors.blue.shade50,
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 20),
+
+            // ═══ V2.2 Section 2: 卖点标签 ═══
+            _sectionTitle('卖点标签(营销)'),
+            if (_selectedSalePoints.isNotEmpty || _customSalePoints.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Wrap(
+                  spacing: 6, runSpacing: 4,
+                  children: [
+                    ..._selectedSalePoints.map((t) => Chip(
+                          label: Text(t, style: const TextStyle(fontSize: 12)),
+                          deleteIcon: const Icon(Icons.close, size: 16),
+                          onDeleted: () => _toggleSalePoint(t),
+                          backgroundColor: Colors.red.shade50,
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        )),
+                    ..._customSalePoints.map((t) => Chip(
+                          label: Text(t, style: const TextStyle(fontSize: 12)),
+                          deleteIcon: const Icon(Icons.close, size: 16),
+                          onDeleted: () => _removeCustomSalePoint(t),
+                          backgroundColor: Colors.deepOrange.shade50,
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        )),
+                  ],
+                ),
+              ),
+            ...SalePointsLibrary.presetGroups.entries.map((group) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(group.key, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                    const SizedBox(height: 4),
+                    Wrap(
+                      spacing: 6, runSpacing: 4,
+                      children: group.value.map((tag) {
+                        final sel = _selectedSalePoints.contains(tag);
+                        return FilterChip(
+                          label: Text(tag, style: TextStyle(fontSize: 12)),
+                          selected: sel,
+                          onSelected: (_) => _toggleSalePoint(tag),
+                          selectedColor: Colors.blue.shade50,
+                          checkmarkColor: Colors.blue,
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        );
+                      }).toList(),
+                    ),
+                  ]),
+                )),
+            Row(children: [
+              Expanded(
+                child: SizedBox(
+                  height: 40,
+                  child: TextField(
+                    controller: _customSalePointController,
+                    decoration: const InputDecoration(
+                      hintText: '自定义标签(≤12字)',
+                      border: OutlineInputBorder(), isDense: true,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    ),
+                    style: const TextStyle(fontSize: 13),
+                    maxLength: SalePointsLibrary.customMaxLength,
+                    buildCounter: (_, {required currentLength, required maxLength, required bool isFocused}) => null,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                height: 40,
+                child: ElevatedButton(
+                  onPressed: (_totalSalePointCount >= SalePointsLibrary.maxTotal ||
+                          _customSalePoints.length >= SalePointsLibrary.customMaxCount)
+                      ? null
+                      : _addCustomSalePoint,
+                  child: const Text('添加', style: TextStyle(fontSize: 13)),
+                ),
+              ),
+            ]),
+            Text('${_totalSalePointCount}/${SalePointsLibrary.maxTotal} 标签',
+                style: const TextStyle(fontSize: 11, color: Colors.grey)),
+            const SizedBox(height: 20),
+
+            // ═══ V2.2 Section 3: 房源描述 ═══
+            _sectionTitle('房源描述'),
+            _tf(_publicRemarks, '公开描述', required: false, maxLines: 3, hint: '所有看房经纪人都能看到'),
+            _tf(_agentRemarks, '同行私话', required: false, maxLines: 3, hint: '经纪人间私话,客户看不到'),
+            const Padding(
+              padding: EdgeInsets.only(left: 4, bottom: 12),
+              child: Text('议价空间 / 业主诚意度 / 内部消息', style: TextStyle(fontSize: 11, color: Colors.grey)),
+            ),
+            _tf(_showingInstructions, '看房安排', required: false, maxLines: 2, hint: '申请通过后展示'),
+            const Padding(
+              padding: EdgeInsets.only(left: 4, bottom: 16),
+              child: Text('约看时间 / 业主时段 / 注意事项', style: TextStyle(fontSize: 11, color: Colors.grey)),
+            ),
+
             _sectionTitle('朝向'),
             _tf(_orientation, '朝向'),
             const SizedBox(height: 20),
@@ -267,8 +498,6 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
               child: Text('💡 奖金 = 成交后您从中介费里拿出激励 BA 的金额。0 表示无奖金。',
                   style: TextStyle(fontSize: 11, color: Colors.grey)),
             ),
-            _sectionTitle('备注'),
-            _tf(_remarks, '备注', required: false, maxLines: 3),
             const SizedBox(height: 24),
 
             SizedBox(
@@ -318,9 +547,11 @@ class _BuildSyncBanner extends StatelessWidget {
   static const _labels = {
     'area_sqm': '面积', 'floor': '楼层', 'total_floor': '总楼层',
     'rooms': '卧室数', 'halls': '客厅数', 'bathrooms': '卫生间数',
+    'objective_features': '客观特征', 'decoration': '装修',
   };
   static const _units = {
     'area_sqm': '㎡', 'floor': '', 'total_floor': '', 'rooms': '', 'halls': '', 'bathrooms': '',
+    'objective_features': '', 'decoration': '',
   };
 
   @override
@@ -331,7 +562,7 @@ class _BuildSyncBanner extends StatelessWidget {
     final diffs = <Map<String, dynamic>>[];
     for (final f in _labels.keys) {
       final a = original[f], m = mc[f];
-      if (a != null && m != null && a != m) diffs.add({'field': f, 'auth': a, 'my': m});
+      if (a != null && m != null && _differs(a, m)) diffs.add({'field': f, 'auth': a, 'my': m});
     }
     if (diffs.isEmpty) return const SizedBox.shrink();
 
@@ -349,7 +580,7 @@ class _BuildSyncBanner extends StatelessWidget {
         const SizedBox(height: 8),
         for (final d in diffs)
           Padding(padding: const EdgeInsets.only(bottom: 4, left: 28),
-            child: Text('${_labels[d['field']]}: ${d['auth']}${_units[d['field']]}(权威) vs ${d['my']}${_units[d['field']]}(你)',
+            child: Text('${_labels[d['field']]}: ${_format(d['auth'])}${_units[d['field']]}(权威) vs ${_format(d['my'])}${_units[d['field']]}(你)',
                 style: const TextStyle(fontSize: 12))),
         const SizedBox(height: 8),
         Center(child: syncing
@@ -359,5 +590,20 @@ class _BuildSyncBanner extends StatelessWidget {
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, foregroundColor: Colors.white))),
       ]),
     );
+  }
+
+  static bool _differs(dynamic a, dynamic b) {
+    if (a is List && b is List) {
+      if (a.length != b.length) return true;
+      final sa = a.map((e) => e.toString()).toSet();
+      final sb = b.map((e) => e.toString()).toSet();
+      return !sa.containsAll(sb) || !sb.containsAll(sa);
+    }
+    return a.toString() != b.toString();
+  }
+
+  static String _format(dynamic v) {
+    if (v is List) return v.join(', ');
+    return v.toString();
   }
 }
