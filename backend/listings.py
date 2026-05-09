@@ -17,7 +17,8 @@ Day 16 增量:
 import hashlib
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+from const.sale_points import validate_sale_points
 from bson import ObjectId
 from fastapi import HTTPException
 from database import db, client
@@ -29,6 +30,8 @@ MAX_PHOTOS = 6
 
 # V2.1 #15: 辞典侧 6 物理字段名,与 property-dictionary/models/property.py attribute_claims dict 严格对齐
 DICT_PHYSICAL_FIELDS = ("area_sqm", "floor", "total_floor", "rooms", "halls", "bathrooms")
+# V2.2 #1: 辞典可选 claim 字段(objective_features + decoration)
+DICT_OPTIONAL_CLAIM_FIELDS = ("objective_features", "decoration")
 
 
 # ==================== 张家口行政区字典 ====================
@@ -93,12 +96,23 @@ class CreateListingRequest(BaseModel):
     room_no: str = Field(..., min_length=1, max_length=10)
     orientation: str = Field(..., max_length=20)
     price_wan: float = Field(..., gt=0)
-    remarks: Optional[str] = Field(None, max_length=500)
     bonus_yuan: Optional[int] = Field(
         0, ge=0, le=500_000, description="合作奖金(元),0=无奖金"
     )
     cover_thumbnail: Optional[str] = Field(None, description="封面缩略图 base64")
     photos: Optional[List[PhotoItem]] = Field(default=None, description="完整照片列表")
+    # V2.2 #1: 4 新字段(remark 拆为 public/agent,showing_instructions,sale_points)
+    sale_points: Optional[List[str]] = Field(default=None, description="卖点标签(上限25:21预设+4自定义)")
+    public_remarks: Optional[str] = Field(None, max_length=2000, description="公开备注(所有人可见)")
+    agent_remarks: Optional[str] = Field(None, max_length=1000, description="经纪人备注(仅协作中 BA+LA 可见)")
+    showing_instructions: Optional[str] = Field(None, max_length=500, description="看房指引(仅协作中 BA+LA 可见)")
+
+    @field_validator("sale_points")
+    @classmethod
+    def validate_tags(cls, v):
+        if v is not None:
+            validate_sale_points(v)
+        return v
 
 
 class PostListingRequest(CreateListingRequest):
@@ -113,11 +127,19 @@ class PostListingRequest(CreateListingRequest):
     rooms: int = Field(..., ge=0, le=20, description="室(调辞典 claim,不持久化到 listing)")
     halls: int = Field(..., ge=0, le=10, description="厅(调辞典 claim,不持久化到 listing)")
     bathrooms: int = Field(..., ge=0, le=10, description="卫(调辞典 claim,不持久化到 listing)")
+    # V2.2 #1: 辞典可选 claim(与物理 6 字段同流程 always-accept)
+    objective_features: Optional[List[str]] = Field(None, description="客观特征(调辞典 claim,可选)")
+    decoration: Optional[str] = Field(None, description="装修情况(调辞典 claim,可选)")
 
 
 def _extract_physical_attrs(req) -> dict:
-    """从请求中提取 6 物理字段,用于调辞典 submit_claim"""
-    return {field: getattr(req, field) for field in DICT_PHYSICAL_FIELDS}
+    """从请求中提取物理字段 + V2.2 可选客观字段,用于调辞典 submit_claim"""
+    attrs = {field: getattr(req, field) for field in DICT_PHYSICAL_FIELDS}
+    for field in DICT_OPTIONAL_CLAIM_FIELDS:
+        v = getattr(req, field, None)
+        if v is not None:
+            attrs[field] = v
+    return attrs
 
 
 class CreateListingResponse(BaseModel):
@@ -266,12 +288,16 @@ def create_listing(req, physical_attrs: dict, agent: dict) -> dict:
         "layout": layout,
         "orientation": req.orientation,
         "price_wan": req.price_wan,
-        "remarks": req.remarks or "",
         "bonus_yuan": int(req.bonus_yuan or 0),
         "status": "on_sale",
         "cover_thumbnail": req.cover_thumbnail,
         "photos": photos_list,
         "photo_count": len(photos_list),
+        # V2.2 #1: remark 拆为 agent_remarks(私有) + public_remarks(公开)
+        "agent_remarks": req.agent_remarks or "",
+        "public_remarks": req.public_remarks or "",
+        "showing_instructions": req.showing_instructions or "",
+        "sale_points": req.sale_points or [],
         "owner_agent_id": agent["_id"],
         "owner_agent_name": agent["name"],
         "owner_agent_phone": agent["phone"],
@@ -433,6 +459,12 @@ def get_listing_by_id(listing_id: str, viewer_id=None) -> dict | None:
     result = _format_listing_full(doc)
     # V2.1 #15: 尝试从辞典侧补物理字段,失败时保持 None 占位(graceful degrade)
     _enrich_from_dictionary(result, doc, viewer_id)
+    # V2.2 #1: 权限分层 — 非协作方隐藏 agent_remarks / showing_instructions / LA 手机号
+    from utils.collaboration_status import is_collaboration_unlocked
+    if not is_collaboration_unlocked(viewer_id, listing_id):
+        result["agent_remarks"] = ""
+        result["showing_instructions"] = ""
+        result["owner_agent_phone"] = ""
     return result
 
 
@@ -440,6 +472,7 @@ def _enrich_from_dictionary(result: dict, doc: dict, viewer_id=None) -> None:
     """尝试从辞典 get_property 拿物理字段富化 listing 详情,不抛异常。
 
     如 viewer_id 与 listing.owner_agent_id 相同(LA 视角),附加 my_last_claim。
+    V2.2 #1: 扩展 objective_features + decoration 富化。
     """
     property_code = doc.get("property_code")
     if not property_code:
@@ -451,7 +484,7 @@ def _enrich_from_dictionary(result: dict, doc: dict, viewer_id=None) -> None:
         return
     # authoritative_attrs 优先
     auth = prop.get("authoritative_attrs", {}) or {}
-    for field in DICT_PHYSICAL_FIELDS:
+    for field in DICT_PHYSICAL_FIELDS + DICT_OPTIONAL_CLAIM_FIELDS:
         val = auth.get(field)
         if val is not None:
             result[field] = val
@@ -460,7 +493,7 @@ def _enrich_from_dictionary(result: dict, doc: dict, viewer_id=None) -> None:
     claims_list = prop.get("attribute_claims", []) or []
     if claims_list:
         claims_list_sorted = sorted(claims_list, key=lambda c: c.get("claimed_at") or "")
-        for field in DICT_PHYSICAL_FIELDS:
+        for field in DICT_PHYSICAL_FIELDS + DICT_OPTIONAL_CLAIM_FIELDS:
             if result.get(field) is not None:
                 continue
             for c in reversed(claims_list_sorted):
@@ -477,7 +510,7 @@ def _enrich_from_dictionary(result: dict, doc: dict, viewer_id=None) -> None:
         my_claims_sorted = sorted(
             my_claims, key=lambda c: c.get("claimed_at") or "", reverse=True
         )
-        my_last_claim = {field: None for field in DICT_PHYSICAL_FIELDS}
+        my_last_claim = {field: None for field in DICT_PHYSICAL_FIELDS + DICT_OPTIONAL_CLAIM_FIELDS}
         for c in my_claims_sorted:
             field = c.get("field")
             if field in my_last_claim and my_last_claim[field] is None:
@@ -510,9 +543,12 @@ def update_listing(
 
     # V2.1 #15: 物理字段(rooms/halls/bathrooms/floor/total_floor)已迁移到辞典
     allowed = {
-        "orientation", "price_wan", "remarks",
+        "orientation", "price_wan",
         "bonus_yuan",
         "cover_thumbnail", "photos",
+        # V2.2 #1: remark 拆为 agent_remarks + public_remarks
+        "public_remarks", "agent_remarks",
+        "showing_instructions", "sale_points",
     }
     clean_fields = {
         k: v for k, v in update_fields.items()
@@ -520,6 +556,9 @@ def update_listing(
     }
     if not clean_fields:
         raise HTTPException(status_code=400, detail="没有有效的更新字段")
+
+    if "sale_points" in clean_fields:
+        validate_sale_points(clean_fields["sale_points"])
 
     if "photos" in clean_fields:
         photos = clean_fields["photos"]
@@ -722,6 +761,9 @@ class SyncPhysicalBody(BaseModel):
     rooms: Optional[int] = Field(None, description="室")
     halls: Optional[int] = Field(None, description="厅")
     bathrooms: Optional[int] = Field(None, description="卫")
+    # V2.2 #1: 客观字段同步(辞典 always-accept,无 force/no-force 二选)
+    objective_features: Optional[list[str]] = Field(None, description="客观特征(辞典 claim,可选)")
+    decoration: Optional[str] = Field(None, description="装修情况(辞典 claim,可选)")
     force: bool = Field(False, description="True=冲突仍接受,写 discrepancy 工单")
 
 
@@ -752,11 +794,14 @@ def sync_physical_to_dict(listing_id: str, body, viewer_id) -> dict:
         raise HTTPException(status_code=400, detail="该房源未关联辞典 property,无法同步")
 
     # Determine attrs: body values first, fallback to authoritative_attrs
-    has_body = any(getattr(body, f, None) is not None for f in DICT_PHYSICAL_FIELDS)
+    has_body = any(
+        getattr(body, f, None) is not None
+        for f in DICT_PHYSICAL_FIELDS + DICT_OPTIONAL_CLAIM_FIELDS
+    )
     attrs = {}
 
     if has_body:
-        for f in DICT_PHYSICAL_FIELDS:
+        for f in DICT_PHYSICAL_FIELDS + DICT_OPTIONAL_CLAIM_FIELDS:
             v = getattr(body, f, None)
             if v is not None:
                 attrs[f] = v
@@ -771,7 +816,7 @@ def sync_physical_to_dict(listing_id: str, body, viewer_id) -> dict:
         authoritative = prop.get("authoritative_attrs", {}) or {}
         if not authoritative:
             raise HTTPException(status_code=400, detail="辞典 property 暂无权威值,无法同步")
-        for field in DICT_PHYSICAL_FIELDS:
+        for field in DICT_PHYSICAL_FIELDS + DICT_OPTIONAL_CLAIM_FIELDS:
             if field in authoritative and authoritative[field] is not None:
                 attrs[field] = authoritative[field]
 
@@ -812,7 +857,7 @@ def _batch_fetch_props(docs: list) -> dict:
 
 
 def _enrich_physical_fields(result: dict, props_map: dict) -> None:
-    """用 batch 返回的 property 数据替换 result 中的 6 物理字段 null 占位。"""
+    """用 batch 返回的 property 数据替换 result 中的物理字段 null 占位。"""
     code = result.get("property_code")
     if not code:
         return
@@ -821,13 +866,13 @@ def _enrich_physical_fields(result: dict, props_map: dict) -> None:
         return
     # authoritative_attrs 优先
     auth = prop.get("authoritative_attrs", {}) or {}
-    for field in DICT_PHYSICAL_FIELDS:
+    for field in DICT_PHYSICAL_FIELDS + DICT_OPTIONAL_CLAIM_FIELDS:
         val = auth.get(field)
         if val is not None:
             result[field] = val
     # attribute_claims_latest 兜底
     claims = prop.get("attribute_claims_latest", {}) or {}
-    for field in DICT_PHYSICAL_FIELDS:
+    for field in DICT_PHYSICAL_FIELDS + DICT_OPTIONAL_CLAIM_FIELDS:
         if result.get(field) is None and field in claims:
             result[field] = claims[field]
 
@@ -855,13 +900,17 @@ def _format_listing_full(doc: dict) -> dict:
         "layout": doc.get("layout", ""),
         "orientation": doc["orientation"],
         "price_wan": doc["price_wan"],
-        "remarks": doc.get("remarks", ""),
         "bonus_yuan": int(doc.get("bonus_yuan", 0) or 0),
         "status": doc.get("status", "on_sale"),
         "status_label": STATUS_LABELS.get(doc.get("status", "on_sale"), doc.get("status", "")),
         "cover_thumbnail": doc.get("cover_thumbnail"),
         "photos": doc.get("photos", []),
         "photo_count": doc.get("photo_count", 0),
+        # V2.2 #1: remark 拆为 public_remarks + agent_remarks
+        "agent_remarks": doc.get("agent_remarks", ""),
+        "public_remarks": doc.get("public_remarks", ""),
+        "showing_instructions": doc.get("showing_instructions", ""),
+        "sale_points": doc.get("sale_points", []),
         "owner_agent_id": str(doc["owner_agent_id"]),
         "owner_agent_name": doc["owner_agent_name"],
         "owner_agent_phone": doc.get("owner_agent_phone", ""),
@@ -896,7 +945,8 @@ def _format_listing_lite(doc: dict) -> dict:
         "layout": doc.get("layout", ""),
         "orientation": doc["orientation"],
         "price_wan": doc["price_wan"],
-        "remarks": doc.get("remarks", ""),
+        "public_remarks": doc.get("public_remarks", ""),
+        "sale_points": doc.get("sale_points", []),
         "status": doc.get("status", "on_sale"),
         "status_label": STATUS_LABELS.get(doc.get("status", "on_sale"), doc.get("status", "")),
         "cover_thumbnail": doc.get("cover_thumbnail"),
@@ -941,7 +991,8 @@ def _format_listing_anonymous_lite(
         "layout": doc.get("layout", ""),
         "orientation": doc["orientation"],
         "price_wan": doc["price_wan"],
-        "remarks": doc.get("remarks", ""),
+        "public_remarks": doc.get("public_remarks", ""),
+        "sale_points": doc.get("sale_points", []),
         "bonus_yuan": int(doc.get("bonus_yuan", 0) or 0),
         "status": doc.get("status", "on_sale"),
         "status_label": STATUS_LABELS.get(doc.get("status", "on_sale"), doc.get("status", "")),

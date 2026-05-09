@@ -523,17 +523,16 @@ def get_shared_listings_api(
 
 
 class UpdateListingRequest(BaseModel):
-    rooms: int | None = None
-    halls: int | None = None
-    bathrooms: int | None = None
-    floor: int | None = None
-    total_floor: int | None = None
     orientation: str | None = None
     price_wan: float | None = None
-    remarks: str | None = None
     bonus_yuan: int | None = None
     cover_thumbnail: str | None = None
     photos: list | None = None
+    # V2.2 #1: remark 拆为 public_remarks + agent_remarks
+    public_remarks: str | None = None
+    agent_remarks: str | None = None
+    showing_instructions: str | None = None
+    sale_points: list | None = None
 
 
 @app.get("/api/v1/listings/meta/districts")
