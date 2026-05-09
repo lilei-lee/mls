@@ -127,23 +127,23 @@ app = FastAPI(
 @app.on_event("startup")
 def startup_check():
     if ping():
-        print("✓ MongoDB 连接正常")
+        print("[OK] MongoDB connected")
     else:
-        print("✗ MongoDB 连接失败!请检查服务是否启动")
+        print("[FAIL] MongoDB connection failed!")
     ensure_indexes()
-    print("✓ 房源索引已建立")
+    print("[OK] 房源索引已建立")
     ensure_showing_indexes()
-    print("✓ 带客申请索引已建立")
+    print("[OK] 带客申请索引已建立")
     ensure_showings_indexes()
-    print("✓ 带看记录索引已建立")
+    print("[OK] 带看记录索引已建立")
     ensure_communities_indexes()
-    print("✓ 小区库索引已建立")
+    print("[OK] 小区库索引已建立")
     ensure_transactions_indexes()
-    print("✓ 成交记录索引已建立")
+    print("[OK] 成交记录索引已建立")
     ensure_settlements_indexes()
-    print("✓ 奖金结算索引已建立")
+    print("[OK] 奖金结算索引已建立")
     ensure_customers_indexes()
-    print("✓ 客户档案索引已建立")
+    print("[OK] 客户档案索引已建立")
     start_scheduler()
 
 
@@ -315,7 +315,7 @@ def register(req: RegisterRequest):
     redis_client.delete(f"sms:code:{req.phone}")
     access_token = create_access_token(agent_id)
     refresh_token = create_refresh_token(agent_id)
-    print(f"\n✓ 新经纪人注册并自动登录: {req.name} ({req.phone})")
+    print(f"\n[OK] 新经纪人注册并自动登录: {req.name} ({req.phone})")
     return RegisterResponse(
         success=True,
         agent_id=agent_id,
@@ -365,7 +365,7 @@ def login(req: LoginRequest):
         {"$set": {"last_login_at": datetime.now()}}
     )
     redis_client.delete(f"sms:code:{req.phone}")
-    print(f"\n✓ 登录成功: {agent['name']} ({req.phone})")
+    print(f"\n[OK] 登录成功: {agent['name']} ({req.phone})")
     return LoginResponse(
         success=True,
         agent_id=agent_id,
