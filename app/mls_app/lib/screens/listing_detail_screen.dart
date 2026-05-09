@@ -4,14 +4,12 @@ import 'package:go_router/go_router.dart';
 import '../services/api_client.dart';
 import '../services/transaction_service.dart';
 import '../widgets/base64_image.dart';
-import '../widgets/info_card.dart';
 
+/// V2.2 #1: 6-section 详情页 + 权限分层渲染
 class ListingDetailScreen extends StatefulWidget {
   final String listingId;
   const ListingDetailScreen({super.key, required this.listingId});
-
-  @override
-  State<ListingDetailScreen> createState() => _ListingDetailScreenState();
+  @override State<ListingDetailScreen> createState() => _ListingDetailScreenState();
 }
 
 class _ListingDetailScreenState extends State<ListingDetailScreen> {
@@ -25,105 +23,68 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   }
 
   Future<Map<String, dynamic>> _fetch() async {
-    final response =
-        await ApiClient.instance.dio.get('/listings/${widget.listingId}');
+    final response = await ApiClient.instance.dio.get('/listings/${widget.listingId}');
     return response.data['data'] as Map<String, dynamic>;
   }
 
   void _reload() {
-    setState(() {
-      _future = _fetch();
-    });
+    setState(() => _future = _fetch());
     _listChanged = true;
   }
 
+  // ── 下架 / 重新上架 / 交易状态 (same as V2.1) ──
   Future<void> _offline() async {
     final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
+      context: context, builder: (ctx) => AlertDialog(
         title: const Text('下架房源'),
         content: const Text('下架后房源在共享库不再展示,但数据会保留。以后可以重新上架。'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('确定下架', style: TextStyle(color: Colors.red)),
-          ),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('确定下架', style: TextStyle(color: Colors.red))),
         ],
       ),
     );
-
     if (confirmed != true) return;
-
     try {
       await ApiClient.instance.dio.delete('/listings/${widget.listingId}');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('房源已下架')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('房源已下架')));
       _reload();
     } on DioException catch (e) {
       if (!mounted) return;
-      final msg = e.response?.data?['detail'] ?? e.message ?? '网络错误';
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('下架失败:$msg')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('下架失败:${e.message}')));
     }
   }
 
   Future<void> _reactivate() async {
     final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('重新上架'),
-        content: const Text('确定把这条房源重新上架到共享库吗?'),
+      context: context, builder: (ctx) => AlertDialog(
+        title: const Text('重新上架'), content: const Text('确定把这条房源重新上架到共享库吗?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('重新上架', style: TextStyle(color: Colors.green)),
-          ),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('重新上架', style: TextStyle(color: Colors.green))),
         ],
       ),
     );
-
     if (confirmed != true) return;
-
     try {
-      await ApiClient.instance.dio.post(
-        '/listings/${widget.listingId}/reactivate',
-      );
+      await ApiClient.instance.dio.post('/listings/${widget.listingId}/reactivate');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('房源已重新上架')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('房源已重新上架')));
       _reload();
     } on DioException catch (e) {
       if (!mounted) return;
-      final msg = e.response?.data?['detail'] ?? e.message ?? '网络错误';
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('上架失败:$msg')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('上架失败:${e.message}')));
     }
   }
 
-  // ===== V5 交易状态切换 =====
-
   Future<void> _openStatusBottomSheet(Map<String, dynamic> item) async {
-    final status = item['status'] as String;
     await showModalBottomSheet(
       context: context,
-      builder: (ctx) => _StatusChangeSheet(
-        currentStatus: status,
-        onAction: (action) async {
-          Navigator.of(ctx).pop();
-          await _handleStatusAction(action);
-        },
-      ),
+      builder: (ctx) => _StatusChangeSheet(currentStatus: item['status'] as String, onAction: (action) async {
+        Navigator.of(ctx).pop();
+        await _handleStatusAction(action);
+      }),
     );
   }
 
@@ -131,245 +92,207 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     try {
       switch (action) {
         case 'mark_deposit_paid':
-          await _confirmAndRun(
-            title: '标记定金已付',
-            content: '确认买家已付定金?MVP 阶段暂不强制凭证,但请务必真实标记。虚假标记将按违规处理。',
-            okText: '确认标记',
-            action: () async {
-              await ListingStatusService.instance
-                  .markDepositPaid(widget.listingId);
-            },
-            successMsg: '已标记为「定金已付」',
-          );
-          break;
+          await _confirmAndRun(title: '标记定金已付', content: '确认买家已付定金?', okText: '确认标记', action: () async {
+            await ListingStatusService.instance.markDepositPaid(widget.listingId);
+          }, successMsg: '已标记为「定金已付」');
         case 'mark_transaction_ongoing':
-          await _confirmAndRun(
-            title: '标记成交进行中',
-            content: '确认交易已进入过户流程?此状态下不再接受新的带客申请。',
-            okText: '确认标记',
-            action: () async {
-              await ListingStatusService.instance
-                  .markTransactionOngoing(widget.listingId);
-            },
-            successMsg: '已标记为「成交进行中」',
-          );
-          break;
+          await _confirmAndRun(title: '标记成交进行中', content: '确认交易已进入过户流程?', okText: '确认标记', action: () async {
+            await ListingStatusService.instance.markTransactionOngoing(widget.listingId);
+          }, successMsg: '已标记为「成交进行中」');
         case 'rollback':
-          final reason = await showDialog<String>(
-            context: context,
-            builder: (ctx) => const _RollbackReasonDialog(),
-          );
+          final reason = await showDialog<String>(context: context, builder: (ctx) => const _RollbackReasonDialog());
           if (reason == null) return;
-          await ListingStatusService.instance
-              .rollbackToOnSale(widget.listingId, reason);
+          await ListingStatusService.instance.rollbackToOnSale(widget.listingId, reason);
           if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('已回退到「在售」')),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已回退到「在售」')));
           _reload();
-          break;
       }
     } on DioException catch (e) {
       if (!mounted) return;
-      final msg = e.response?.data?['detail'] ?? e.message ?? '网络错误';
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('操作失败:$msg')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('操作失败:${e.message}')));
     }
   }
 
-  Future<void> _confirmAndRun({
-    required String title,
-    required String content,
-    required String okText,
-    required Future<void> Function() action,
-    required String successMsg,
-  }) async {
+  Future<void> _confirmAndRun({required String title, required String content, required String okText, required Future<void> Function() action, required String successMsg}) async {
     final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(title),
-        content: Text(content),
+      context: context, builder: (ctx) => AlertDialog(
+        title: Text(title), content: Text(content),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(okText, style: const TextStyle(color: Colors.blue)),
-          ),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: Text(okText, style: const TextStyle(color: Colors.blue))),
         ],
       ),
     );
     if (ok != true) return;
-
     await action();
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(successMsg)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(successMsg)));
     _reload();
   }
+
+  // ════════════════ UI ════════════════
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, _) {
-        if (didPop) return;
-        context.pop(_listChanged);
-      },
+      canPop: false, onPopInvokedWithResult: (didPop, _) { if (didPop) return; context.pop(_listChanged); },
       child: Scaffold(
         appBar: AppBar(
           title: const Text('房源详情'),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.pop(_listChanged),
-          ),
+          leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop(_listChanged)),
         ),
         body: FutureBuilder<Map<String, dynamic>>(
           future: _future,
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return Center(
-                child: Text('加载失败:${snapshot.error}',
-                    style: const TextStyle(color: Colors.red)),
-              );
-            }
+            if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+            if (snapshot.hasError) return Center(child: Text('加载失败:${snapshot.error}', style: const TextStyle(color: Colors.red)));
             final item = snapshot.data!;
             final status = item['status'] as String;
             final isOffline = status == 'offline';
             final isSold = status == 'sold';
             final isOnSale = status == 'on_sale';
-            final isInTransaction =
-                status == 'deposit_paid' || status == 'transaction_ongoing';
-
-            final photos =
-                ((item['photos'] as List?) ?? []).cast<Map<String, dynamic>>();
+            final isInTransaction = status == 'deposit_paid' || status == 'transaction_ongoing';
+            final photos = ((item['photos'] as List?) ?? []).cast<Map<String, dynamic>>();
+            final agentRemarks = (item['agent_remarks'] ?? '').toString();
+            final showingInst = (item['showing_instructions'] ?? '').toString();
+            final isUnlocked = agentRemarks.isNotEmpty || showingInst.isNotEmpty;
 
             return ListView(
               padding: EdgeInsets.zero,
               children: [
                 _PhotoCarousel(photos: photos),
+
+                // ═══ ①/② 基础信息卡 ═══
+                _sectionCard(children: [
+                  Row(children: [
+                    Expanded(child: Text('${item['community']} ${item['building']}号楼${item['unit']}单元${item['room_no']}',
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
+                    _StatusBadge(status: status),
+                  ]),
+                  const SizedBox(height: 8),
+                  Text('一户一码:${item['house_code']}', style: const TextStyle(fontFamily: 'monospace', color: Colors.grey, fontSize: 12)),
+                  const SizedBox(height: 12),
+                  if (isSold) _soldPriceCard(item) else _askingPriceCard(item),
+                  const SizedBox(height: 12),
+                  // 物理信息行
+                  _infoRow('户型', item['layout'] ?? '-'),
+                  _infoRow('建筑面积', '${item['area_sqm']}㎡'),
+                  _infoRow('楼层', '${item['floor']}/${item['total_floor']}层'),
+                  _infoRow('朝向', item['orientation'] ?? '-'),
+                  if ((item['district'] ?? '').toString().isNotEmpty) _infoRow('行政区', item['district']),
+
+                  // ★ 格局特点 chips
+                  if (_buildObjectiveChips(item) case final w?) w,
+                  // ★ 装修徽标(已合入格局行,跳过)
+
+                  const Divider(height: 24),
+                  // ★ 小区主页迷你卡
+                  _buildCommunityMiniCard(item),
+                ]),
+
+                // ═══ ③ 卖点标签 ═══
+                if (item['sale_points'] is List && (item['sale_points'] as List).isNotEmpty)
+                  _sectionCard(title: '卖点标签', children: [
+                    Wrap(
+                      spacing: 8, runSpacing: 6,
+                      children: (item['sale_points'] as List).cast<String>().map((t) => Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.red.shade200)),
+                        child: Text(t, style: TextStyle(fontSize: 13, color: Colors.red.shade700)),
+                      )).toList(),
+                    ),
+                  ]),
+
+                // ═══ ④ 房源描述 ═══
+                if ((item['public_remarks'] ?? '').toString().isNotEmpty)
+                  _sectionCard(title: '房源描述', children: [
+                    Text(item['public_remarks'].toString(), style: const TextStyle(fontSize: 14, height: 1.6)),
+                  ]),
+
+                // ═══ ⑤ 协作信息 ═══
+                _sectionCard(title: '协作信息', children: [
+                  _infoRow('挂牌经纪人', item['owner_agent_name'] ?? '-'),
+                  _infoRow('合作奖金', '¥${item['bonus_yuan'] ?? 0} 元'),
+                  if (isUnlocked)
+                    _infoRow('联系电话', item['owner_agent_phone'] ?? ''),
+                ]),
+
+                // ═══ ⑥ 权限分层 ═══
+                if (isUnlocked) ...[
+                  _sectionCard(title: '同行私话', children: [
+                    Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      const Icon(Icons.lock_open, size: 16, color: Colors.green),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(agentRemarks, style: const TextStyle(fontSize: 14, height: 1.6))),
+                    ]),
+                  ]),
+                  if (showingInst.isNotEmpty)
+                    _sectionCard(title: '看房安排', children: [
+                      Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        const Icon(Icons.schedule, size: 16, color: Colors.blue),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(showingInst, style: const TextStyle(fontSize: 14, height: 1.6))),
+                      ]),
+                    ]),
+                ] else ...[
+                  _sectionCard(children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(8)),
+                      child: Row(children: [
+                        const Icon(Icons.lock_outline, size: 24, color: Colors.grey),
+                        const SizedBox(width: 12),
+                        const Expanded(child: Text('申请通过后展示', style: TextStyle(color: Colors.grey, fontSize: 14))),
+                      ]),
+                    ),
+                  ]),
+                ],
+
+                const SizedBox(height: 12),
+
+                // ── Action buttons ──
                 Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              '${item['community']} ${item['building']}号楼${item['unit']}单元${item['room_no']}',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          _StatusBadge(status: status),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '一户一码:${item['house_code']}',
-                        style: const TextStyle(
-                          fontFamily: 'monospace',
-                          color: Colors.grey,
-                          fontSize: 12,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(children: [
+                    if (isSold)
+                      _soldActionsSection()
+                    else if (isOffline)
+                      _offlineActionsSection()
+                    else ...[
+                      SizedBox(height: 48, child: ElevatedButton.icon(
+                        onPressed: () async {
+                          final changed = await context.push<bool>('/listing/${widget.listingId}/edit', extra: item);
+                          if (changed == true) _reload();
+                        },
+                        icon: const Icon(Icons.edit), label: const Text('编辑房源'),
+                      )),
+                      const SizedBox(height: 12),
+                      SizedBox(height: 48, child: ElevatedButton.icon(
+                        onPressed: () => _openStatusBottomSheet(item),
+                        icon: const Icon(Icons.swap_horiz), label: const Text('变更交易状态'),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, foregroundColor: Colors.white),
+                      )),
+                      const SizedBox(height: 12),
+                      if (isOnSale)
+                        SizedBox(height: 48, child: OutlinedButton.icon(
+                          onPressed: _offline,
+                          icon: const Icon(Icons.archive_outlined), label: const Text('下架'),
+                          style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: const BorderSide(color: Colors.red)),
+                        )),
+                      if (isInTransaction)
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(6)),
+                          child: const Row(children: [
+                            Icon(Icons.info_outline, color: Colors.grey, size: 18), SizedBox(width: 8),
+                            Expanded(child: Text('交易状态下不能直接下架,请先回退到「在售」', style: TextStyle(color: Colors.grey, fontSize: 12))),
+                          ]),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      if (isSold) _soldPriceCard(item) else _askingPriceCard(item),
-
-                      const SizedBox(height: 16),
-                      if ((item['district'] ?? '').toString().isNotEmpty)
-                        InfoCard(label: '行政区', value: item['district']),
-                      InfoCard(label: '户型', value: item['layout'] ?? '-'),
-                      InfoCard(label: '建筑面积', value: '${item['area_sqm']}㎡'),
-                      InfoCard(
-                          label: '楼层',
-                          value: '${item['floor']}/${item['total_floor']}层'),
-                      InfoCard(label: '朝向', value: item['orientation'] ?? '-'),
-                      if ((item['remarks'] as String?)?.isNotEmpty ?? false)
-                        InfoCard(label: '备注', value: item['remarks']),
-                      const SizedBox(height: 24),
-
-                      if (isSold)
-                        _soldActionsSection()
-                      else if (isOffline)
-                        _offlineActionsSection()
-                      else ...[
-                        SizedBox(
-                          height: 48,
-                          child: ElevatedButton.icon(
-                            onPressed: () async {
-                              final changed = await context.push<bool>(
-                                '/listing/${widget.listingId}/edit',
-                                extra: item,
-                              );
-                              if (changed == true) _reload();
-                            },
-                            icon: const Icon(Icons.edit),
-                            label: const Text('编辑房源'),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          height: 48,
-                          child: ElevatedButton.icon(
-                            onPressed: () => _openStatusBottomSheet(item),
-                            icon: const Icon(Icons.swap_horiz),
-                            label: const Text('变更交易状态'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange,
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        if (isOnSale)
-                          SizedBox(
-                            height: 48,
-                            child: OutlinedButton.icon(
-                              onPressed: _offline,
-                              icon: const Icon(Icons.archive_outlined),
-                              label: const Text('下架'),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.red,
-                                side: const BorderSide(color: Colors.red),
-                              ),
-                            ),
-                          ),
-                        if (isInTransaction)
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Row(
-                              children: [
-                                Icon(Icons.info_outline,
-                                    color: Colors.grey, size: 18),
-                                SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    '交易状态下不能直接下架,请先回退到「在售」',
-                                    style: TextStyle(
-                                        color: Colors.grey, fontSize: 12),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                      ],
                     ],
-                  ),
+                  ]),
                 ),
+                const SizedBox(height: 24),
               ],
             );
           },
@@ -378,258 +301,241 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     );
   }
 
-  Widget _askingPriceCard(Map<String, dynamic> item) {
-    return Card(
-      color: Colors.red.withValues(alpha: 0.05),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
-          children: [
-            const Text('挂牌价',
-                style: TextStyle(color: Colors.grey, fontSize: 13)),
-            const SizedBox(width: 12),
-            Text(
-              '¥${item['price_wan']}',
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.red,
-              ),
-            ),
-            const SizedBox(width: 4),
-            const Text('万',
-                style: TextStyle(color: Colors.red, fontSize: 14)),
-          ],
+  // ── Section wrapper ──
+  Widget _sectionCard({String? title, required List<Widget> children}) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Card(
+        elevation: 1,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            if (title != null) ...[
+              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+            ],
+            ...children,
+          ]),
         ),
       ),
     );
   }
+
+  Widget _infoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(children: [
+        SizedBox(width: 80, child: Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13))),
+        Expanded(child: Text(value, style: const TextStyle(fontSize: 14))),
+      ]),
+    );
+  }
+
+  // ── 格局特点 chips ──
+  Widget? _buildObjectiveChips(Map<String, dynamic> item) {
+    final of = item['objective_features'];
+    if (of is! List || of.isEmpty) return null;
+    final deco = item['decoration']?.toString();
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Wrap(spacing: 8, runSpacing: 4, children: [
+        ...of.cast<String>().map((f) => Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(4)),
+          child: Text(f, style: TextStyle(fontSize: 12, color: Colors.blue.shade700)),
+        )),
+        if (deco != null && deco.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(color: Colors.amber.shade50, borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: Colors.amber.shade200)),
+            child: Text('装修:$deco', style: TextStyle(fontSize: 12, color: Colors.amber.shade800)),
+          ),
+      ]),
+    );
+  }
+
+  // ── 小区迷你卡 ──
+  Widget _buildCommunityMiniCard(Map<String, dynamic> item) {
+    final cf = item['community_features'];
+    if (cf is! Map || cf.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(8)),
+        child: const Row(children: [
+          Icon(Icons.info_outline, size: 16, color: Colors.grey),
+          SizedBox(width: 8),
+          Text('小区资料补充中', style: TextStyle(color: Colors.grey, fontSize: 13)),
+        ]),
+      );
+    }
+
+    final lines = <String>[];
+
+    final bldStart = cf['bld_year_start'];
+    final bldEnd = cf['bld_year_end'];
+    final totalBld = cf['total_buildings'];
+    if (bldStart != null || totalBld != null) {
+      final parts = <String>[];
+      if (bldStart != null) {
+        parts.add('建成 ${bldStart}${bldEnd != null && bldEnd != bldStart ? '-$bldEnd' : ''}');
+      }
+      if (totalBld != null) parts.add('共 $totalBld 栋');
+      lines.add(parts.join(' | '));
+    }
+
+    final pCompany = cf['property_company']?.toString();
+    final pFee = cf['property_fee_yuan'];
+    if (pCompany != null && pCompany.isNotEmpty || pFee != null) {
+      final parts = <String>[];
+      if (pCompany != null && pCompany.isNotEmpty) parts.add('物业 $pCompany');
+      if (pFee != null) parts.add('物业费 $pFee 元/㎡/月');
+      lines.add(parts.join(' | '));
+    }
+
+    final heating = cf['heating_type']?.toString();
+    final school = cf['primary_school']?.toString();
+    if (heating != null && heating.isNotEmpty || school != null && school.isNotEmpty) {
+      final parts = <String>[];
+      if (heating != null && heating.isNotEmpty) parts.add(heating);
+      if (school != null && school.isNotEmpty) parts.add('学区:$school');
+      lines.add(parts.join(' | '));
+    }
+
+    final station = cf['nearest_train_station']?.toString();
+    if (station != null && station.isNotEmpty) {
+      lines.add('最近高铁站:$station');
+    }
+
+    if (lines.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(8)),
+        child: const Row(children: [
+          Icon(Icons.info_outline, size: 16, color: Colors.grey),
+          SizedBox(width: 8),
+          Text('小区资料补充中', style: TextStyle(color: Colors.grey, fontSize: 13)),
+        ]),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: Colors.blue.shade50.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(8)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          const Icon(Icons.apartment, size: 16, color: Colors.blue),
+          const SizedBox(width: 8),
+          Text(item['community']?.toString() ?? '小区信息', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          const Spacer(),
+          // TODO Day 35-36: 点击跳转 community_detail_screen
+          const Icon(Icons.chevron_right, size: 18, color: Colors.grey),
+        ]),
+        const SizedBox(height: 8),
+        ...lines.map((l) => Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Text(l, style: const TextStyle(fontSize: 12, color: Colors.black87)),
+        )),
+      ]),
+    );
+  }
+
+  Widget _askingPriceCard(Map<String, dynamic> item) => Card(
+    color: Colors.red.withValues(alpha: 0.05),
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
+        const Text('挂牌价', style: TextStyle(color: Colors.grey, fontSize: 13)), const SizedBox(width: 12),
+        Text('¥${item['price_wan']}', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.red)),
+        const SizedBox(width: 4), const Text('万', style: TextStyle(color: Colors.red, fontSize: 14)),
+      ]),
+    ),
+  );
 
   Widget _soldPriceCard(Map<String, dynamic> item) {
     final soldPriceYuan = item['sold_price_yuan'];
     final soldDate = item['sold_date'] as String?;
-    final wan = soldPriceYuan != null
-        ? ((soldPriceYuan as num) / 10000).toStringAsFixed(1)
-        : '-';
+    final wan = soldPriceYuan != null ? ((soldPriceYuan as num) / 10000).toStringAsFixed(1) : '-';
     return Card(
       color: Colors.green.withValues(alpha: 0.06),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                const Text('成交价',
-                    style: TextStyle(color: Colors.grey, fontSize: 13)),
-                const SizedBox(width: 12),
-                Text(
-                  '¥$wan',
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                const Text('万',
-                    style: TextStyle(color: Colors.green, fontSize: 14)),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                const Icon(Icons.calendar_today, size: 12, color: Colors.grey),
-                const SizedBox(width: 4),
-                Text('成交日期:${soldDate ?? '-'}',
-                    style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                const SizedBox(width: 12),
-                const Text('·',
-                    style: TextStyle(color: Colors.grey, fontSize: 12)),
-                const SizedBox(width: 12),
-                Text('原挂牌:¥${item['price_wan']}万',
-                    style: const TextStyle(color: Colors.grey, fontSize: 12)),
-              ],
-            ),
-          ],
-        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
+            const Text('成交价', style: TextStyle(color: Colors.grey, fontSize: 13)), const SizedBox(width: 12),
+            Text('¥$wan', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.green)),
+            const SizedBox(width: 4), const Text('万', style: TextStyle(color: Colors.green, fontSize: 14)),
+          ]),
+          const SizedBox(height: 4),
+          Row(children: [
+            const Icon(Icons.calendar_today, size: 12, color: Colors.grey), const SizedBox(width: 4),
+            Text('成交日期:${soldDate ?? '-'}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            const SizedBox(width: 12), const Text('·', style: TextStyle(color: Colors.grey, fontSize: 12)), const SizedBox(width: 12),
+            Text('原挂牌:¥${item['price_wan']}万', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          ]),
+        ]),
       ),
     );
   }
 
-  Widget _soldActionsSection() {
-    return Card(
-      color: Colors.green.withValues(alpha: 0.05),
-      child: const Padding(
-        padding: EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.green, size: 20),
-            SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                '该房源已通过成交确认流程生效,不可再编辑。成交价和成交日期已在共享库公开展示。',
-                style: TextStyle(color: Colors.green),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget _soldActionsSection() => Card(
+    color: Colors.green.withValues(alpha: 0.05),
+    child: const Padding(padding: EdgeInsets.all(16), child: Row(children: [
+      Icon(Icons.check_circle, color: Colors.green, size: 20), SizedBox(width: 10),
+      Expanded(child: Text('该房源已通过成交确认流程生效,不可再编辑。', style: TextStyle(color: Colors.green))),
+    ])),
+  );
 
-  Widget _offlineActionsSection() {
-    return Column(
-      children: [
-        Card(
-          color: Colors.grey.withValues(alpha: 0.1),
-          child: const Padding(
-            padding: EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Icon(Icons.info_outline, color: Colors.grey, size: 20),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    '该房源已下架,在共享库不再展示',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 48,
-          child: ElevatedButton.icon(
-            onPressed: _reactivate,
-            icon: const Icon(Icons.unarchive),
-            label: const Text('重新上架'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  Widget _offlineActionsSection() => Column(children: [
+    Card(color: Colors.grey.withValues(alpha: 0.1), child: const Padding(padding: EdgeInsets.all(16), child: Row(children: [
+      Icon(Icons.info_outline, color: Colors.grey, size: 20), SizedBox(width: 10),
+      Expanded(child: Text('该房源已下架,在共享库不再展示', style: TextStyle(color: Colors.grey))),
+    ]))),
+    const SizedBox(height: 16),
+    SizedBox(height: 48, child: ElevatedButton.icon(onPressed: _reactivate, icon: const Icon(Icons.unarchive), label: const Text('重新上架'),
+        style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white))),
+  ]);
 }
 
-// ========== 交易状态切换 BottomSheet ==========
+// ═══════════════════════ 原有组件保留 ═══════════════════════
+
 class _StatusChangeSheet extends StatelessWidget {
   final String currentStatus;
   final void Function(String action) onAction;
-  const _StatusChangeSheet({
-    required this.currentStatus,
-    required this.onAction,
-  });
+  const _StatusChangeSheet({required this.currentStatus, required this.onAction});
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  const Icon(Icons.swap_horiz, color: Colors.orange),
-                  const SizedBox(width: 8),
-                  const Text('变更交易状态',
-                      style: TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold)),
-                  const Spacer(),
-                  Text('当前:${_label(currentStatus)}',
-                      style:
-                          const TextStyle(color: Colors.grey, fontSize: 12)),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-            if (currentStatus == 'on_sale') ...[
-              _tile(
-                icon: Icons.payment,
-                color: Colors.orange,
-                title: '标记「定金已付」',
-                subtitle: '买家已付定金(种子期暂不强制上传凭证)',
-                onTap: () => onAction('mark_deposit_paid'),
-              ),
-              _tile(
-                icon: Icons.fact_check,
-                color: Colors.blue,
-                title: '直接标记「成交进行中」',
-                subtitle: '无定金交易直接签约(需合同凭证,MVP 暂不强制)',
-                onTap: () => onAction('mark_transaction_ongoing'),
-              ),
-            ] else if (currentStatus == 'deposit_paid') ...[
-              _tile(
-                icon: Icons.fact_check,
-                color: Colors.blue,
-                title: '标记「成交进行中」',
-                subtitle: '过户流程启动,不再接受带客申请',
-                onTap: () => onAction('mark_transaction_ongoing'),
-              ),
-              _tile(
-                icon: Icons.undo,
-                color: Colors.red,
-                title: '回退到「在售」',
-                subtitle: '买方反悔或交易取消',
-                onTap: () => onAction('rollback'),
-              ),
-            ] else if (currentStatus == 'transaction_ongoing') ...[
-              _tile(
-                icon: Icons.undo,
-                color: Colors.red,
-                title: '回退到「在售」',
-                subtitle: '交易取消,需要选原因',
-                onTap: () => onAction('rollback'),
-              ),
-              const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text(
-                  '进入已售:只能通过 BA 发起的成交确认流程自动触发,不能手动操作。',
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              ),
-            ] else ...[
-              const Padding(
-                padding: EdgeInsets.all(24),
-                child: Text(
-                  '当前状态不支持手动切换',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
+    return SafeArea(child: Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Column(mainAxisSize: MainAxisSize.min, children: [
+      Padding(padding: const EdgeInsets.all(16), child: Row(children: [
+        const Icon(Icons.swap_horiz, color: Colors.orange), const SizedBox(width: 8),
+        const Text('变更交易状态', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const Spacer(),
+        Text('当前:${_label(currentStatus)}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+      ])),
+      const Divider(height: 1),
+      if (currentStatus == 'on_sale') ...[
+        _tile(icon: Icons.payment, color: Colors.orange, title: '标记「定金已付」', subtitle: '买家已付定金', onTap: () => onAction('mark_deposit_paid')),
+        _tile(icon: Icons.fact_check, color: Colors.blue, title: '直接标记「成交进行中」', subtitle: '无定金交易直接签约', onTap: () => onAction('mark_transaction_ongoing')),
+      ] else if (currentStatus == 'deposit_paid') ...[
+        _tile(icon: Icons.fact_check, color: Colors.blue, title: '标记「成交进行中」', subtitle: '过户流程启动', onTap: () => onAction('mark_transaction_ongoing')),
+        _tile(icon: Icons.undo, color: Colors.red, title: '回退到「在售」', subtitle: '买方反悔或交易取消', onTap: () => onAction('rollback')),
+      ] else if (currentStatus == 'transaction_ongoing') ...[
+        _tile(icon: Icons.undo, color: Colors.red, title: '回退到「在售」', subtitle: '交易取消,需要选原因', onTap: () => onAction('rollback')),
+        const Padding(padding: EdgeInsets.all(16), child: Text('进入已售:只能通过 BA 发起的成交确认流程自动触发,不能手动操作。', style: TextStyle(color: Colors.grey, fontSize: 12))),
+      ] else ...[
+        const Padding(padding: EdgeInsets.all(24), child: Text('当前状态不支持手动切换', style: TextStyle(color: Colors.grey))),
+      ],
+    ])));
   }
 
-  Widget _tile({
-    required IconData icon,
-    required Color color,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
+  Widget _tile({required IconData icon, required Color color, required String title, required String subtitle, required VoidCallback onTap}) {
     return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: color.withValues(alpha: 0.1),
-        child: Icon(icon, color: color, size: 20),
-      ),
+      leading: CircleAvatar(backgroundColor: color.withValues(alpha: 0.1), child: Icon(icon, color: color, size: 20)),
       title: Text(title, style: const TextStyle(fontSize: 14)),
-      subtitle: Text(subtitle,
-          style: const TextStyle(fontSize: 11, color: Colors.grey)),
+      subtitle: Text(subtitle, style: const TextStyle(fontSize: 11, color: Colors.grey)),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       onTap: onTap,
     );
@@ -637,301 +543,120 @@ class _StatusChangeSheet extends StatelessWidget {
 
   String _label(String s) {
     switch (s) {
-      case 'on_sale':
-        return '在售';
-      case 'deposit_paid':
-        return '定金已付';
-      case 'transaction_ongoing':
-        return '成交进行中';
-      case 'sold':
-        return '已成交';
-      case 'offline':
-        return '已下架';
+      case 'on_sale': return '在售';
+      case 'deposit_paid': return '定金已付';
+      case 'transaction_ongoing': return '成交进行中';
+      case 'sold': return '已成交';
+      case 'offline': return '已下架';
+      default: return s;
     }
-    return s;
   }
 }
 
-class _RollbackReasonDialog extends StatefulWidget {
-  const _RollbackReasonDialog();
-
-  @override
-  State<_RollbackReasonDialog> createState() => _RollbackReasonDialogState();
-}
-
+class _RollbackReasonDialog extends StatefulWidget { const _RollbackReasonDialog(); @override State<_RollbackReasonDialog> createState() => _RollbackReasonDialogState(); }
 class _RollbackReasonDialogState extends State<_RollbackReasonDialog> {
   final _controller = TextEditingController();
-
+  @override void dispose() { _controller.dispose(); super.dispose(); }
   @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('回退到「在售」'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('请填写回退原因(如买方反悔、交易取消等):',
-              style: TextStyle(color: Colors.grey, fontSize: 12)),
-          const SizedBox(height: 10),
-          TextField(
-            controller: _controller,
-            maxLines: 2,
-            maxLength: 100,
-            autofocus: true,
-            decoration: const InputDecoration(
-              hintText: '如:买方反悔',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            '⚠️ 若该房源有正在进行的成交确认,请先由 BA 撤回后再回退',
-            style: TextStyle(color: Colors.orange, fontSize: 11),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
-        ),
-        TextButton(
-          onPressed: () {
-            final t = _controller.text.trim();
-            if (t.isEmpty) {
-              ScaffoldMessenger.of(context)
-                  .showSnackBar(const SnackBar(content: Text('请填写原因')));
-              return;
-            }
-            Navigator.of(context).pop(t);
-          },
-          child: const Text('确认回退', style: TextStyle(color: Colors.red)),
-        ),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('回退到「在售」'),
+    content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const Text('请填写回退原因:', style: TextStyle(color: Colors.grey, fontSize: 12)),
+      const SizedBox(height: 10),
+      TextField(controller: _controller, maxLines: 2, maxLength: 100, autofocus: true,
+          decoration: const InputDecoration(hintText: '如:买方反悔', border: OutlineInputBorder())),
+      const SizedBox(height: 8),
+      const Text('⚠️ 若该房源有正在进行的成交确认,请先由 BA 撤回后再回退', style: TextStyle(color: Colors.orange, fontSize: 11)),
+    ]),
+    actions: [
+      TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('取消')),
+      TextButton(onPressed: () {
+        final t = _controller.text.trim();
+        if (t.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请填写原因'))); return; }
+        Navigator.of(context).pop(t);
+      }, child: const Text('确认回退', style: TextStyle(color: Colors.red))),
+    ],
+  );
 }
 
-// ========== 照片轮播 ==========
+// ═══════════════════════ 照片轮播 (same) ═══════════════════════
+
 class _PhotoCarousel extends StatefulWidget {
   final List<Map<String, dynamic>> photos;
   const _PhotoCarousel({required this.photos});
-
-  @override
-  State<_PhotoCarousel> createState() => _PhotoCarouselState();
+  @override State<_PhotoCarousel> createState() => _PhotoCarouselState();
 }
-
 class _PhotoCarouselState extends State<_PhotoCarousel> {
   late PageController _pageController;
   int _currentIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController();
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
+  @override void initState() { super.initState(); _pageController = PageController(); }
+  @override void dispose() { _pageController.dispose(); super.dispose(); }
   @override
   Widget build(BuildContext context) {
     if (widget.photos.isEmpty) {
-      return Container(
-        height: 200,
-        color: Colors.grey.shade200,
-        alignment: Alignment.center,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.image_not_supported_outlined,
-                color: Colors.grey.shade400, size: 48),
-            const SizedBox(height: 8),
-            Text('暂无照片',
-                style:
-                    TextStyle(color: Colors.grey.shade500, fontSize: 13)),
-          ],
-        ),
-      );
+      return Container(height: 200, color: Colors.grey.shade200, alignment: Alignment.center,
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Icon(Icons.image_not_supported_outlined, color: Colors.grey.shade400, size: 48),
+        const SizedBox(height: 8), Text('暂无照片', style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+      ]));
     }
-
-    return AspectRatio(
-      aspectRatio: 4 / 3,
-      child: Stack(
-        children: [
-          PageView.builder(
-            controller: _pageController,
-            itemCount: widget.photos.length,
-            onPageChanged: (i) => setState(() => _currentIndex = i),
-            itemBuilder: (ctx, i) {
-              final p = widget.photos[i];
-              return GestureDetector(
-                onTap: () => _openFullscreen(i),
-                child: Container(
-                  color: Colors.black,
-                  child: Base64Image(
-                    dataUrl: p['data'] as String?,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              );
-            },
-          ),
-          Positioned(
-            right: 12,
-            bottom: 12,
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.55),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                '${_currentIndex + 1}/${widget.photos.length}',
-                style: const TextStyle(color: Colors.white, fontSize: 12),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _openFullscreen(int initialIndex) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (_) => _FullscreenViewer(
-          photos: widget.photos,
-          initialIndex: initialIndex,
+    return AspectRatio(aspectRatio: 4/3, child: Stack(children: [
+      PageView.builder(
+        controller: _pageController, itemCount: widget.photos.length, onPageChanged: (i) => setState(() => _currentIndex = i),
+        itemBuilder: (ctx, i) => GestureDetector(
+          onTap: () => _openFullscreen(i),
+          child: Container(color: Colors.black, child: Base64Image(dataUrl: widget.photos[i]['data'] as String?, fit: BoxFit.cover)),
         ),
       ),
-    );
+      Positioned(right: 12, bottom: 12, child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.55), borderRadius: BorderRadius.circular(12)),
+        child: Text('${_currentIndex+1}/${widget.photos.length}', style: const TextStyle(color: Colors.white, fontSize: 12)),
+      )),
+    ]));
   }
+  void _openFullscreen(int i) => Navigator.of(context).push(MaterialPageRoute(fullscreenDialog: true, builder: (_) => _FullscreenViewer(photos: widget.photos, initialIndex: i)));
 }
 
 class _FullscreenViewer extends StatefulWidget {
-  final List<Map<String, dynamic>> photos;
-  final int initialIndex;
-  const _FullscreenViewer({
-    required this.photos,
-    required this.initialIndex,
-  });
-
-  @override
-  State<_FullscreenViewer> createState() => _FullscreenViewerState();
+  final List<Map<String, dynamic>> photos; final int initialIndex;
+  const _FullscreenViewer({required this.photos, required this.initialIndex});
+  @override State<_FullscreenViewer> createState() => _FullscreenViewerState();
 }
-
 class _FullscreenViewerState extends State<_FullscreenViewer> {
-  late PageController _controller;
-  late int _currentIndex;
-
+  late PageController _controller; late int _currentIndex;
+  @override void initState() { super.initState(); _currentIndex = widget.initialIndex; _controller = PageController(initialPage: widget.initialIndex); }
+  @override void dispose() { _controller.dispose(); super.dispose(); }
   @override
-  void initState() {
-    super.initState();
-    _currentIndex = widget.initialIndex;
-    _controller = PageController(initialPage: widget.initialIndex);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        title: Text('${_currentIndex + 1}/${widget.photos.length}'),
-        elevation: 0,
-      ),
-      body: PageView.builder(
-        controller: _controller,
-        itemCount: widget.photos.length,
-        onPageChanged: (i) => setState(() => _currentIndex = i),
-        itemBuilder: (ctx, i) {
-          final p = widget.photos[i];
-          return Center(
-            child: InteractiveViewer(
-              minScale: 1,
-              maxScale: 4,
-              child: Base64Image(
-                dataUrl: p['data'] as String?,
-                fit: BoxFit.contain,
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: Colors.black,
+    appBar: AppBar(backgroundColor: Colors.black, foregroundColor: Colors.white, title: Text('${_currentIndex+1}/${widget.photos.length}'), elevation: 0),
+    body: PageView.builder(
+      controller: _controller, itemCount: widget.photos.length, onPageChanged: (i) => setState(() => _currentIndex = i),
+      itemBuilder: (ctx, i) => Center(child: InteractiveViewer(minScale: 1, maxScale: 4,
+          child: Base64Image(dataUrl: widget.photos[i]['data'] as String?, fit: BoxFit.contain))),
+    ),
+  );
 }
 
 class _StatusBadge extends StatelessWidget {
-  final String status;
-  const _StatusBadge({required this.status});
-
+  final String status; const _StatusBadge({required this.status});
   @override
   Widget build(BuildContext context) {
-    late String label;
-    late Color color;
+    late String label; late Color color;
     switch (status) {
-      case 'on_sale':
-        label = '在售';
-        color = Colors.green;
-        break;
-      case 'deposit_paid':
-        label = '定金已付';
-        color = Colors.orange;
-        break;
-      case 'transaction_ongoing':
-        label = '成交进行中';
-        color = Colors.blue;
-        break;
-      case 'sold':
-        label = '已成交';
-        color = Colors.grey;
-        break;
-      case 'paused':
-        label = '暂停';
-        color = Colors.orange;
-        break;
-      case 'offline':
-        label = '已下架';
-        color = Colors.grey;
-        break;
-      default:
-        label = status;
-        color = Colors.grey;
+      case 'on_sale': label = '在售'; color = Colors.green; break;
+      case 'deposit_paid': label = '定金已付'; color = Colors.orange; break;
+      case 'transaction_ongoing': label = '成交进行中'; color = Colors.blue; break;
+      case 'sold': label = '已成交'; color = Colors.grey; break;
+      case 'paused': label = '暂停'; color = Colors.orange; break;
+      case 'offline': label = '已下架'; color = Colors.grey; break;
+      default: label = status; color = Colors.grey;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: color,
-          fontSize: 13,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(4)),
+      child: Text(label, style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.bold)),
     );
   }
 }
