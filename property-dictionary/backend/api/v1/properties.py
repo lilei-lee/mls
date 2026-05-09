@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import Optional
 
+from models.community import communities_collection
 from services.community_service import (
     get_or_create_community, get_community_by_code, list_communities_by_city,
 )
@@ -46,12 +47,37 @@ def _serialize_community(doc: dict) -> dict:
         "_id": str(doc["_id"]), "community_code": doc["community_code"],
         "city_id": str(doc["city_id"]), "district_id": str(doc["district_id"]),
         "name": doc["name"], "aliases": doc.get("aliases", []),
+        # 基础
         "built_year": doc.get("built_year"),
+        "bld_year_start": doc.get("bld_year_start"),
+        "bld_year_end": doc.get("bld_year_end"),
         "total_buildings": doc.get("total_buildings"),
         "total_units": doc.get("total_units"),
+        # 规划
+        "plot_ratio": doc.get("plot_ratio"),
+        "green_ratio": doc.get("green_ratio"),
+        # 物业
         "property_type": doc.get("property_type"),
         "developer": doc.get("developer"),
         "property_management": doc.get("property_management"),
+        "property_company": doc.get("property_company"),
+        "property_fee_yuan": doc.get("property_fee_yuan"),
+        "building_types": doc.get("building_types"),
+        # 供暖
+        "heating_type": doc.get("heating_type"),
+        # 教育
+        "primary_school": doc.get("primary_school"),
+        "middle_school": doc.get("middle_school"),
+        # 交通
+        "nearest_highway": doc.get("nearest_highway"),
+        "nearest_train_station": doc.get("nearest_train_station"),
+        # 生活
+        "nearby_market": doc.get("nearby_market"),
+        "nearby_hospital": doc.get("nearby_hospital"),
+        # 车位
+        "parking_total": doc.get("parking_total"),
+        "parking_ratio": doc.get("parking_ratio"),
+        # 既有
         "facilities": doc.get("facilities", {}),
         "standard_assets": doc.get("standard_assets", {}),
         "derived_stats": doc.get("derived_stats", {}),
@@ -67,6 +93,8 @@ def _serialize_property(doc: dict) -> dict:
         "community_id": str(doc["community_id"]),
         "building": doc["building"], "unit": doc["unit"], "room_no": doc["room_no"],
         "authoritative_attrs": doc.get("authoritative_attrs", {}),
+        "objective_features": doc.get("objective_features"),
+        "decoration": doc.get("decoration"),
         "attribute_claims": [
             {
                 "field": c["field"], "value": c["value"],
@@ -149,6 +177,23 @@ def list_communities(
     try:
         docs = list_communities_by_city(city_id, name_keyword=keyword, limit=limit)
         return {"items": [_serialize_community(d) for d in docs], "total": len(docs)}
+    except DictionaryError as e:
+        raise _map_exception(e)
+
+
+# ── Community Batch ──
+
+class CommunityBatchBody(BaseModel):
+    community_ids: list[str] = Field(..., min_length=1, max_length=100)
+
+
+@router.post("/communities/batch")
+def batch_get_communities(body: CommunityBatchBody, api_key_meta: dict = Depends(require_api_key)):
+    try:
+        from bson import ObjectId
+        oids = [ObjectId(cid) for cid in body.community_ids]
+        docs = list(communities_collection.find({"_id": {"$in": oids}}))
+        return [_serialize_community(d) for d in docs]
     except DictionaryError as e:
         raise _map_exception(e)
 
