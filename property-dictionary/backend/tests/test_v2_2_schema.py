@@ -11,16 +11,17 @@ from database import db
 def test_city():
     doc = {"name": f"_V22_{ObjectId()}", "code": "V22", "created_at": datetime.now()}
     r = db["cities"].insert_one(doc)
-    yield r
-    db["properties"].delete_many({"city_id": r})
-    db["communities"].delete_many({"city_id": r})
-    db["districts"].delete_many({"city_id": r})
-    db["cities"].delete_one({"_id": r})
+    oid = r.inserted_id
+    yield oid
+    db["properties"].delete_many({"city_id": oid})
+    db["communities"].delete_many({"city_id": oid})
+    db["districts"].delete_many({"city_id": oid})
+    db["cities"].delete_one({"_id": oid})
 
 @pytest.fixture
 def test_district(test_city):
     doc = {"city_id": test_city, "name": f"_V22D_{ObjectId()}", "created_at": datetime.now()}
-    yield db["districts"].insert_one(doc)
+    yield db["districts"].insert_one(doc).inserted_id
 
 @pytest.fixture
 def ctx(test_city, test_district):
@@ -79,3 +80,69 @@ def test_claim_invalid_rejected(ctx):
     with pytest.raises(InvalidClaimValue):
         submit_claims(ctx["property"]["property_code"], ObjectId(), ObjectId(),
                       {"objective_features": "not_a_list"})
+
+
+# ── Community batch endpoint ──
+
+def test_community_batch_endpoint(ctx):
+    from fastapi.testclient import TestClient
+    from main import app
+    from config import DICT_API_KEYS
+    client = TestClient(app)
+    headers = {"X-API-Key": next(iter(DICT_API_KEYS.keys()))}
+    cid1 = str(ctx["community"]["_id"])
+    # 再建第二个小区
+    from services.community_service import get_or_create_community
+    c2 = get_or_create_community(ctx["city"], ctx["district"], f"V22_batch_{str(ObjectId())[-4:]}")
+    cid2 = str(c2["_id"])
+    # 正常返多条
+    r = client.post("/v1/communities/batch", json={"community_ids": [cid1, cid2]}, headers=headers)
+    assert r.status_code == 200
+    data = r.json()
+    assert isinstance(data, list)
+    ids = [d["_id"] for d in data]
+    assert cid1 in ids
+    assert cid2 in ids
+    # 空数组:min_length=1 → 422
+    r2 = client.post("/v1/communities/batch", json={"community_ids": []}, headers=headers)
+    assert r2.status_code == 422
+    # 不存在的 id:静默跳过,不在结果中
+    fake_id = str(ObjectId())
+    r3 = client.post("/v1/communities/batch", json={"community_ids": [cid1, fake_id]}, headers=headers)
+    assert r3.status_code == 200
+    ids3 = [d["_id"] for d in r3.json()]
+    assert cid1 in ids3
+    assert fake_id not in ids3
+
+
+# ── Discrepancy 自动生成 ──
+
+def test_property_objective_features_claim_with_discrepancy(ctx):
+    from services.claim_service import submit_claims
+    from services.comparison import list_pending_discrepancies
+    # 第一次 claim:first_claim,无 discrepancy
+    r1 = submit_claims(ctx["property"]["property_code"], ObjectId(), ObjectId(),
+                       {"objective_features": ["南北通透", "全明格局"]})
+    assert r1["total_claims_after"] >= 1
+    for cr in r1["comparison_results"]:
+        if cr["field"] == "objective_features":
+            assert cr["consensus"] == "first_claim"
+            assert cr["discrepancy_id"] is None
+    # 第二次 claim:不同值 → differs + 生 discrepancy
+    r2 = submit_claims(ctx["property"]["property_code"], ObjectId(), ObjectId(),
+                       {"objective_features": ["客厅朝南"]})
+    assert r2["total_claims_after"] >= 2
+    disc_id = None
+    for cr in r2["comparison_results"]:
+        if cr["field"] == "objective_features":
+            assert cr["consensus"] == "differs"
+            disc_id = cr["discrepancy_id"]
+            assert disc_id is not None
+    # 确认 discrepancy 工单落库
+    assert disc_id is not None
+    from services.comparison import get_discrepancy_by_id
+    disc = get_discrepancy_by_id(disc_id)
+    assert disc is not None
+    assert disc["field"] == "objective_features"
+    assert disc["status"] == "pending"
+    assert disc["new_value"] == ["客厅朝南"]
