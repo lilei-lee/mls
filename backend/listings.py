@@ -401,10 +401,12 @@ def list_shared_listings(
     heating_type: Optional[str] = None,
     bld_year_min: Optional[int] = None,
     bld_year_max: Optional[int] = None,
+    community_id: Optional[str] = None,
 ) -> tuple[list, int]:
     """共享库:所有交易状态的房源都展示(V10:sold 也公开展示成交价)
 
     V2.2 #1: 5 类筛选 — sale_points(本地 $all) + 4 类辞典过滤(batch 拉取后聚合)。
+    community_id: 按 MLS 侧小区 ObjectId 过滤(小区主页"在售房源"用)。
 
     返 (items, total):items 是分页后结果,total 是筛选后总数。
     """
@@ -420,6 +422,11 @@ def list_shared_listings(
     # ── Step A: MLS 本地过滤 ──
     if sale_points:
         query["sale_points"] = {"$all": sale_points}
+    if community_id:
+        try:
+            query["community_id"] = ObjectId(community_id)
+        except Exception:
+            pass
 
     needs_dict_filter = bool(objective_features or decoration or heating_type
                               or bld_year_min is not None or bld_year_max is not None)
@@ -543,6 +550,7 @@ def _passes_dict_filters(
 def count_shared_listings(
     current_agent_id: ObjectId, new_today: bool = False,
     sale_points: Optional[list[str]] = None,
+    community_id: Optional[str] = None,
 ) -> int:
     query = {
         "status": {"$in": SHARED_VISIBLE_STATUSES},
@@ -554,6 +562,11 @@ def count_shared_listings(
         query["created_at"] = {"$gte": today_start}
     if sale_points:
         query["sale_points"] = {"$all": sale_points}
+    if community_id:
+        try:
+            query["community_id"] = ObjectId(community_id)
+        except Exception:
+            pass
     return listings_collection.count_documents(query)
 
 

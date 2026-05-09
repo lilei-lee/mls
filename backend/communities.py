@@ -133,7 +133,35 @@ def get_community_by_id(community_id: str) -> dict:
     doc = communities_collection.find_one({"_id": oid})
     if not doc:
         raise HTTPException(status_code=404, detail="小区不存在")
-    return _format_community(doc)
+    result = _format_community(doc)
+    # V2.2 #1: 从 property_dict 补 18 字段
+    _enrich_from_dict(result, doc)
+    return result
+
+
+def _enrich_from_dict(result: dict, doc: dict) -> None:
+    """从 property_dict 按社区名查 18 字段,富化到社区详情。"""
+    name = doc.get("name")
+    if not name:
+        return
+    try:
+        from database import client
+        dict_db = client.get_database("property_dict")
+        comm = dict_db["communities"].find_one({"name": name})
+        if not comm:
+            return
+        for field in [
+            "bld_year_start", "bld_year_end", "total_buildings", "total_units",
+            "plot_ratio", "green_ratio", "property_company", "property_fee_yuan",
+            "building_types", "heating_type", "primary_school", "middle_school",
+            "nearest_highway", "nearest_train_station", "nearby_market",
+            "nearby_hospital", "parking_total", "parking_ratio",
+        ]:
+            val = comm.get(field)
+            if val is not None:
+                result[field] = val
+    except Exception:
+        pass
 
 
 # ==================== 格式化器 ====================

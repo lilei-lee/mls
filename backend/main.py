@@ -528,6 +528,7 @@ def get_shared_listings_api(
     heating_type: str | None = Query(None, description="供暖(单选枚举)"),
     bld_year_min: int | None = Query(None, description="楼龄下限"),
     bld_year_max: int | None = Query(None, description="楼龄上限"),
+    community_id: str | None = Query(None, description="小区ID(MLS侧,按小区过滤在售房源)"),
     agent: dict = Depends(get_current_agent),
 ):
     items, total = list_shared_listings(
@@ -538,6 +539,7 @@ def get_shared_listings_api(
         heating_type=heating_type,
         bld_year_min=bld_year_min,
         bld_year_max=bld_year_max,
+        community_id=community_id,
     )
     return ListingListResponse(success=True, total=total, items=items)
 
