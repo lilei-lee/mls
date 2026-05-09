@@ -55,8 +55,25 @@ def get_or_create_community(city_id, district_id, name: str) -> dict:
     doc = {
         "community_code": code, "city_id": city_oid, "district_id": district_oid,
         "name": name, "aliases": [],
-        "built_year": None, "total_buildings": None, "total_units": None,
+        # 基础
+        "built_year": None, "bld_year_start": None, "bld_year_end": None,
+        "total_buildings": None, "total_units": None,
+        # 规划
+        "plot_ratio": None, "green_ratio": None,
+        # 物业
         "property_type": None, "developer": None, "property_management": None,
+        "property_company": None, "property_fee_yuan": None, "building_types": None,
+        # 供暖
+        "heating_type": None,
+        # 教育
+        "primary_school": None, "middle_school": None,
+        # 交通
+        "nearest_highway": None, "nearest_train_station": None,
+        # 生活
+        "nearby_market": None, "nearby_hospital": None,
+        # 车位
+        "parking_total": None, "parking_ratio": None,
+        # 既有
         "facilities": {"schools": [], "transportation": [], "commercial": []},
         "standard_assets": {"aerial_photo_url": None, "entrance_photo_url": None, "main_layouts": []},
         "derived_stats": {"avg_price_wan": None, "transaction_count_30d": None, "on_sale_count": None, "last_updated": None},
