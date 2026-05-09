@@ -10,6 +10,7 @@ import '../screens/listing_detail_screen.dart';
 import '../screens/listing_edit_screen.dart';
 import '../screens/listing_list_screen.dart';
 import '../screens/listing_shared_screen.dart';
+import '../screens/community_detail_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/register_screen.dart';
 import '../screens/showing_request_create_screen.dart';
@@ -79,6 +80,12 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/listing/new',
       builder: (context, state) => const ListingCreateScreen(),
+    ),
+    GoRoute(
+      path: '/community/:id',
+      builder: (context, state) => CommunityDetailScreen(
+        communityId: state.pathParameters['id']!,
+      ),
     ),
     GoRoute(
       path: '/listing/:id',

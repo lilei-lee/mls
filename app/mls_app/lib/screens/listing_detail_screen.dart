@@ -420,25 +420,30 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       );
     }
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Colors.blue.shade50.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(8)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          const Icon(Icons.apartment, size: 16, color: Colors.blue),
-          const SizedBox(width: 8),
-          Text(item['community']?.toString() ?? '小区信息', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-          const Spacer(),
-          // TODO Day 35-36: 点击跳转 community_detail_screen
-          const Icon(Icons.chevron_right, size: 18, color: Colors.grey),
+    final cid = item['community_id']?.toString();
+
+    return InkWell(
+      onTap: cid != null ? () => context.push('/community/$cid') : null,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(color: Colors.blue.shade50.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(8)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            const Icon(Icons.apartment, size: 16, color: Colors.blue),
+            const SizedBox(width: 8),
+            Text(item['community']?.toString() ?? '小区信息', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            const Spacer(),
+            if (cid != null) const Icon(Icons.chevron_right, size: 18, color: Colors.blue),
+          ]),
+          const SizedBox(height: 8),
+          ...lines.map((l) => Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text(l, style: const TextStyle(fontSize: 12, color: Colors.black87)),
+          )),
         ]),
-        const SizedBox(height: 8),
-        ...lines.map((l) => Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: Text(l, style: const TextStyle(fontSize: 12, color: Colors.black87)),
-        )),
-      ]),
+      ),
     );
   }
 
