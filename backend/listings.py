@@ -394,13 +394,19 @@ def list_shared_listings(
     skip: int = 0,
     limit: int = 20,
     new_today: bool = False,
-) -> list:
+    # V2.2 #1: 5 类新筛选
+    sale_points: Optional[list[str]] = None,
+    objective_features: Optional[list[str]] = None,
+    decoration: Optional[str] = None,
+    heating_type: Optional[str] = None,
+    bld_year_min: Optional[int] = None,
+    bld_year_max: Optional[int] = None,
+) -> tuple[list, int]:
     """共享库:所有交易状态的房源都展示(V10:sold 也公开展示成交价)
 
-    new_today=True 时只返今日零点起新增的(配合工作台"今日新房源"卡片)。
+    V2.2 #1: 5 类筛选 — sale_points(本地 $all) + 4 类辞典过滤(batch 拉取后聚合)。
 
-    Day 16:每条 listing 加 my_request_status 字段,值为
-    'pending' | 'approved' | None,前端用于显示"已申请"标签。
+    返 (items, total):items 是分页后结果,total 是筛选后总数。
     """
     query = {
         "status": {"$in": SHARED_VISIBLE_STATUSES},
@@ -411,18 +417,54 @@ def list_shared_listings(
             hour=0, minute=0, second=0, microsecond=0)
         query["created_at"] = {"$gte": today_start}
 
-    docs = list(
-        listings_collection.find(query)
-        .sort("created_at", -1)
-        .skip(skip)
-        .limit(limit)
-    )
+    # ── Step A: MLS 本地过滤 ──
+    if sale_points:
+        query["sale_points"] = {"$all": sale_points}
+
+    needs_dict_filter = bool(objective_features or decoration or heating_type
+                              or bld_year_min is not None or bld_year_max is not None)
+
+    if needs_dict_filter:
+        # 需要后端聚合时,先全量拉取(无 skip/limit),过滤后再分页
+        docs = list(listings_collection.find(query).sort("created_at", -1))
+    else:
+        docs = list(
+            listings_collection.find(query)
+            .sort("created_at", -1)
+            .skip(skip)
+            .limit(limit)
+        )
+
+    if not docs:
+        return [], 0
 
     # Day 16:批量查 my_request_status
     listing_oids = [d["_id"] for d in docs]
     my_status_map = _build_my_request_status_map(listing_oids, current_agent_id)
 
     props_map = _batch_fetch_props(docs)
+
+    # ── Step B: 拉辞典社区数据(按名称) ──
+    community_by_name = {}
+    if needs_dict_filter:
+        community_by_name = _batch_fetch_communities_by_name(docs)
+
+    # ── Step C: 后端聚合过滤 ──
+    if needs_dict_filter:
+        filtered_docs = []
+        for doc in docs:
+            if not _passes_dict_filters(
+                doc, props_map, community_by_name,
+                objective_features, decoration, heating_type,
+                bld_year_min, bld_year_max,
+            ):
+                continue
+            filtered_docs.append(doc)
+        total = len(filtered_docs)
+        docs = filtered_docs[skip:skip + limit]
+    else:
+        total = count_shared_listings(current_agent_id, new_today=new_today, sale_points=sale_points)
+
     results = [
         _format_listing_anonymous_lite(
             doc,
@@ -432,11 +474,75 @@ def list_shared_listings(
     ]
     for r in results:
         _enrich_physical_fields(r, props_map)
-    return results
+    return results, total
+
+
+def _batch_fetch_communities_by_name(docs: list) -> dict:
+    """按 community name 从 property_dict 查社区,返 {name: doc}。"""
+    names = list(set(d.get("community", "") for d in docs if d.get("community")))
+    if not names:
+        return {}
+    try:
+        dict_db = client.get_database("property_dict")
+        comms = list(dict_db["communities"].find({"name": {"$in": names}}))
+        return {c["name"]: c for c in comms}
+    except Exception:
+        return {}
+
+
+def _passes_dict_filters(
+    doc: dict,
+    props_map: dict,
+    community_by_name: dict,
+    objective_features: Optional[list[str]],
+    decoration: Optional[str],
+    heating_type: Optional[str],
+    bld_year_min: Optional[int],
+    bld_year_max: Optional[int],
+) -> bool:
+    """判断 listing 是否满足辞典侧筛选条件。"""
+    prop = props_map.get(doc.get("property_code", "")) or {}
+    latest = prop.get("attribute_claims_latest", {}) or {}
+
+    # objective_features AND:listing 的 claim 值必须包含所有请求标签
+    if objective_features:
+        claim_of = latest.get("objective_features")
+        if not isinstance(claim_of, list):
+            return False
+        for tag in objective_features:
+            if tag not in claim_of:
+                return False
+
+    # decoration 单选
+    if decoration:
+        claim_dec = latest.get("decoration")
+        if claim_dec != decoration:
+            return False
+
+    # 社区属性过滤
+    comm = community_by_name.get(doc.get("community", "")) or {}
+
+    if heating_type:
+        if comm.get("heating_type") != heating_type:
+            return False
+
+    if bld_year_min is not None or bld_year_max is not None:
+        year_start = comm.get("bld_year_start")
+        year_end = comm.get("bld_year_end")
+        used_year = year_start or year_end
+        if used_year is None:
+            return False
+        if bld_year_min is not None and used_year < bld_year_min:
+            return False
+        if bld_year_max is not None and used_year > bld_year_max:
+            return False
+
+    return True
 
 
 def count_shared_listings(
-    current_agent_id: ObjectId, new_today: bool = False
+    current_agent_id: ObjectId, new_today: bool = False,
+    sale_points: Optional[list[str]] = None,
 ) -> int:
     query = {
         "status": {"$in": SHARED_VISIBLE_STATUSES},
@@ -446,6 +552,8 @@ def count_shared_listings(
         today_start = datetime.now().replace(
             hour=0, minute=0, second=0, microsecond=0)
         query["created_at"] = {"$gte": today_start}
+    if sale_points:
+        query["sale_points"] = {"$all": sale_points}
     return listings_collection.count_documents(query)
 
 

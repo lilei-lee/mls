@@ -6,7 +6,7 @@ MLS 后端 - 所有接口入口
 import hashlib
 import random
 from datetime import datetime, timedelta
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 import fakeredis
@@ -509,16 +509,36 @@ def get_my_listings_api(
     return ListingListResponse(success=True, total=total, items=items)
 
 
+def _parse_csv(val: str | None) -> list[str] | None:
+    if not val:
+        return None
+    items = [v.strip() for v in val.split(",") if v.strip()]
+    return items or None
+
+
 @app.get("/api/v1/listings/shared", response_model=ListingListResponse)
 def get_shared_listings_api(
     skip: int = 0,
     limit: int = 20,
     new_today: bool = False,
+    # V2.2 #1: 5 类新筛选
+    sale_points: str | None = Query(None, description="卖点标签,逗号分隔 AND 语义"),
+    objective_features: str | None = Query(None, description="客观特征,逗号分隔 AND 语义"),
+    decoration: str | None = Query(None, description="装修(单选枚举)"),
+    heating_type: str | None = Query(None, description="供暖(单选枚举)"),
+    bld_year_min: int | None = Query(None, description="楼龄下限"),
+    bld_year_max: int | None = Query(None, description="楼龄上限"),
     agent: dict = Depends(get_current_agent),
 ):
-    items = list_shared_listings(
-        agent["_id"], skip=skip, limit=limit, new_today=new_today)
-    total = count_shared_listings(agent["_id"], new_today=new_today)
+    items, total = list_shared_listings(
+        agent["_id"], skip=skip, limit=limit, new_today=new_today,
+        sale_points=_parse_csv(sale_points),
+        objective_features=_parse_csv(objective_features),
+        decoration=decoration,
+        heating_type=heating_type,
+        bld_year_min=bld_year_min,
+        bld_year_max=bld_year_max,
+    )
     return ListingListResponse(success=True, total=total, items=items)
 
 
