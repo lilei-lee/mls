@@ -1,20 +1,20 @@
-/// 筛选条件数据类
-/// - 保存用户在筛选抽屉里选的所有条件
-/// - 跨页面复用(列表页 / 共享库)
+/// V2.2 #1: 筛选条件数据类 — 加 5 类新筛选
 class ListingFilters {
-  /// 选中的行政区(空集 = 不限)
+  // V2.1 原有
   final Set<String> districts;
-
-  /// 选中的户型(1/2/3/4,4 代表 4+)
   final Set<int> roomCounts;
-
-  /// 面积范围(㎡)
   final double minArea;
   final double maxArea;
-
-  /// 总价范围(万元)
   final double minPrice;
   final double maxPrice;
+
+  // V2.2 新增
+  final Set<String> salePoints;
+  final Set<String> objectiveFeatures;
+  final String? decoration;
+  final String? heatingType;
+  final int? bldYearMin;
+  final int? bldYearMax;
 
   const ListingFilters({
     this.districts = const {},
@@ -23,80 +23,77 @@ class ListingFilters {
     this.maxArea = _defaultMaxArea,
     this.minPrice = _defaultMinPrice,
     this.maxPrice = _defaultMaxPrice,
+    this.salePoints = const {},
+    this.objectiveFeatures = const {},
+    this.decoration,
+    this.heatingType,
+    this.bldYearMin,
+    this.bldYearMax,
   });
 
-  // 滑块默认范围
   static const double _defaultMinArea = 30;
   static const double _defaultMaxArea = 200;
   static const double _defaultMinPrice = 0;
   static const double _defaultMaxPrice = 500;
 
-  /// 判断是否"完全没筛选"(用于 UI 显示有没有 dot/角标)
   bool get isEmpty =>
       districts.isEmpty &&
       roomCounts.isEmpty &&
       minArea == _defaultMinArea &&
       maxArea == _defaultMaxArea &&
       minPrice == _defaultMinPrice &&
-      maxPrice == _defaultMaxPrice;
+      maxPrice == _defaultMaxPrice &&
+      salePoints.isEmpty &&
+      objectiveFeatures.isEmpty &&
+      decoration == null &&
+      heatingType == null &&
+      bldYearMin == null &&
+      bldYearMax == null;
 
   bool get isActive => !isEmpty;
 
-  /// 统计当前启用了多少个维度(用于按钮徽标数字)
   int get activeDimensionCount {
     int count = 0;
     if (districts.isNotEmpty) count++;
     if (roomCounts.isNotEmpty) count++;
     if (minArea != _defaultMinArea || maxArea != _defaultMaxArea) count++;
     if (minPrice != _defaultMinPrice || maxPrice != _defaultMaxPrice) count++;
+    if (salePoints.isNotEmpty) count++;
+    if (objectiveFeatures.isNotEmpty) count++;
+    if (decoration != null) count++;
+    if (heatingType != null) count++;
+    if (bldYearMin != null || bldYearMax != null) count++;
     return count;
   }
 
-  /// 空筛选常量(重置用)
   static const ListingFilters empty = ListingFilters();
 
-  /// copyWith:改一两个字段时方便
-  ListingFilters copyWith({
-    Set<String>? districts,
-    Set<int>? roomCounts,
-    double? minArea,
-    double? maxArea,
-    double? minPrice,
-    double? maxPrice,
-  }) {
-    return ListingFilters(
-      districts: districts ?? this.districts,
-      roomCounts: roomCounts ?? this.roomCounts,
-      minArea: minArea ?? this.minArea,
-      maxArea: maxArea ?? this.maxArea,
-      minPrice: minPrice ?? this.minPrice,
-      maxPrice: maxPrice ?? this.maxPrice,
-    );
+  /// 构建服务器端筛选查询参数(V2.2 新增)
+  Map<String, String> toQueryParams() {
+    final p = <String, String>{};
+    if (salePoints.isNotEmpty) p['sale_points'] = salePoints.join(',');
+    if (objectiveFeatures.isNotEmpty) p['objective_features'] = objectiveFeatures.join(',');
+    if (decoration != null) p['decoration'] = decoration!;
+    if (heatingType != null) p['heating_type'] = heatingType!;
+    if (bldYearMin != null) p['bld_year_min'] = bldYearMin.toString();
+    if (bldYearMax != null) p['bld_year_max'] = bldYearMax.toString();
+    return p;
   }
 
-  /// 对单条房源做匹配判断
   bool matches(Map<String, dynamic> item) {
-    // 1. 行政区(空集=不限)
     if (districts.isNotEmpty) {
       final d = (item['district'] ?? '').toString();
       if (!districts.contains(d)) return false;
     }
-
-    // 2. 户型
     if (roomCounts.isNotEmpty) {
       final r = (item['rooms'] as num?)?.toInt() ?? 0;
       final bucket = r >= 4 ? 4 : r;
       if (!roomCounts.contains(bucket)) return false;
     }
-
-    // 3. 面积
     final area = (item['area_sqm'] as num?)?.toDouble() ?? 0;
     if (area < minArea || area > maxArea) return false;
-
-    // 4. 总价
     final price = (item['price_wan'] as num?)?.toDouble() ?? 0;
     if (price < minPrice || price > maxPrice) return false;
-
     return true;
   }
 }
