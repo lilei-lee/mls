@@ -38,8 +38,9 @@ def test_sync_physical_happy(mock_cls, agent):
     mock.submit_claim.return_value = {"total_claims_after": 2}
     mock_cls.return_value = mock
 
-    from listings import sync_physical_to_dict
-    r = sync_physical_to_dict(str(lid), agent["_id"])
+    from listings import sync_physical_to_dict, SyncPhysicalBody
+    body = SyncPhysicalBody()
+    r = sync_physical_to_dict(str(lid), body, agent["_id"])
     assert r["synced_fields"] == ["area_sqm", "floor", "rooms"]
     assert r["synced_values"]["area_sqm"] == 120.0
     assert r["listing_id"] == str(lid)
@@ -56,10 +57,11 @@ def test_sync_physical_not_owner(mock_cls, agent):
     lid = _seed_listing(agent["_id"])
     other = ObjectId()
 
-    from listings import sync_physical_to_dict
+    from listings import sync_physical_to_dict, SyncPhysicalBody
     from fastapi import HTTPException
+    body = SyncPhysicalBody()
     with pytest.raises(HTTPException) as exc:
-        sync_physical_to_dict(str(lid), other)
+        sync_physical_to_dict(str(lid), body, other)
     assert exc.value.status_code == 403
 
     from database import db
@@ -71,10 +73,11 @@ def test_sync_physical_no_property_code(mock_cls, agent):
     """listing.property_code=None → 400"""
     lid = _seed_listing(agent["_id"], property_code=None)
 
-    from listings import sync_physical_to_dict
+    from listings import sync_physical_to_dict, SyncPhysicalBody
     from fastapi import HTTPException
+    body = SyncPhysicalBody()
     with pytest.raises(HTTPException) as exc:
-        sync_physical_to_dict(str(lid), agent["_id"])
+        sync_physical_to_dict(str(lid), body, agent["_id"])
     assert exc.value.status_code == 400
 
     from database import db
@@ -89,10 +92,11 @@ def test_sync_physical_no_authoritative(mock_cls, agent):
     mock.get_property.return_value = {"authoritative_attrs": {}}
     mock_cls.return_value = mock
 
-    from listings import sync_physical_to_dict
+    from listings import sync_physical_to_dict, SyncPhysicalBody
     from fastapi import HTTPException
+    body = SyncPhysicalBody()
     with pytest.raises(HTTPException) as exc:
-        sync_physical_to_dict(str(lid), agent["_id"])
+        sync_physical_to_dict(str(lid), body, agent["_id"])
     assert exc.value.status_code == 400
 
     from database import db
@@ -111,10 +115,11 @@ def test_sync_physical_dict_unavailable(mock_cls, agent):
     mock.submit_claim.side_effect = DictionaryUnavailableError("down")
     mock_cls.return_value = mock
 
-    from listings import sync_physical_to_dict
+    from listings import sync_physical_to_dict, SyncPhysicalBody
     from fastapi import HTTPException
+    body = SyncPhysicalBody()
     with pytest.raises(HTTPException) as exc:
-        sync_physical_to_dict(str(lid), agent["_id"])
+        sync_physical_to_dict(str(lid), body, agent["_id"])
     assert exc.value.status_code == 503
 
     from database import db

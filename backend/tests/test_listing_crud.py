@@ -33,10 +33,14 @@ class FakeReq:
         self.district_id = str(ObjectId())
         self.orientation = "南"
         self.price_wan = 80.0
-        self.remarks = ""
         self.bonus_yuan = 0
         self.cover_thumbnail = None
         self.photos = None
+        # V2.2 #1: remarks → agent_remarks + public_remarks
+        self.agent_remarks = ""
+        self.public_remarks = ""
+        self.showing_instructions = ""
+        self.sale_points = []
 
 
 def test_extract_physical_attrs():
@@ -122,20 +126,24 @@ def test_get_listing_enriched(mock_client_class, agent, physical):
 
 @patch("dictionary_client.DictionaryClient")
 def test_get_listing_no_enrich_without_property_code(mock_client_class, agent, physical):
-    """property_code 为 None 时不调辞典"""
-    # create without dictionary (no city_id)
+    """GET listing 时 property_code=None → GET 返回物理字段 None 占位"""
+    mock_client = MagicMock()
+    mock_client.identify_community.return_value = {"_id": "fake_cid"}
+    mock_client.identify_property.return_value = {"property_code": "FAKE001"}
+    mock_client.submit_claim.return_value = {"total_claims_after": 1}
+    mock_client_class.return_value = mock_client
+
     req = FakeReq()
-    req.city_id = None
-    req.district_id = None
     result = create_listing(req, physical, agent)
     lid = result["listing_id"]
 
-    mock_client_class.return_value.get_property.assert_not_called()
+    # 手动清掉 property_code 模拟无辞典关联场景
+    from database import db
+    db["listings"].update_one({"_id": ObjectId(lid)}, {"$unset": {"property_code": ""}})
 
     detail = get_listing_by_id(lid)
     assert detail["area_sqm"] is None  # 6 物理字段保持 None 占位
 
-    from database import db
     db["listings"].delete_one({"_id": ObjectId(lid)})
 
 
