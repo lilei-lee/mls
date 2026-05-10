@@ -463,7 +463,7 @@ class _SharedListingCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: InkWell(
-        onTap: () {},
+        onTap: () => context.push('/listing/${item['listing_id']}'),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(12),
