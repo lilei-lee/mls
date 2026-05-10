@@ -130,6 +130,96 @@ def main():
                 "decoration": "毛坯",
             },
         },
+        {
+            "label": "listing 4 · 中泰城 1-2-202",
+            "payload": {
+                "district": "桥东区", "community": "中泰城",
+                "building": "1", "unit": "2", "room_no": "202",
+                "orientation": "南", "price_wan": 130,
+                "area_sqm": 135, "floor": 8, "total_floor": 18,
+                "rooms": 3, "halls": 2, "bathrooms": 2,
+                "sale_points": ["红本在手", "近高铁站", "采光好"],
+                "public_remarks": "楼层好,采光极佳",
+                "agent_remarks": "业主出国急售,可降到125万",
+                "showing_instructions": "工作日下午方便,需提前打电话",
+            },
+            "sync": {
+                "objective_features": ["全南户型"],
+                "decoration": "豪装",
+            },
+        },
+        {
+            "label": "listing 5 · 中泰城 2-1-301",
+            "payload": {
+                "district": "桥东区", "community": "中泰城",
+                "building": "2", "unit": "1", "room_no": "301",
+                "orientation": "南北", "price_wan": 88,
+                "area_sqm": 105, "floor": 3, "total_floor": 18,
+                "rooms": 3, "halls": 1, "bathrooms": 1,
+                "sale_points": ["满二", "近公园", "带阳台"],
+                "public_remarks": "业主自住保养好,所有家电几乎全新,环境清幽近公园,孩子上下学方便",
+                "agent_remarks": "业主诚意度一般,价格相对硬",
+                "showing_instructions": "周末上午",
+            },
+            "sync": {
+                "objective_features": ["卧室带卫", "明卫"],
+                "decoration": "自住保养好",
+            },
+        },
+        {
+            "label": "listing 6 · 中泰城 2-1-302",
+            "payload": {
+                "district": "桥东区", "community": "中泰城",
+                "building": "2", "unit": "1", "room_no": "302",
+                "orientation": "西", "price_wan": 105,
+                "area_sqm": 115, "floor": 10, "total_floor": 18,
+                "rooms": 3, "halls": 2, "bathrooms": 1,
+                "sale_points": ["不满二", "开放厨房", "带衣帽间"],
+                "public_remarks": "开放式厨房+大衣帽间,适合年轻夫妻",
+                "agent_remarks": "",
+                "showing_instructions": "",
+            },
+            "sync": {
+                "objective_features": ["全明格局"],
+                "decoration": "精装",
+            },
+        },
+        {
+            "label": "listing 7 · 中泰城 3-1-401",
+            "payload": {
+                "district": "桥东区", "community": "中泰城",
+                "building": "3", "unit": "1", "room_no": "401",
+                "orientation": "南北", "price_wan": 145,
+                "area_sqm": 160, "floor": 4, "total_floor": 18,
+                "rooms": 4, "halls": 2, "bathrooms": 2,
+                "sale_points": ["学区房", "业主诚意", "次新房", "南向大平层"],
+                "public_remarks": "次新精装,业主诚心出售",
+                "agent_remarks": "业主因为离婚卖房,可议5-8万",
+                "showing_instructions": "推荐,业主有时间随时可看",
+            },
+            "sync": {
+                "objective_features": ["南北通透", "客厅朝南", "卧室朝南"],
+                "decoration": "精装",
+            },
+        },
+        {
+            "label": "listing 8 · 中泰城 1-1-501",
+            "payload": {
+                "district": "桥东区", "community": "中泰城",
+                "building": "1", "unit": "1", "room_no": "501",
+                "orientation": "南", "price_wan": 68,
+                "area_sqm": 78, "floor": 5, "total_floor": 6,
+                "rooms": 2, "halls": 1, "bathrooms": 1,
+                "sale_points": ["业主诚意", "看房方便", "送储物间"],
+                "public_remarks": "最低价房源,刚需首选",
+                "agent_remarks": "老业主换房急售",
+                "showing_instructions": "随时可看",
+            },
+            "sync": {
+                "objective_features": ["卧室阳台"],
+                "decoration": "简装",
+            },
+        },
     ]
 
     created = []
