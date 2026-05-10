@@ -439,7 +439,8 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
             : null,
         maxLines: maxLines,
         decoration: InputDecoration(
-          labelText: label, hintText: hint, border: const OutlineInputBorder(), isDense: true,
+          labelText: required ? '$label *' : label,
+          hintText: hint, border: const OutlineInputBorder(), isDense: true,
         ),
         validator: required ? (v) => _required(v, label) : null,
       ),
