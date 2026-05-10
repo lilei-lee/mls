@@ -21,7 +21,6 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
   bool _searchMode = false;
   final TextEditingController _searchController = TextEditingController();
   String _keyword = '';
-  String _sortKey = 'newest';
   ListingFilters _filters = ListingFilters.empty;
 
   @override
@@ -109,14 +108,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
       if (_filters.isActive && !_filters.matches(item)) return false;
       return true;
     }).toList();
-
-    switch (_sortKey) {
-      case 'price_desc': filtered.sort((a, b) => (b['price_wan'] as num).compareTo(a['price_wan'] as num)); break;
-      case 'price_asc': filtered.sort((a, b) => (a['price_wan'] as num).compareTo(b['price_wan'] as num)); break;
-      case 'area_desc': filtered.sort((a, b) => (b['area_sqm'] as num).compareTo(a['area_sqm'] as num)); break;
-      case 'newest':
-      default: filtered.sort((a, b) => (b['created_at'] as String).compareTo(a['created_at'] as String));
-    }
+    // V2.2 #2 段 5: 排序由服务端处理(除 default 外)
     return filtered;
   }
 
@@ -203,11 +195,26 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.sort), tooltip: '排序',
-            onSelected: (value) => setState(() => _sortKey = value),
+            onSelected: (value) {
+              setState(() {
+                _filters = ListingFilters(
+                  districts: _filters.districts, roomCounts: _filters.roomCounts,
+                  minArea: _filters.minArea, maxArea: _filters.maxArea,
+                  minPrice: _filters.minPrice, maxPrice: _filters.maxPrice,
+                  salePoints: _filters.salePoints, objectiveFeatures: _filters.objectiveFeatures,
+                  decoration: _filters.decoration, heatingType: _filters.heatingType,
+                  bldYearMin: _filters.bldYearMin, bldYearMax: _filters.bldYearMax,
+                  orientation: _filters.orientation, houseStructure: _filters.houseStructure,
+                  sort: value,
+                );
+              });
+              _refresh();
+            },
             itemBuilder: (ctx) => [
-              _sortMenuItem('newest', '最新上架', Icons.schedule),
-              _sortMenuItem('price_desc', '价格高→低', Icons.arrow_downward),
-              _sortMenuItem('price_asc', '价格低→高', Icons.arrow_upward),
+              _sortMenuItem('default', '默认排序', Icons.list),
+              _sortMenuItem('price_desc', '总价高→低', Icons.arrow_downward),
+              _sortMenuItem('price_asc', '总价低→高', Icons.arrow_upward),
+              _sortMenuItem('unit_price_asc', '单价低→高', Icons.attach_money),
               _sortMenuItem('area_desc', '面积大→小', Icons.aspect_ratio),
             ],
           ),
@@ -283,7 +290,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
   );
 
   PopupMenuItem<String> _sortMenuItem(String value, String label, IconData icon) {
-    final sel = _sortKey == value;
+    final sel = _filters.sort == value;
     return PopupMenuItem<String>(value: value, child: Row(children: [
       Icon(icon, size: 18, color: sel ? Colors.blue : Colors.grey),
       const SizedBox(width: 10),

@@ -18,6 +18,7 @@ class ListingFilters {
   // V2.2 #2 新增
   final String? orientation;
   final String? houseStructure;
+  final String sort;  // V2.2 #2 段 5: 服务端排序
 
   const ListingFilters({
     this.districts = const {},
@@ -34,6 +35,7 @@ class ListingFilters {
     this.bldYearMax,
     this.orientation,
     this.houseStructure,
+    this.sort = 'default',
   });
 
   static const double _defaultMinArea = 30;
@@ -88,6 +90,7 @@ class ListingFilters {
     if (bldYearMax != null) p['bld_year_max'] = bldYearMax.toString();
     if (orientation != null) p['orientation'] = orientation!;
     if (houseStructure != null) p['house_structure'] = houseStructure!;
+    if (sort != 'default') p['sort'] = sort;
     return p;
   }
 
