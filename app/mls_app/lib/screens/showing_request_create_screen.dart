@@ -168,14 +168,14 @@ class _ShowingRequestCreateScreenState
                     '已选客户档案',
                     style: TextStyle(
                         color: Colors.green,
-                        fontSize: 12,
+                        fontSize: AppTheme.fontCaption,
                         fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     '$_selectedCustomerSurname${_selectedCustomerGender == 'male' ? '先生' : '女士'}',
                     style: const TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.bold),
+                        fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -206,7 +206,7 @@ class _ShowingRequestCreateScreenState
         children: [
           const Text(
             '客户来源',
-            style: TextStyle(color: Colors.grey, fontSize: 12),
+            style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
           ),
           const SizedBox(height: 8),
           Row(
@@ -231,7 +231,7 @@ class _ShowingRequestCreateScreenState
           const SizedBox(height: 6),
           const Text(
             '默认为本次新建(填下方表单);选老客户可一键带入信息',
-            style: TextStyle(color: Colors.grey, fontSize: 11),
+            style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
           ),
         ],
       ),
@@ -262,13 +262,13 @@ class _ShowingRequestCreateScreenState
                     const Text(
                       '目标房源',
                       style:
-                          TextStyle(color: Colors.grey, fontSize: 12),
+                          TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       '${s['community']} ${s['building']}号楼${s['unit']}单元${s['room_no']}',
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: AppTheme.fontSectionTitle,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -276,7 +276,7 @@ class _ShowingRequestCreateScreenState
                     Text(
                       '${s['layout'] ?? ''} · ${s['area_sqm']}㎡ · ¥${s['price_wan']}万',
                       style:
-                          const TextStyle(color: Colors.grey, fontSize: 13),
+                          const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody),
                     ),
                   ],
                 ),
@@ -302,7 +302,7 @@ class _ShowingRequestCreateScreenState
                   Expanded(
                     child: Text(
                       '申请审批前双方匿名。审批通过后身份互相公开。',
-                      style: TextStyle(fontSize: 12),
+                      style: TextStyle(fontSize: AppTheme.fontCaption),
                     ),
                   ),
                 ],
@@ -336,7 +336,7 @@ class _ShowingRequestCreateScreenState
             const Padding(
               padding: EdgeInsets.only(left: 4, bottom: 6),
               child: Text('客户性别',
-                  style: TextStyle(color: Colors.grey, fontSize: 13)),
+                  style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
             ),
             Row(
               children: [
@@ -401,7 +401,7 @@ class _ShowingRequestCreateScreenState
                           color: Colors.white,
                         ),
                       )
-                    : const Text('提交申请', style: TextStyle(fontSize: 16)),
+                    : const Text('提交申请', style: TextStyle(fontSize: AppTheme.fontSectionTitle)),
               ),
             ),
           ],
@@ -468,7 +468,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
                   SizedBox(width: 8),
                   Text('选择客户',
                       style: TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold)),
+                          fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -508,7 +508,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
                             SizedBox(height: 4),
                             Text('回退本次新建,后续到客户 Tab 录入',
                                 style: TextStyle(
-                                    color: Colors.grey, fontSize: 12)),
+                                    color: Colors.grey, fontSize: AppTheme.fontCaption)),
                           ],
                         ),
                       ),
@@ -553,12 +553,12 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
                                 requirements,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 12),
+                                style: const TextStyle(fontSize: AppTheme.fontCaption),
                               ),
                             if (phone.isNotEmpty)
                               Text('📞 $phone',
                                   style: const TextStyle(
-                                      fontSize: 11, color: Colors.grey)),
+                                      fontSize: AppTheme.fontCaption, color: Colors.grey)),
                           ],
                         ),
                         trailing: const Icon(Icons.chevron_right),

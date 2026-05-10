@@ -193,7 +193,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                           Text(
                             '$surname${gender == 'male' ? '先生' : '女士'}',
                             style: const TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
+                                fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(width: 8),
                           if (isClosed)
@@ -206,7 +206,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                               ),
                               child: const Text('已结单',
                                   style: TextStyle(
-                                      color: Colors.grey, fontSize: 11)),
+                                      color: Colors.grey, fontSize: AppTheme.fontCaption)),
                             ),
                         ],
                       ),
@@ -219,7 +219,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                             const SizedBox(width: 4),
                             Text(phone,
                                 style: const TextStyle(
-                                    fontSize: 13, color: Colors.grey)),
+                                    fontSize: AppTheme.fontBody, color: Colors.grey)),
                           ],
                         ),
                       ],
@@ -251,7 +251,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                     Expanded(
                       child: Text(
                         requirements,
-                        style: const TextStyle(fontSize: 13),
+                        style: const TextStyle(fontSize: AppTheme.fontBody),
                       ),
                     ),
                   ],
@@ -345,10 +345,10 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
           Text('$count',
               style: TextStyle(
                   color: color,
-                  fontSize: 18,
+                  fontSize: AppTheme.fontAppBar,
                   fontWeight: FontWeight.bold)),
           Text(label,
-              style: TextStyle(color: color, fontSize: 11)),
+              style: TextStyle(color: color, fontSize: AppTheme.fontCaption)),
         ],
       ),
     );
@@ -361,14 +361,14 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('时间线',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+            style: TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         if (events.isEmpty)
           Container(
             padding: const EdgeInsets.symmetric(vertical: 18),
             alignment: Alignment.center,
             child: const Text('还没有协作事件',
-                style: TextStyle(color: Colors.grey, fontSize: 13)),
+                style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
           )
         else
           ...events.map((e) => _timelineRow(e)),
@@ -429,16 +429,16 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                 Text(
                   community.isEmpty ? '(未知房源)' : community,
                   style: const TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.bold),
+                      fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 2),
                 Text(label,
-                    style: TextStyle(color: color, fontSize: 12)),
+                    style: TextStyle(color: color, fontSize: AppTheme.fontCaption)),
                 if (time != null) ...[
                   const SizedBox(height: 2),
                   Text(_formatTime(time),
                       style: const TextStyle(
-                          color: Colors.grey, fontSize: 11)),
+                          color: Colors.grey, fontSize: AppTheme.fontCaption)),
                 ],
                 // 带看事件额外显示备忘
                 if (type == 'showing' &&
@@ -454,7 +454,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                     ),
                     child: Text(
                       '备忘:${event['customer_feedback']}',
-                      style: const TextStyle(fontSize: 11),
+                      style: const TextStyle(fontSize: AppTheme.fontCaption),
                     ),
                   ),
                 ],
@@ -533,10 +533,10 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
           children: [
             const Text('跟进记录',
                 style: TextStyle(
-                    fontSize: 15, fontWeight: FontWeight.bold)),
+                    fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold)),
             const SizedBox(width: 6),
             Text('(${memos.length})',
-                style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
             const Spacer(),
             TextButton.icon(
               onPressed: _addMemo,
@@ -552,7 +552,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
             alignment: Alignment.center,
             child: const Text(
               '点击右上角「添加」记录每次跟进',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
+              style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
             ),
           )
         else
@@ -569,12 +569,12 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text((map['text'] ?? '') as String,
-                      style: const TextStyle(fontSize: 13)),
+                      style: const TextStyle(fontSize: AppTheme.fontBody)),
                   const SizedBox(height: 4),
                   Text(
                     _formatTime((map['created_at'] ?? '') as String),
                     style: const TextStyle(
-                        color: Colors.grey, fontSize: 11),
+                        color: Colors.grey, fontSize: AppTheme.fontCaption),
                   ),
                 ],
               ),

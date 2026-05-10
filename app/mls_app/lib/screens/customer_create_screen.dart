@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/customer_service.dart';
@@ -90,7 +91,7 @@ class _CustomerCreateScreenState extends State<CustomerCreateScreen> {
 
             // 性别
             const Text('性别 *',
-                style: TextStyle(fontSize: 13, color: Colors.grey)),
+                style: TextStyle(fontSize: AppTheme.fontBody, color: Colors.grey)),
             const SizedBox(height: 6),
             Row(
               children: [
@@ -169,7 +170,7 @@ class _CustomerCreateScreenState extends State<CustomerCreateScreen> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text('保存', style: TextStyle(fontSize: 16)),
+                    : const Text('保存', style: TextStyle(fontSize: AppTheme.fontSectionTitle)),
               ),
             ),
           ],

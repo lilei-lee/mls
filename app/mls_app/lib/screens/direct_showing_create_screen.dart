@@ -202,7 +202,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
                 Expanded(
                   child: Text(
                     '基于已通过的申请,直接发起新一次带看记录,无需再走审批。',
-                    style: TextStyle(fontSize: 12),
+                    style: TextStyle(fontSize: AppTheme.fontCaption),
                   ),
                 ),
               ],
@@ -214,7 +214,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
           const Padding(
             padding: EdgeInsets.only(bottom: 6, left: 4),
             child: Text('目标房源',
-                style: TextStyle(color: Colors.grey, fontSize: 12)),
+                style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
           ),
           Card(
             color: Colors.grey.withValues(alpha: 0.05),
@@ -226,13 +226,13 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
                   Text(
                     '${s['community']} ${s['building']}号楼${s['unit']}单元${s['room_no']}',
                     style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.bold),
+                        fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '${s['layout'] ?? ''} · ${s['area_sqm']}㎡ · ¥${s['price_wan']}万',
                     style:
-                        const TextStyle(color: Colors.grey, fontSize: 13),
+                        const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody),
                   ),
                 ],
               ),
@@ -244,7 +244,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
           const Padding(
             padding: EdgeInsets.only(bottom: 6, left: 4),
             child: Text('客户(沿用首次申请)',
-                style: TextStyle(color: Colors.grey, fontSize: 12)),
+                style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
           ),
           Card(
             color: Colors.grey.withValues(alpha: 0.05),
@@ -257,7 +257,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
                   const SizedBox(width: 6),
                   Text(widget.customerLabel,
                       style: const TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.bold)),
+                          fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -268,7 +268,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
           const Padding(
             padding: EdgeInsets.only(bottom: 6, left: 4),
             child: Text('带看时间',
-                style: TextStyle(color: Colors.grey, fontSize: 12)),
+                style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
           ),
           InkWell(
             onTap: _pickTime,
@@ -286,7 +286,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
                   Text(
                     _showingTime == null ? '请选择带看时间' : _fmtTime(_showingTime!),
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: AppTheme.fontSectionTitle,
                       color: _showingTime == null
                           ? Colors.grey
                           : Colors.black87,
@@ -303,7 +303,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
             padding: const EdgeInsets.only(bottom: 6, left: 4),
             child: Text('现场照片(1-3 张) · 已 ${_photos.length} 张',
                 style:
-                    const TextStyle(color: Colors.grey, fontSize: 12)),
+                    const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
           ),
           Wrap(
             spacing: 8,
@@ -394,7 +394,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
                       ),
                     )
                   : const Text('提交带看记录',
-                      style: TextStyle(fontSize: 16)),
+                      style: TextStyle(fontSize: AppTheme.fontSectionTitle)),
             ),
           ),
         ],

@@ -105,7 +105,7 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('请再次核对成交价格:',
-                style: TextStyle(color: Colors.grey, fontSize: 13)),
+                style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
             const SizedBox(height: 8),
             Row(
               crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -113,24 +113,24 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
               children: [
                 Text('$price',
                     style: const TextStyle(
-                        fontSize: 24,
+                        fontSize: AppTheme.fontAppBar,
                         fontWeight: FontWeight.bold,
                         color: Colors.red)),
                 const SizedBox(width: 4),
                 const Text('元',
-                    style: TextStyle(color: Colors.red, fontSize: 14)),
+                    style: TextStyle(color: Colors.red, fontSize: AppTheme.fontBody)),
                 const SizedBox(width: 12),
                 Text('≈ $_priceWanPreview 万元',
-                    style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                    style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
               ],
             ),
             const SizedBox(height: 12),
             Text('成交日期:${_dateStr(_dealDate!)}',
-                style: const TextStyle(fontSize: 13)),
+                style: const TextStyle(fontSize: AppTheme.fontBody)),
             const SizedBox(height: 12),
             const Text(
               '发起后 LA 将独立填价比对。一致则成交生效,不一致将被系统自动驳回,需双方核对后重提。',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
+              style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
             ),
           ],
         ),
@@ -196,17 +196,17 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text('成交房源',
-                      style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
                   const SizedBox(height: 6),
                   Text(
                     '${sp['community']} ${sp['building']}号楼${sp['unit']}单元${sp['room_no']}',
                     style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.bold),
+                        fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '${sp['layout'] ?? ''} · ${sp['area_sqm']}㎡ · 挂牌价 ¥${widget.listingPriceWan}万',
-                    style: const TextStyle(color: Colors.grey, fontSize: 13),
+                    style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody),
                   ),
                 ],
               ),
@@ -216,10 +216,10 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
 
           // 成交价
           const Text('成交价 *',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppTheme.fontBody)),
           const SizedBox(height: 6),
           const Text('请填写实际成交价的**精确数字,单位:元**',
-              style: TextStyle(color: Colors.grey, fontSize: 12)),
+              style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
           const SizedBox(height: 10),
           TextField(
             controller: _priceController,
@@ -233,7 +233,7 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
               border: OutlineInputBorder(),
               counterText: '',
             ),
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           // 换算预览
@@ -259,7 +259,7 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
                             ? '输入成交价后自动换算为万元'
                             : '约 $_priceWanPreview 万元'),
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: AppTheme.fontCaption,
                       color: warning != null ? Colors.red : Colors.blue[800],
                     ),
                   ),
@@ -271,7 +271,7 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
 
           // 成交日期
           const Text('成交日期 *',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppTheme.fontBody)),
           const SizedBox(height: 10),
           InkWell(
             onTap: _pickDate,
@@ -292,7 +292,7 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
                     _dealDate == null ? '点击选择合同签订日期' : _dateStr(_dealDate!),
                     style: TextStyle(
                       color: _dealDate == null ? Colors.grey : Colors.black,
-                      fontSize: 14,
+                      fontSize: AppTheme.fontBody,
                     ),
                   ),
                 ],
@@ -303,7 +303,7 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
 
           // 备注
           const Text('补充说明(选填)',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppTheme.fontBody)),
           const SizedBox(height: 10),
           TextField(
             controller: _notesController,
@@ -332,7 +332,7 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
                   child: Text(
                     '双方独立填价:发起后 LA 会独立填写自己记录的成交价,系统自动比对,一致才生效。这是交易留痕的核心防伪机制。',
                     style: TextStyle(
-                        fontSize: 12, color: Colors.black87, height: 1.4),
+                        fontSize: AppTheme.fontCaption, color: Colors.black87, height: 1.4),
                   ),
                 ),
               ],
@@ -353,7 +353,7 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
                     )
                   : const Icon(Icons.gavel),
               label: Text(_submitting ? '提交中...' : '发起成交确认',
-                  style: const TextStyle(fontSize: 16)),
+                  style: const TextStyle(fontSize: AppTheme.fontSectionTitle)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,

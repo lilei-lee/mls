@@ -1,6 +1,7 @@
 /// V3 设计系统基建 — 颜色 / 字号 / 间距 常量
 /// 当前仅定义,各文件渐进迁移时可引用
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 class AppTheme {
   AppTheme._();

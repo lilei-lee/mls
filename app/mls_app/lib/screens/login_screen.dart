@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../services/api_client.dart';
@@ -148,13 +149,13 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
               const Text(
                 '张家口 MLS',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               const Text(
                 '经纪人协作平台',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
+                style: TextStyle(fontSize: AppTheme.fontBody, color: Colors.grey),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 60),
@@ -226,7 +227,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : const Text('登 录', style: TextStyle(fontSize: 16)),
+                        : const Text('登 录', style: TextStyle(fontSize: AppTheme.fontSectionTitle)),
                   ),
                 ),
               ],
@@ -239,7 +240,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const Text(
                     '还没账号?',
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                    style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody),
                   ),
                   TextButton(
                     onPressed: () => context.push('/register'),

@@ -83,7 +83,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                     padding: const EdgeInsets.only(bottom: 8, left: 4),
                     child: Text(
                       '共 ${items.length} 位客户',
-                      style: const TextStyle(color: Colors.grey, fontSize: 13),
+                      style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody),
                     ),
                   );
                 }
@@ -119,14 +119,14 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
           const Center(
             child: Text(
               '还没有客户',
-              style: TextStyle(color: Colors.grey, fontSize: 16),
+              style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontSectionTitle),
             ),
           ),
           const SizedBox(height: 8),
           const Center(
             child: Text(
               '点击右上角 [+] 添加第一位客户',
-              style: TextStyle(color: Colors.grey, fontSize: 13),
+              style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody),
             ),
           ),
           const SizedBox(height: 24),
@@ -234,7 +234,7 @@ class _CustomerCard extends StatelessWidget {
                         Text(
                           displayName,
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: AppTheme.fontSectionTitle,
                             fontWeight: FontWeight.bold,
                             color: isClosed ? Colors.grey : null,
                           ),
@@ -250,7 +250,7 @@ class _CustomerCard extends StatelessWidget {
                             ),
                             child: const Text('已结单',
                                 style: TextStyle(
-                                    color: Colors.grey, fontSize: 10)),
+                                    color: Colors.grey, fontSize: AppTheme.fontSmall)),
                           ),
                       ],
                     ),
@@ -259,7 +259,7 @@ class _CustomerCard extends StatelessWidget {
                       Text(
                         requirements,
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: AppTheme.fontBody,
                           color: isClosed
                               ? Colors.grey
                               : Colors.grey.shade700,
@@ -270,7 +270,7 @@ class _CustomerCard extends StatelessWidget {
                     else
                       const Text(
                         '暂无需求描述',
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                        style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
                       ),
                     const SizedBox(height: 6),
                     Row(
@@ -281,7 +281,7 @@ class _CustomerCard extends StatelessWidget {
                           const SizedBox(width: 3),
                           Text(phone,
                               style: const TextStyle(
-                                  fontSize: 11, color: Colors.grey)),
+                                  fontSize: AppTheme.fontCaption, color: Colors.grey)),
                           const SizedBox(width: 10),
                         ],
                         if (memoCount > 0) ...[
@@ -290,13 +290,13 @@ class _CustomerCard extends StatelessWidget {
                           const SizedBox(width: 3),
                           Text('$memoCount 条跟进',
                               style: const TextStyle(
-                                  fontSize: 11, color: Colors.grey)),
+                                  fontSize: AppTheme.fontCaption, color: Colors.grey)),
                           const SizedBox(width: 10),
                         ],
                         if (updatedAt != null)
                           Text(_relativeTime(updatedAt),
                               style: const TextStyle(
-                                  fontSize: 11, color: Colors.grey)),
+                                  fontSize: AppTheme.fontCaption, color: Colors.grey)),
                       ],
                     ),
                   ],

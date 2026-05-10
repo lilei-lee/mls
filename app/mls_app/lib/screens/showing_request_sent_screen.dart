@@ -76,11 +76,11 @@ class _ShowingRequestSentScreenState extends State<ShowingRequestSentScreen> {
                   SizedBox(height: 16),
                   Text('还没有发出过申请',
                       style:
-                          TextStyle(color: Colors.grey, fontSize: 15)),
+                          TextStyle(color: Colors.grey, fontSize: AppTheme.fontSectionTitle)),
                   SizedBox(height: 6),
                   Text('去共享库挑套房,给房东发申请吧',
                       style:
-                          TextStyle(color: Colors.grey, fontSize: 12)),
+                          TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
                 ],
               ),
             );
@@ -132,7 +132,7 @@ class _SentRequestCard extends StatelessWidget {
                   child: Text(
                     '${snapshot['community']} ${snapshot['building']}号楼${snapshot['unit']}单元${snapshot['room_no']}',
                     style: const TextStyle(
-                      fontSize: 15,
+                      fontSize: AppTheme.fontSectionTitle,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -143,19 +143,19 @@ class _SentRequestCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               '${snapshot['layout']} · ${snapshot['area_sqm']}㎡ · ¥${snapshot['price_wan']}万',
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
+              style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
             ),
             const Divider(height: 20),
 
             // 客户信息
             Text(
               '客户:${item['customer_surname']}${item['customer_gender'] == 'male' ? '先生' : '女士'}',
-              style: const TextStyle(fontSize: 13),
+              style: const TextStyle(fontSize: AppTheme.fontBody),
             ),
             const SizedBox(height: 4),
             Text(
               '需求:${item['requirements']}',
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+              style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -178,7 +178,7 @@ class _SentRequestCard extends StatelessWidget {
                       child: Text(
                         '房东:${counter['name']} · ${counter['phone']}',
                         style: const TextStyle(
-                            fontSize: 13, color: Colors.green),
+                            fontSize: AppTheme.fontBody, color: Colors.green),
                       ),
                     ),
                   ],
@@ -199,7 +199,7 @@ class _SentRequestCard extends StatelessWidget {
                       child: Text(
                         '拒绝理由:${item['reject_reason_text'] ?? ''}${item['reject_extra'] != null ? '(${item['reject_extra']})' : ''}',
                         style: const TextStyle(
-                            fontSize: 12, color: Colors.grey),
+                            fontSize: AppTheme.fontCaption, color: Colors.grey),
                       ),
                     ),
                   ],
@@ -212,7 +212,7 @@ class _SentRequestCard extends StatelessWidget {
                       size: 16, color: Colors.orange),
                   SizedBox(width: 4),
                   Text('等待房东审批...',
-                      style: TextStyle(fontSize: 12, color: Colors.orange)),
+                      style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.orange)),
                 ],
               ),
             ],
@@ -253,7 +253,7 @@ class _StatusBadge extends StatelessWidget {
       child: Text(
         status.label,
         style: TextStyle(
-            color: color, fontSize: 12, fontWeight: FontWeight.bold),
+            color: color, fontSize: AppTheme.fontCaption, fontWeight: FontWeight.bold),
       ),
     );
   }

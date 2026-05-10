@@ -79,7 +79,7 @@ class _ShowingPendingConfirmScreenState
                   SizedBox(height: 12),
                   Center(
                     child: Text('暂无待确认的带看记录',
-                        style: TextStyle(color: Colors.grey, fontSize: 14)),
+                        style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
                   ),
                 ],
               );
@@ -117,7 +117,7 @@ class _ShowingPendingConfirmScreenState
                                 child: const Text('待确认',
                                     style: TextStyle(
                                         color: Colors.orange,
-                                        fontSize: 11,
+                                        fontSize: AppTheme.fontCaption,
                                         fontWeight: FontWeight.bold)),
                               ),
                               const Spacer(),
@@ -127,20 +127,20 @@ class _ShowingPendingConfirmScreenState
                               Text('${it['photo_count']}张',
                                   style: TextStyle(
                                       color: Colors.grey.shade600,
-                                      fontSize: 12)),
+                                      fontSize: AppTheme.fontCaption)),
                             ],
                           ),
                           const SizedBox(height: 8),
                           Text(
                             '${sp['community']} ${sp['building']}-${sp['unit']}-${sp['room_no']}',
                             style: const TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.bold),
+                                fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             '${sp['layout'] ?? ''} · ${sp['area_sqm']}㎡ · ¥${sp['price_wan']}万',
                             style: const TextStyle(
-                                color: Colors.grey, fontSize: 12),
+                                color: Colors.grey, fontSize: AppTheme.fontCaption),
                           ),
                           const SizedBox(height: 8),
                           Row(
@@ -150,14 +150,14 @@ class _ShowingPendingConfirmScreenState
                               const SizedBox(width: 4),
                               Text('BA:${it['ba_agent_name']}',
                                   style: const TextStyle(
-                                      color: Colors.grey, fontSize: 12)),
+                                      color: Colors.grey, fontSize: AppTheme.fontCaption)),
                               const SizedBox(width: 12),
                               const Icon(Icons.access_time,
                                   size: 14, color: Colors.grey),
                               const SizedBox(width: 4),
                               Text(_formatTime(it['showing_time']),
                                   style: const TextStyle(
-                                      color: Colors.grey, fontSize: 12)),
+                                      color: Colors.grey, fontSize: AppTheme.fontCaption)),
                             ],
                           ),
                         ],

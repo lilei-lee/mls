@@ -146,7 +146,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
     return Padding(
       padding: const EdgeInsets.only(right: 6),
       child: InputChip(
-        label: Text(label, style: const TextStyle(fontSize: 11)),
+        label: Text(label, style: const TextStyle(fontSize: AppTheme.fontCaption)),
         deleteIcon: const Icon(Icons.close, size: 14),
         onDeleted: () => _removeFilter(dimension),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -166,7 +166,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
         title: _searchMode
             ? TextField(
                 controller: _searchController, autofocus: true,
-                style: TextStyle(color: appBarTextColor, fontSize: 16),
+                style: TextStyle(color: appBarTextColor, fontSize: AppTheme.fontSectionTitle),
                 cursorColor: appBarTextColor,
                 decoration: InputDecoration(
                   hintText: '搜索小区名',
@@ -188,7 +188,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
                     width: 18, height: 18,
                     decoration: const BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
                     child: Center(
-                      child: Text('${_filters.activeDimensionCount}', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                      child: Text('${_filters.activeDimensionCount}', style: const TextStyle(color: Colors.white, fontSize: AppTheme.fontSmall, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ),
@@ -266,7 +266,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Wrap(spacing: 6, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
                       Text(_headerText(processed.length, allItems.length, isTodayTab: isTodayTab),
-                          style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                          style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
                       _anonymousBadge(),
                     ]),
                     if (filterChips.isNotEmpty) ...[
@@ -287,7 +287,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
   Widget _anonymousBadge() => Container(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
     decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
-    child: const Text('匿名浏览', style: TextStyle(color: Colors.blue, fontSize: 11)),
+    child: const Text('匿名浏览', style: TextStyle(color: Colors.blue, fontSize: AppTheme.fontCaption)),
   );
 
   PopupMenuItem<String> _sortMenuItem(String value, String label, IconData icon) {
@@ -316,8 +316,8 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
     return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
       Icon(isTodayTab ? Icons.new_releases_outlined : Icons.home_outlined, size: 80, color: Colors.grey),
       const SizedBox(height: 16),
-      Text(title, style: const TextStyle(color: Colors.grey, fontSize: 16)),
-      if (subtitle != null) ...[const SizedBox(height: 6), Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 13))],
+      Text(title, style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontSectionTitle)),
+      if (subtitle != null) ...[const SizedBox(height: 6), Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody))],
     ]));
   }
 
@@ -366,7 +366,7 @@ class _SharedListingCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
-      child: Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
+      child: Text(label, style: TextStyle(color: color, fontSize: AppTheme.fontSmall, fontWeight: FontWeight.bold)),
     );
   }
 
@@ -377,7 +377,7 @@ class _SharedListingCard extends StatelessWidget {
         decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
         child: const Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.hourglass_empty, size: 10, color: Colors.orange), SizedBox(width: 2),
-          Text('已申请', style: TextStyle(color: Colors.orange, fontSize: 10, fontWeight: FontWeight.bold)),
+          Text('已申请', style: TextStyle(color: Colors.orange, fontSize: AppTheme.fontSmall, fontWeight: FontWeight.bold)),
         ]),
       );
     }
@@ -387,7 +387,7 @@ class _SharedListingCard extends StatelessWidget {
         decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
         child: const Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.check_circle, size: 10, color: Colors.green), SizedBox(width: 2),
-          Text('已通过', style: TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
+          Text('已通过', style: TextStyle(color: Colors.green, fontSize: AppTheme.fontSmall, fontWeight: FontWeight.bold)),
         ]),
       );
     }
@@ -482,7 +482,7 @@ class _SharedListingCard extends StatelessWidget {
                     decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       const Icon(Icons.image, size: 10, color: Colors.white), const SizedBox(width: 2),
-                      Text('$photoCount', style: const TextStyle(color: Colors.white, fontSize: 10)),
+                      Text('$photoCount', style: const TextStyle(color: Colors.white, fontSize: AppTheme.fontSmall)),
                     ]),
                   )),
                 if (bonusYuan > 0)
@@ -491,7 +491,7 @@ class _SharedListingCard extends StatelessWidget {
                     decoration: BoxDecoration(color: Colors.orange.shade700, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       const Icon(Icons.local_offer, size: 10, color: Colors.white), const SizedBox(width: 2),
-                      Text('奖¥$bonusYuan', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                      Text('奖¥$bonusYuan', style: const TextStyle(color: Colors.white, fontSize: AppTheme.fontSmall, fontWeight: FontWeight.bold)),
                     ]),
                   )),
               ]),
@@ -504,13 +504,13 @@ class _SharedListingCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                         decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
-                        child: Text(district, style: const TextStyle(color: Colors.blue, fontSize: 10)),
+                        child: Text(district, style: const TextStyle(color: Colors.blue, fontSize: AppTheme.fontSmall)),
                       ),
                       const SizedBox(width: 4),
                     ],
                     Expanded(
                       child: Text('$community $building-$unit-$roomNo',
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
                         maxLines: 1, overflow: TextOverflow.ellipsis),
                     ),
                     if (listingStatusBadge != null) ...[const SizedBox(width: 4), listingStatusBadge],
@@ -520,16 +520,16 @@ class _SharedListingCard extends StatelessWidget {
 
                   // ── Row 2: 户型 · 面积 · 楼层 ──
                   Row(children: [
-                    Text(layout, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+                    Text(layout, style: const TextStyle(fontSize: AppTheme.fontCaption, fontWeight: FontWeight.w500)),
                     const SizedBox(width: 8),
-                    Text('${area.toStringAsFixed(0)}㎡', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                    Text('${area.toStringAsFixed(0)}㎡', style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
                     if (floor != null && totalFloor != null) ...[
                       const SizedBox(width: 8),
-                      Text('$floor/$totalFloor层', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                      Text('$floor/$totalFloor层', style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
                     ],
                     if (orientation.isNotEmpty) ...[
                       const SizedBox(width: 8),
-                      Text(orientation, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                      Text(orientation, style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
                     ],
                   ]),
                   const SizedBox(height: 4),
@@ -544,7 +544,7 @@ class _SharedListingCard extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                             decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
-                            child: Text(t, style: TextStyle(fontSize: 10, color: Colors.blue.shade700)),
+                            child: Text(t, style: TextStyle(fontSize: AppTheme.fontSmall, color: Colors.blue.shade700)),
                           ),
                         )),
                       ]),
@@ -556,7 +556,7 @@ class _SharedListingCard extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Text(
                         publicRemarks.length > 50 ? '${publicRemarks.substring(0, 50)}...' : publicRemarks,
-                        style: const TextStyle(color: Colors.grey, fontSize: 11),
+                        style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
                         maxLines: 1, overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -566,16 +566,16 @@ class _SharedListingCard extends StatelessWidget {
                     Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
                         Text('¥${priceWan.toStringAsFixed(priceWan == priceWan.roundToDouble() ? 0 : 1)}',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red)),
+                          style: const TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold, color: Colors.red)),
                         const SizedBox(width: 2),
-                        const Text('万', style: TextStyle(color: Colors.red, fontSize: 11)),
+                        const Text('万', style: TextStyle(color: Colors.red, fontSize: AppTheme.fontCaption)),
                       ]),
                       if (unitPrice > 0)
-                        Text('$unitPrice 元/㎡', style: const TextStyle(color: Colors.grey, fontSize: 10)),
+                        Text('$unitPrice 元/㎡', style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontSmall)),
                     ]),
                     if (createdAt != null) ...[
                       const SizedBox(width: 8),
-                      Text(_relativeTime(createdAt), style: const TextStyle(color: Colors.grey, fontSize: 10)),
+                      Text(_relativeTime(createdAt), style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontSmall)),
                     ],
                     const Spacer(),
                     OutlinedButton.icon(
@@ -583,7 +583,7 @@ class _SharedListingCard extends StatelessWidget {
                       icon: Icon(_hasMyRequest ? Icons.check : Icons.person_add, size: 14),
                       label: Text(
                         _myRequestStatus == 'pending' ? '已申请' : _myRequestStatus == 'approved' ? '已通过' : '申请带客',
-                        style: const TextStyle(fontSize: 12),
+                        style: const TextStyle(fontSize: AppTheme.fontCaption),
                       ),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: _myRequestStatus == 'pending' ? Colors.orange : _myRequestStatus == 'approved' ? Colors.green : null,

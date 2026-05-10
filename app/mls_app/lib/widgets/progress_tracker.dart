@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 /// 协作进度条组件 · Day 13 新建
 ///
@@ -63,7 +64,7 @@ class ProgressTracker extends StatelessWidget {
                 labels[i],
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: AppTheme.fontSmall,
                   color: _labelColor(i),
                   fontWeight: i == stage ? FontWeight.bold : FontWeight.normal,
                 ),

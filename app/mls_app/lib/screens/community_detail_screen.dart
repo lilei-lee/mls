@@ -71,9 +71,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(color: Colors.blue.shade50),
               child: Column(children: [
-                Text(name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(name, style: const TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                Text(data['district'] ?? '', style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                Text(data['district'] ?? '', style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
                 const SizedBox(height: 12),
                 Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
                   _statCol('在售均价', avgPrice != null ? '${avgPrice ~/ 100}万/平' : '-'),
@@ -81,11 +81,11 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 ]),
                 const SizedBox(height: 8),
                 Text('在售 $activeListings 套 · 月新增 $monthlyNew',
-                    style: const TextStyle(fontSize: 13, color: Colors.black54)),
+                    style: const TextStyle(fontSize: AppTheme.fontBody, color: Colors.black54)),
                 if (bldStart != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
-                    child: Text(buildInfoLine(data), style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                    child: Text(buildInfoLine(data), style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.black54)),
                   ),
               ]),
             ),
@@ -130,8 +130,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
 
   Widget _statCol(String label, String value) {
     return Column(children: [
-      Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red)),
-      Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+      Text(value, style: const TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold, color: Colors.red)),
+      Text(label, style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
     ]);
   }
 
@@ -201,12 +201,12 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text('${item['building']}-${item['unit']}-${item['room_no']} | $layout',
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      style: const TextStyle(fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
                   Text('${area}㎡ · ${item['floor']}/${item['total_floor']}层',
-                      style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                      style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
                 ]),
               ),
-              Text('¥$price万', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
+              Text('¥$price万', style: const TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold, color: Colors.red)),
             ]),
           ),
         ),
@@ -220,7 +220,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         Icon(Icons.receipt_long, size: 48, color: Colors.grey),
         SizedBox(height: 12),
-        Text('成交数据即将上线', style: TextStyle(color: Colors.grey, fontSize: 15)),
+        Text('成交数据即将上线', style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontSectionTitle)),
       ]),
     );
   }
@@ -270,7 +270,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
             child: const Row(children: [
               Icon(Icons.lock_outline, size: 14, color: Colors.grey),
               SizedBox(width: 8),
-              Text('即将上线', style: TextStyle(color: Colors.grey, fontSize: 13)),
+              Text('即将上线', style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
             ]),
           ),
         ]),
@@ -282,7 +282,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
     return ExpansionTile(
       initiallyExpanded: true,
       leading: Icon(icon, size: 20, color: Colors.blue),
-      title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+      title: Text(title, style: const TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.w500)),
       children: [Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 12), child: Column(children: children))],
     );
   }
@@ -297,8 +297,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
   Widget _row(String label, String value) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      SizedBox(width: 80, child: Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13))),
-      Expanded(child: Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500))),
+      SizedBox(width: 80, child: Text(label, style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody))),
+      Expanded(child: Text(value, style: const TextStyle(fontSize: AppTheme.fontBody, fontWeight: FontWeight.w500))),
     ]),
   );
 }

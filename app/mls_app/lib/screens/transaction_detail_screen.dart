@@ -257,13 +257,13 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                       Text(
                         '${sp['community']} ${sp['building']}号楼${sp['unit']}单元${sp['room_no']}',
                         style: const TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.bold),
+                            fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '${sp['layout'] ?? ''} · ${sp['area_sqm']}㎡ · 挂牌 ¥${sp['price_wan']}万',
                         style: const TextStyle(
-                            color: Colors.grey, fontSize: 13),
+                            color: Colors.grey, fontSize: AppTheme.fontBody),
                       ),
                     ],
                   ),
@@ -283,7 +283,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(14),
                     child: Text(doc['ba_notes'],
-                        style: const TextStyle(fontSize: 14)),
+                        style: const TextStyle(fontSize: AppTheme.fontBody)),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -302,7 +302,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
       padding: const EdgeInsets.only(bottom: 8, left: 4),
       child: Text(text,
           style: const TextStyle(
-              color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold)),
+              color: Colors.grey, fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold)),
     );
   }
 
@@ -363,7 +363,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
             child: Text(text,
                 style: TextStyle(
                     color: color,
-                    fontSize: 14,
+                    fontSize: AppTheme.fontBody,
                     fontWeight: FontWeight.bold)),
           ),
         ],
@@ -437,13 +437,13 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                   child: Text(roleLabel,
                       style: TextStyle(
                           color: color,
-                          fontSize: 11,
+                          fontSize: AppTheme.fontCaption,
                           fontWeight: FontWeight.bold)),
                 ),
                 const SizedBox(width: 8),
                 Text(agentName,
                     style: const TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.bold)),
+                        fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold)),
               ],
             ),
             const SizedBox(height: 10),
@@ -459,7 +459,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                     '已提交',
                     style: TextStyle(
                       color: Colors.orange.shade800,
-                      fontSize: 15,
+                      fontSize: AppTheme.fontSectionTitle,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -470,7 +470,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                 '防伪机制:请您独立填写记忆中的成交价,系统将自动比对。',
                 style: TextStyle(
                   color: Colors.grey.shade700,
-                  fontSize: 12,
+                  fontSize: AppTheme.fontCaption,
                 ),
               ),
             ] else if (priceYuan != null) ...[
@@ -480,22 +480,22 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                 children: [
                   Text('$priceYuan',
                       style: const TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.bold)),
+                          fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold)),
                   const SizedBox(width: 4),
                   const Text('元',
-                      style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
                   const SizedBox(width: 10),
                   Text('≈ ${(priceYuan / 10000).toStringAsFixed(1)} 万',
                       style: const TextStyle(
-                          color: Colors.grey, fontSize: 12)),
+                          color: Colors.grey, fontSize: AppTheme.fontCaption)),
                 ],
               ),
               const SizedBox(height: 4),
               Text('成交日期:${dateStr ?? '-'}',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                  style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
             ] else
               const Text('尚未填报',
-                  style: TextStyle(color: Colors.grey, fontSize: 14)),
+                  style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
           ],
         ),
       ),
@@ -591,7 +591,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                     Expanded(
                       child: Text(
                         'LA 手动驳回了此成交确认,请联系 LA 沟通后重新发起',
-                        style: TextStyle(fontSize: 12, color: Colors.red),
+                        style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.red),
                       ),
                     ),
                   ],
@@ -628,7 +628,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                   Expanded(
                     child: Text(
                       '请与 LA 核对后修改填报重新提交',
-                      style: TextStyle(fontSize: 12),
+                      style: TextStyle(fontSize: AppTheme.fontCaption),
                     ),
                   ),
                 ],
@@ -670,7 +670,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                   Expanded(
                     child: Text(
                       '价格比对不一致,请核实后修改你的填报重新提交',
-                      style: TextStyle(fontSize: 12),
+                      style: TextStyle(fontSize: AppTheme.fontCaption),
                     ),
                   ),
                 ],
@@ -761,7 +761,7 @@ class _LaConfirmDialogState extends State<_LaConfirmDialog> {
           children: [
             const Text(
               '⚠️ 您看不到 BA 填的价格,系统会独立比对。请如实填写您记录的成交价,单位:元。',
-              style: TextStyle(color: Colors.orange, fontSize: 12),
+              style: TextStyle(color: Colors.orange, fontSize: AppTheme.fontCaption),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -777,11 +777,11 @@ class _LaConfirmDialogState extends State<_LaConfirmDialog> {
                 border: OutlineInputBorder(),
                 counterText: '',
               ),
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text('约 $wan 万元',
-                style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
             const SizedBox(height: 16),
             InkWell(
               onTap: _pickDate,
@@ -801,7 +801,7 @@ class _LaConfirmDialogState extends State<_LaConfirmDialog> {
                       _date == null ? '选择成交日期' : _dateStr(_date!),
                       style: TextStyle(
                         color: _date == null ? Colors.grey : Colors.black,
-                        fontSize: 14,
+                        fontSize: AppTheme.fontBody,
                       ),
                     ),
                   ],
@@ -870,7 +870,7 @@ class _LaRejectDialogState extends State<_LaRejectDialog> {
         children: [
           const Text(
             '⚠️ 驳回用于"根本没这笔成交"等情况。如果只是价格填错,请在独立填价时填写正确价格,系统会自动驳回不一致。',
-            style: TextStyle(color: Colors.grey, fontSize: 12),
+            style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -987,7 +987,7 @@ class _LaUpdateDialogState extends State<_LaUpdateDialog> {
           children: [
             const Text(
               '⚠️ 你看不到 BA 填的价格,系统会独立比对。请如实填写你记录的成交价,单位:元。',
-              style: TextStyle(color: Colors.orange, fontSize: 12),
+              style: TextStyle(color: Colors.orange, fontSize: AppTheme.fontCaption),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -1003,11 +1003,11 @@ class _LaUpdateDialogState extends State<_LaUpdateDialog> {
                 border: OutlineInputBorder(),
                 counterText: '',
               ),
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text('约 $wan 万元',
-                style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
             const SizedBox(height: 16),
             InkWell(
               onTap: _pickDate,
@@ -1027,7 +1027,7 @@ class _LaUpdateDialogState extends State<_LaUpdateDialog> {
                       _date == null ? '选择成交日期' : _dateStr(_date!),
                       style: TextStyle(
                         color: _date == null ? Colors.grey : Colors.black,
-                        fontSize: 14,
+                        fontSize: AppTheme.fontBody,
                       ),
                     ),
                   ],
@@ -1154,11 +1154,11 @@ class _BaUpdateDialogState extends State<_BaUpdateDialog> {
                 border: OutlineInputBorder(),
                 counterText: '',
               ),
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text('约 $wan 万元',
-                style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
             const SizedBox(height: 16),
             InkWell(
               onTap: _pickDate,
@@ -1178,7 +1178,7 @@ class _BaUpdateDialogState extends State<_BaUpdateDialog> {
                       _date == null ? '选择成交日期' : _dateStr(_date!),
                       style: TextStyle(
                         color: _date == null ? Colors.grey : Colors.black,
-                        fontSize: 14,
+                        fontSize: AppTheme.fontBody,
                       ),
                     ),
                   ],

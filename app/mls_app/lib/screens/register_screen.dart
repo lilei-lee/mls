@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -184,14 +185,14 @@ Future<void> _submit() async {
                   const Text(
                     '加入 MLS 经纪人平台',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: AppTheme.fontAppBar,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '让每一次成交都留痕',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: AppTheme.fontBody),
                   ),
                 ],
               ),
@@ -317,7 +318,7 @@ Future<void> _submit() async {
                           color: Colors.white,
                         ),
                       )
-                    : const Text('立即注册', style: TextStyle(fontSize: 16)),
+                    : const Text('立即注册', style: TextStyle(fontSize: AppTheme.fontSectionTitle)),
               ),
             ),
             const SizedBox(height: 16),
@@ -327,7 +328,7 @@ Future<void> _submit() async {
               children: [
                 const Text(
                   '已有账号?',
-                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                  style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody),
                 ),
                 TextButton(
                   onPressed: () => context.go('/login'),

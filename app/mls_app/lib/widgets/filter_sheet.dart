@@ -120,7 +120,7 @@ class _FilterSheetState extends State<FilterSheet> {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
               child: Row(children: [
-                const Text('筛选条件', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text('筛选条件', style: TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold)),
                 const Spacer(),
                 IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).pop()),
               ]),
@@ -161,12 +161,12 @@ class _FilterSheetState extends State<FilterSheet> {
                   const SizedBox(height: 8),
                   Wrap(spacing: 8, runSpacing: 4, children: [
                     ChoiceChip(
-                      label: const Text('不限', style: TextStyle(fontSize: 12)),
+                      label: const Text('不限', style: TextStyle(fontSize: AppTheme.fontCaption)),
                       selected: _orientation == null,
                       onSelected: (_) => setState(() => _orientation = null),
                     ),
                     ..._orientationOptions.map((o) => ChoiceChip(
-                      label: Text(o, style: const TextStyle(fontSize: 12)),
+                      label: Text(o, style: const TextStyle(fontSize: AppTheme.fontCaption)),
                       selected: _orientation == o,
                       onSelected: (_) => setState(() => _orientation = _orientation == o ? null : o),
                     )),
@@ -174,7 +174,7 @@ class _FilterSheetState extends State<FilterSheet> {
                   const SizedBox(height: 24),
                   _sectionTitle('面积'),
                   const SizedBox(height: 4),
-                  Text('${_areaRange.start.toInt()}㎡ ~ ${_areaRange.end.toInt()}㎡', style: const TextStyle(color: Colors.blue, fontSize: 13)),
+                  Text('${_areaRange.start.toInt()}㎡ ~ ${_areaRange.end.toInt()}㎡', style: const TextStyle(color: Colors.blue, fontSize: AppTheme.fontBody)),
                   RangeSlider(min: 30, max: 200, divisions: 34, values: _areaRange,
                     labels: RangeLabels('${_areaRange.start.toInt()}㎡', '${_areaRange.end.toInt()}㎡'),
                     onChanged: (v) => setState(() => _areaRange = v),
@@ -182,7 +182,7 @@ class _FilterSheetState extends State<FilterSheet> {
                   const SizedBox(height: 16),
                   _sectionTitle('总价'),
                   const SizedBox(height: 4),
-                  Text('${_priceRange.start.toInt()}万 ~ ${_priceRange.end.toInt()}万', style: const TextStyle(color: Colors.red, fontSize: 13)),
+                  Text('${_priceRange.start.toInt()}万 ~ ${_priceRange.end.toInt()}万', style: const TextStyle(color: Colors.red, fontSize: AppTheme.fontBody)),
                   RangeSlider(min: 0, max: 500, divisions: 50, values: _priceRange,
                     labels: RangeLabels('${_priceRange.start.toInt()}万', '${_priceRange.end.toInt()}万'),
                     onChanged: (v) => setState(() => _priceRange = v),
@@ -195,13 +195,13 @@ class _FilterSheetState extends State<FilterSheet> {
                   ...SalePointsLibrary.presetGroups.entries.map((g) => Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(g.key, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                      Text(g.key, style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
                       const SizedBox(height: 4),
                       Wrap(spacing: 6, runSpacing: 4,
                         children: g.value.map((t) {
                           final sel = _salePoints.contains(t);
                           return FilterChip(
-                            label: Text(t, style: const TextStyle(fontSize: 12)),
+                            label: Text(t, style: const TextStyle(fontSize: AppTheme.fontCaption)),
                             selected: sel,
                             onSelected: (v) {
                               setState(() { if (v) { _salePoints.add(t); } else { _salePoints.remove(t); } });
@@ -221,7 +221,7 @@ class _FilterSheetState extends State<FilterSheet> {
                     children: SalePointsLibrary.objectiveFeatures.map((f) {
                       final sel = _objectiveFeatures.contains(f);
                       return FilterChip(
-                        label: Text(f, style: const TextStyle(fontSize: 12)),
+                        label: Text(f, style: const TextStyle(fontSize: AppTheme.fontCaption)),
                         selected: sel, onSelected: (v) {
                           setState(() { if (v) { _objectiveFeatures.add(f); } else { _objectiveFeatures.remove(f); } });
                         },
@@ -236,12 +236,12 @@ class _FilterSheetState extends State<FilterSheet> {
                   const SizedBox(height: 8),
                   Wrap(spacing: 8, runSpacing: 4, children: [
                     ChoiceChip(
-                      label: const Text('不限', style: TextStyle(fontSize: 12)),
+                      label: const Text('不限', style: TextStyle(fontSize: AppTheme.fontCaption)),
                       selected: _decoration == null,
                       onSelected: (_) => setState(() => _decoration = null),
                     ),
                     ...SalePointsLibrary.decorationOptions.map((d) => ChoiceChip(
-                      label: Text(d, style: const TextStyle(fontSize: 12)),
+                      label: Text(d, style: const TextStyle(fontSize: AppTheme.fontCaption)),
                       selected: _decoration == d,
                       onSelected: (_) => setState(() => _decoration = _decoration == d ? null : d),
                     )),
@@ -253,12 +253,12 @@ class _FilterSheetState extends State<FilterSheet> {
                   const SizedBox(height: 8),
                   Wrap(spacing: 8, runSpacing: 4, children: [
                     ChoiceChip(
-                      label: const Text('不限', style: TextStyle(fontSize: 12)),
+                      label: const Text('不限', style: TextStyle(fontSize: AppTheme.fontCaption)),
                       selected: _heatingType == null,
                       onSelected: (_) => setState(() => _heatingType = null),
                     ),
                     ..._heatingOptions.map((h) => ChoiceChip(
-                      label: Text(h, style: const TextStyle(fontSize: 12)),
+                      label: Text(h, style: const TextStyle(fontSize: AppTheme.fontCaption)),
                       selected: _heatingType == h,
                       onSelected: (_) => setState(() => _heatingType = _heatingType == h ? null : h),
                     )),
@@ -270,12 +270,12 @@ class _FilterSheetState extends State<FilterSheet> {
                   const SizedBox(height: 8),
                   Wrap(spacing: 8, runSpacing: 4, children: [
                     ChoiceChip(
-                      label: const Text('不限', style: TextStyle(fontSize: 12)),
+                      label: const Text('不限', style: TextStyle(fontSize: AppTheme.fontCaption)),
                       selected: _houseStructure == null,
                       onSelected: (_) => setState(() => _houseStructure = null),
                     ),
                     ...SalePointsLibrary.houseStructureOptions.map((h) => ChoiceChip(
-                      label: Text(h, style: const TextStyle(fontSize: 12)),
+                      label: Text(h, style: const TextStyle(fontSize: AppTheme.fontCaption)),
                       selected: _houseStructure == h,
                       onSelected: (_) => setState(() => _houseStructure = _houseStructure == h ? null : h),
                     )),
@@ -286,7 +286,7 @@ class _FilterSheetState extends State<FilterSheet> {
                   _sectionTitle('楼龄(建成年代)'),
                   const SizedBox(height: 4),
                   Text('${_bldYearRange.start.toInt()}年 ~ ${_bldYearRange.end.toInt()}年',
-                      style: const TextStyle(color: Colors.blue, fontSize: 13)),
+                      style: const TextStyle(color: Colors.blue, fontSize: AppTheme.fontBody)),
                   RangeSlider(min: 1990, max: 2026, divisions: 36, values: _bldYearRange,
                     labels: RangeLabels('${_bldYearRange.start.toInt()}年', '${_bldYearRange.end.toInt()}年'),
                     onChanged: (v) => setState(() => _bldYearRange = v),
@@ -309,7 +309,7 @@ class _FilterSheetState extends State<FilterSheet> {
                   Expanded(flex: 2, child: ElevatedButton(
                     onPressed: _apply,
                     style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
-                    child: const Text('应用筛选', style: TextStyle(fontSize: 15)),
+                    child: const Text('应用筛选', style: TextStyle(fontSize: AppTheme.fontSectionTitle)),
                   )),
                 ]),
               ),
@@ -320,5 +320,5 @@ class _FilterSheetState extends State<FilterSheet> {
     );
   }
 
-  Widget _sectionTitle(String text) => Text(text, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold));
+  Widget _sectionTitle(String text) => Text(text, style: const TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold));
 }

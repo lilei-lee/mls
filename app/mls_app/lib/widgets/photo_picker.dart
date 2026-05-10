@@ -226,14 +226,14 @@ class _PhotoPickerState extends State<PhotoPicker> {
             const Text(
               '房源照片',
               style: TextStyle(
-                  fontSize: 14,
+                  fontSize: AppTheme.fontBody,
                   fontWeight: FontWeight.bold,
                   color: Colors.grey),
             ),
             const SizedBox(width: 8),
             Text(
               '(${_photos.length}/${widget.maxCount})',
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
+              style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
             ),
           ],
         ),
@@ -260,14 +260,14 @@ class _PhotoPickerState extends State<PhotoPicker> {
                   child: CircularProgressIndicator(strokeWidth: 2)),
               SizedBox(width: 8),
               Text('正在处理...',
-                  style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
             ],
           ),
         ],
         const SizedBox(height: 4),
         const Text(
           '首张自动作为封面,长按可删除',
-          style: TextStyle(color: Colors.grey, fontSize: 11),
+          style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
         ),
       ],
     );
@@ -344,7 +344,7 @@ class _PhotoPickerState extends State<PhotoPicker> {
             const SizedBox(height: 4),
             Text(
               '添加照片',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
+              style: TextStyle(color: Colors.grey.shade600, fontSize: AppTheme.fontCaption),
             ),
           ],
         ),

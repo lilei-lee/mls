@@ -76,7 +76,7 @@ class CommunityPicker extends StatelessWidget {
                     Expanded(
                       child: Text(
                         initial!.name,
-                        style: const TextStyle(fontSize: 14),
+                        style: const TextStyle(fontSize: AppTheme.fontBody),
                       ),
                     ),
                     Container(
@@ -89,7 +89,7 @@ class CommunityPicker extends StatelessWidget {
                       child: Text(
                         initial!.district,
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: AppTheme.fontCaption,
                           color: Colors.blue.shade700,
                         ),
                       ),
@@ -97,7 +97,7 @@ class CommunityPicker extends StatelessWidget {
                   ],
                 )
               : const Text('点击选择或添加',
-                  style: TextStyle(color: Colors.grey, fontSize: 14)),
+                  style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
         ),
       ),
     );
@@ -232,10 +232,10 @@ class _CommunityPickerScreenState extends State<_CommunityPickerScreen> {
               Icon(Icons.search, size: 60, color: Colors.grey),
               SizedBox(height: 12),
               Text('搜索小区库',
-                  style: TextStyle(color: Colors.grey, fontSize: 14)),
+                  style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
               SizedBox(height: 4),
               Text('输入名字关键词开始查找',
-                  style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
             ],
           ),
         ),
@@ -258,7 +258,7 @@ class _CommunityPickerScreenState extends State<_CommunityPickerScreen> {
             _results.isEmpty
                 ? '没找到?添加「${_searchController.text.trim()}」'
                 : '没找到?添加新小区',
-            style: const TextStyle(color: Colors.blue, fontSize: 14),
+            style: const TextStyle(color: Colors.blue, fontSize: AppTheme.fontBody),
           ),
           onTap: _openAddDialog,
         ),
@@ -272,10 +272,10 @@ class _CommunityPickerScreenState extends State<_CommunityPickerScreen> {
     final builtYear = item['built_year'];
     return ListTile(
       leading: const Icon(Icons.apartment, color: Colors.blueGrey),
-      title: Text(name, style: const TextStyle(fontSize: 15)),
+      title: Text(name, style: const TextStyle(fontSize: AppTheme.fontSectionTitle)),
       subtitle: Text(
         '$district${builtYear != null ? " · $builtYear年建" : ""}',
-        style: const TextStyle(fontSize: 12),
+        style: const TextStyle(fontSize: AppTheme.fontCaption),
       ),
       onTap: () => _pick(item),
     );

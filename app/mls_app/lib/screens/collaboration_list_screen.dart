@@ -115,7 +115,7 @@ class _CollaborationListScreenState extends State<CollaborationListScreen>
                       const EdgeInsets.only(bottom: 8, left: 4, right: 4),
                   child: Text(
                     '共 ${items.length} 条协作',
-                    style: const TextStyle(color: Colors.grey, fontSize: 13),
+                    style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody),
                   ),
                 );
               }
@@ -175,10 +175,10 @@ class _CollaborationListScreenState extends State<CollaborationListScreen>
           ),
           const SizedBox(height: 16),
           Text(tip,
-              style: const TextStyle(color: Colors.grey, fontSize: 15)),
+              style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontSectionTitle)),
           const SizedBox(height: 6),
           Text(hint,
-              style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
         ],
       ),
     );
@@ -276,7 +276,7 @@ class _CollaborationCard extends StatelessWidget {
                     child: Text(
                       '$community $building-$unit-$roomNo',
                       style: const TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.bold),
+                          fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -293,7 +293,7 @@ class _CollaborationCard extends StatelessWidget {
                       stageLabel,
                       style: TextStyle(
                           color: stageColor(),
-                          fontSize: 11,
+                          fontSize: AppTheme.fontCaption,
                           fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -314,7 +314,7 @@ class _CollaborationCard extends StatelessWidget {
                       Text(
                         '客户:$customerSurname${customerGender == 'male' ? '先生' : '女士'}',
                         style: const TextStyle(
-                            color: Colors.grey, fontSize: 12),
+                            color: Colors.grey, fontSize: AppTheme.fontCaption),
                       ),
                     ],
                   ),
@@ -328,7 +328,7 @@ class _CollaborationCard extends StatelessWidget {
                         Text(
                           '$counterpartyLabel$counterparty',
                           style: const TextStyle(
-                              color: Colors.grey, fontSize: 12),
+                              color: Colors.grey, fontSize: AppTheme.fontCaption),
                         ),
                       ],
                     ),
@@ -352,7 +352,7 @@ class _CollaborationCard extends StatelessWidget {
                     child: Text(
                       lastActionText,
                       style: TextStyle(
-                          color: Colors.grey.shade700, fontSize: 11),
+                          color: Colors.grey.shade700, fontSize: AppTheme.fontCaption),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -360,7 +360,7 @@ class _CollaborationCard extends StatelessWidget {
                   Text(
                     _relativeTime(lastActionTime),
                     style: TextStyle(
-                        color: Colors.grey.shade500, fontSize: 11),
+                        color: Colors.grey.shade500, fontSize: AppTheme.fontCaption),
                   ),
                 ],
               ),

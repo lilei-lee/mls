@@ -192,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Row(
           children: [
             const Text('今天要做',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                style: TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold)),
             const SizedBox(width: 8),
             Container(
               padding:
@@ -207,7 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 '${todos.length}',
                 style: TextStyle(
                   color: todos.isEmpty ? Colors.grey : Colors.red,
-                  fontSize: 12,
+                  fontSize: AppTheme.fontCaption,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -241,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: Text(
               '今天没有待办,去忙自己的事吧',
-              style: TextStyle(color: Colors.green, fontSize: 14),
+              style: TextStyle(color: Colors.green, fontSize: AppTheme.fontBody),
             ),
           ),
         ],
@@ -265,10 +265,10 @@ class _HomeScreenState extends State<HomeScreen> {
         const Row(
           children: [
             Text('最近动态',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                style: TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold)),
             SizedBox(width: 8),
             Text('· 过去 24 小时',
-                style: TextStyle(fontSize: 12, color: Colors.grey)),
+                style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
           ],
         ),
         const SizedBox(height: 10),
@@ -297,7 +297,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(vertical: 14),
       child: Text(
         '过去 24 小时没有新动态',
-        style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+        style: TextStyle(color: Colors.grey.shade500, fontSize: AppTheme.fontBody),
       ),
     );
   }
@@ -309,7 +309,7 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('快速入口',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            style: TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
         GridView.count(
           crossAxisCount: 2,
@@ -371,7 +371,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 label,
                 style: TextStyle(
                   color: color,
-                  fontSize: 13,
+                  fontSize: AppTheme.fontBody,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -468,7 +468,7 @@ class _TodoCard extends StatelessWidget {
                       Text(
                         (data['title'] ?? '') as String,
                         style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.bold),
+                            fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -477,7 +477,7 @@ class _TodoCard extends StatelessWidget {
                         Text(
                           data['subtitle'] as String,
                           style: TextStyle(
-                              fontSize: 12, color: Colors.grey.shade700),
+                              fontSize: AppTheme.fontCaption, color: Colors.grey.shade700),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -577,7 +577,7 @@ class _EventRow extends StatelessWidget {
             Expanded(
               child: Text(
                 (data['text'] ?? '') as String,
-                style: const TextStyle(fontSize: 13),
+                style: const TextStyle(fontSize: AppTheme.fontBody),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -585,7 +585,7 @@ class _EventRow extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               _relativeTime(),
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+              style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey.shade500),
             ),
           ],
         ),

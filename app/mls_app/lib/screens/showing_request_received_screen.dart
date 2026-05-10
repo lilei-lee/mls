@@ -139,7 +139,7 @@ class _ShowingRequestReceivedScreenState
           const Icon(Icons.inbox_outlined, size: 80, color: Colors.grey),
           const SizedBox(height: 16),
           Text(title,
-              style: const TextStyle(color: Colors.grey, fontSize: 15)),
+              style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontSectionTitle)),
         ],
       ),
     );
@@ -174,7 +174,7 @@ class _ReceivedRequestCard extends StatelessWidget {
                     child: Text(
                       '${snapshot['community']} ${snapshot['building']}-${snapshot['unit']}-${snapshot['room_no']}',
                       style: const TextStyle(
-                        fontSize: 15,
+                        fontSize: AppTheme.fontSectionTitle,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -185,12 +185,12 @@ class _ReceivedRequestCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 '客户:${item['customer_surname']}${item['customer_gender'] == 'male' ? '先生' : '女士'}',
-                style: const TextStyle(fontSize: 13),
+                style: const TextStyle(fontSize: AppTheme.fontBody),
               ),
               const SizedBox(height: 4),
               Text(
                 '需求:${item['requirements']}',
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -203,7 +203,7 @@ class _ReceivedRequestCard extends StatelessWidget {
                     Text(
                       '带客人:${counter['name']} · ${counter['store'] ?? ''}',
                       style:
-                          const TextStyle(fontSize: 12, color: Colors.green),
+                          const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.green),
                     ),
                   ],
                 ),
@@ -246,7 +246,7 @@ class _StatusBadge extends StatelessWidget {
       child: Text(
         status.label,
         style: TextStyle(
-            color: color, fontSize: 12, fontWeight: FontWeight.bold),
+            color: color, fontSize: AppTheme.fontCaption, fontWeight: FontWeight.bold),
       ),
     );
   }

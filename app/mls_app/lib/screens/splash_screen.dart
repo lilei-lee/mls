@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 
@@ -50,12 +51,12 @@ class _SplashScreenState extends State<SplashScreen> {
             const SizedBox(height: 20),
             const Text(
               '张家口 MLS',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             const Text(
               '经纪人协作平台',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+              style: TextStyle(fontSize: AppTheme.fontBody, color: Colors.grey),
             ),
             const SizedBox(height: 40),
             const CircularProgressIndicator(),

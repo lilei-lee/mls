@@ -1,6 +1,7 @@
 /// 全局断网检测 — 离线时顶部红条提醒
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 class NetworkAware extends StatefulWidget {
@@ -43,7 +44,7 @@ class _NetworkAwareState extends State<NetworkAware> {
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(Icons.wifi_off, color: Colors.white, size: 14),
               SizedBox(width: 8),
-              Text('网络已断开,请检查连接', style: TextStyle(color: Colors.white, fontSize: 13)),
+              Text('网络已断开,请检查连接', style: TextStyle(color: Colors.white, fontSize: AppTheme.fontBody)),
             ]),
           ),
         ),

@@ -187,12 +187,12 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                 _sectionCard(children: [
                   Row(children: [
                     Expanded(child: Text('${item['community']} ${item['building']}-${item['unit']}-${item['room_no']}',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+                        style: const TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold))),
                     StatusBadge(status: status),
                   ]),
                   const SizedBox(height: 4),
                   Text('${item['district'] ?? ''} · 一户一码:${item['house_code']}',
-                      style: const TextStyle(fontFamily: 'monospace', color: Colors.grey, fontSize: 11)),
+                      style: const TextStyle(fontFamily: 'monospace', color: Colors.grey, fontSize: AppTheme.fontCaption)),
                   const SizedBox(height: 12),
                   if (isSold) _soldPriceCard(item) else _askingPriceCard(item),
                   const SizedBox(height: 12),
@@ -203,7 +203,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                              '${item['floor'] ?? '-'}/${item['totalFloor'] ?? '-'}层']),
                   if (item['house_structure']?.toString() case final hs? when hs.isNotEmpty)
                     Padding(padding: const EdgeInsets.only(top: 4),
-                      child: Text('户型结构: $hs', style: const TextStyle(fontSize: 13, color: Colors.black87))),
+                      child: Text('户型结构: $hs', style: const TextStyle(fontSize: AppTheme.fontBody, color: Colors.black87))),
                   const SizedBox(height: 12),
 
                   // ── 房源 ──
@@ -213,7 +213,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                     padding: const EdgeInsets.only(top: 4), child: w),
                   if (item['decoration']?.toString() case final d? when d.isNotEmpty)
                     Padding(padding: const EdgeInsets.only(top: 4),
-                      child: Text('装修: $d', style: const TextStyle(fontSize: 13, color: Colors.black54))),
+                      child: Text('装修: $d', style: const TextStyle(fontSize: AppTheme.fontBody, color: Colors.black54))),
                   const SizedBox(height: 12),
 
                   // ── 费用 ──
@@ -221,9 +221,9 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                   if ((item['price_wan'] as num?)?.toDouble() case final pw? when pw > 0)
                     if ((item['area_sqm'] as num?)?.toDouble() case final a? when a > 0)
                       Padding(padding: const EdgeInsets.only(bottom: 4),
-                        child: Text('单价 ${(pw * 10000 / a).round()} 元/㎡', style: const TextStyle(fontSize: 13))),
+                        child: Text('单价 ${(pw * 10000 / a).round()} 元/㎡', style: const TextStyle(fontSize: AppTheme.fontBody))),
                   if ((item['bonus_yuan'] as num?)?.toInt() case final b? when b > 0)
-                    Text('合作奖金 ¥$b 元', style: const TextStyle(fontSize: 13, color: Colors.orange)),
+                    Text('合作奖金 ¥$b 元', style: const TextStyle(fontSize: AppTheme.fontBody, color: Colors.orange)),
                   const SizedBox(height: 12),
 
                   // ── 小区(锚点) ──
@@ -240,7 +240,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                             border: Border.all(color: Colors.red.shade200)),
-                        child: Text(t, style: TextStyle(fontSize: 13, color: Colors.red.shade700)),
+                        child: Text(t, style: TextStyle(fontSize: AppTheme.fontBody, color: Colors.red.shade700)),
                       )).toList(),
                     ),
                   ]),
@@ -248,7 +248,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                 // ═══ ④ 房源描述 ═══
                 if ((item['public_remarks'] ?? '').toString().isNotEmpty)
                   _sectionCard(title: '房源描述', children: [
-                    Text(item['public_remarks'].toString(), style: const TextStyle(fontSize: 14, height: 1.6)),
+                    Text(item['public_remarks'].toString(), style: const TextStyle(fontSize: AppTheme.fontBody, height: 1.6)),
                   ]),
 
                 // ═══ ⑤ 协作信息 ═══
@@ -278,7 +278,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                           child: const Row(children: [
                             Icon(Icons.people_outline, size: 24, color: Colors.grey),
                             SizedBox(width: 12),
-                            Expanded(child: Text('暂无带看申请,等买方经纪人发现你的房源', style: TextStyle(color: Colors.grey, fontSize: 14))),
+                            Expanded(child: Text('暂无带看申请,等买方经纪人发现你的房源', style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody))),
                           ]),
                         ),
                       ]);
@@ -297,19 +297,19 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         const Icon(Icons.lock_open, size: 16, color: Colors.green),
                         const SizedBox(width: 8),
-                        Expanded(child: Text(agentRemarks, style: const TextStyle(fontSize: 14, height: 1.6))),
+                        Expanded(child: Text(agentRemarks, style: const TextStyle(fontSize: AppTheme.fontBody, height: 1.6))),
                       ])
                     else if (_isOwner)
                       Row(children: [
                         const Icon(Icons.info_outline, size: 16, color: Colors.grey),
                         const SizedBox(width: 8),
-                        const Expanded(child: Text('本房暂无同行私话(可在编辑页填写)', style: TextStyle(color: Colors.grey, fontSize: 13))),
+                        const Expanded(child: Text('本房暂无同行私话(可在编辑页填写)', style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody))),
                       ])
                     else
                       Row(children: [
                         const Icon(Icons.lock_open, size: 16, color: Colors.green),
                         const SizedBox(width: 8),
-                        const Expanded(child: Text('(已通过协作,暂无同行私话)', style: TextStyle(color: Colors.grey, fontSize: 13))),
+                        const Expanded(child: Text('(已通过协作,暂无同行私话)', style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody))),
                       ]),
                   ]),
                   _sectionCard(title: '看房安排', children: [
@@ -317,19 +317,19 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         const Icon(Icons.schedule, size: 16, color: Colors.blue),
                         const SizedBox(width: 8),
-                        Expanded(child: Text(showingInst, style: const TextStyle(fontSize: 14, height: 1.6))),
+                        Expanded(child: Text(showingInst, style: const TextStyle(fontSize: AppTheme.fontBody, height: 1.6))),
                       ])
                     else if (_isOwner)
                       Row(children: [
                         const Icon(Icons.info_outline, size: 16, color: Colors.grey),
                         const SizedBox(width: 8),
-                        const Expanded(child: Text('本房暂无看房安排(可在编辑页填写)', style: TextStyle(color: Colors.grey, fontSize: 13))),
+                        const Expanded(child: Text('本房暂无看房安排(可在编辑页填写)', style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody))),
                       ])
                     else
                       Row(children: [
                         const Icon(Icons.schedule, size: 16, color: Colors.blue),
                         const SizedBox(width: 8),
-                        const Expanded(child: Text('(已通过协作,暂无看房指引)', style: TextStyle(color: Colors.grey, fontSize: 13))),
+                        const Expanded(child: Text('(已通过协作,暂无看房指引)', style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody))),
                       ]),
                   ]),
                 ] else ...[
@@ -340,7 +340,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       child: Row(children: [
                         const Icon(Icons.lock_outline, size: 24, color: Colors.grey),
                         const SizedBox(width: 12),
-                        const Expanded(child: Text('申请通过后展示', style: TextStyle(color: Colors.grey, fontSize: 14))),
+                        const Expanded(child: Text('申请通过后展示', style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody))),
                       ]),
                     ),
                   ]),
@@ -389,7 +389,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                           decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
                           child: const Row(children: [
                             Icon(Icons.info_outline, color: Colors.grey, size: 18), SizedBox(width: 8),
-                            Expanded(child: Text('交易状态下不能直接下架,请先回退到「在售」', style: TextStyle(color: Colors.grey, fontSize: 12))),
+                            Expanded(child: Text('交易状态下不能直接下架,请先回退到「在售」', style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption))),
                           ]),
                         ),
                     ],
@@ -420,7 +420,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
 
     if (priceHistory.isNotEmpty || listedAt != null) {
       rows.add(const SizedBox(height: 8));
-      rows.add(const Text('调价记录', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)));
+      rows.add(const Text('调价记录', style: TextStyle(fontSize: AppTheme.fontBody, fontWeight: FontWeight.w500)));
       rows.add(const SizedBox(height: 4));
       // 挂牌
       if (listedAt != null) {
@@ -444,8 +444,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       Icon(icon, size: 16, color: Colors.grey),
       const SizedBox(width: 4),
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-        Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+        Text(value, style: const TextStyle(fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
       ]),
     ]);
   }
@@ -461,8 +461,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         ]),
         const SizedBox(width: 8),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(text, style: const TextStyle(fontSize: 13)),
-          if (time != null) Text('${time.month}月${time.day}日', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+          Text(text, style: const TextStyle(fontSize: AppTheme.fontBody)),
+          if (time != null) Text('${time.month}月${time.day}日', style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
         ])),
       ]),
     );
@@ -481,7 +481,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       ]),
       const SizedBox(height: 8),
       if (sameLayout.isEmpty)
-        const Text('暂无同居室在售房源', style: TextStyle(color: Colors.grey, fontSize: 13))
+        const Text('暂无同居室在售房源', style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody))
       else
         ...sameLayout.take(3).map((l) => _sameLayoutCard(l as Map<String, dynamic>)),
     ]);
@@ -495,7 +495,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
         border: active ? Border.all(color: Colors.blue.shade300) : null,
       ),
-      child: Text(label, style: TextStyle(fontSize: 12, color: active ? Colors.blue : Colors.grey)),
+      child: Text(label, style: TextStyle(fontSize: AppTheme.fontCaption, color: active ? Colors.blue : Colors.grey)),
     );
   }
 
@@ -506,11 +506,11 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         onTap: () => context.push('/listing/${l['listing_id']}'),
         child: Row(children: [
           Text('${l['building']}-${l['unit']}-${l['room_no']}',
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+              style: const TextStyle(fontSize: AppTheme.fontBody, fontWeight: FontWeight.w500)),
           const SizedBox(width: 8),
-          Text('${l['layout']}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          Text('${l['layout']}', style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
           const Spacer(),
-          Text('¥${l['price_wan']}万', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.red)),
+          Text('¥${l['price_wan']}万', style: const TextStyle(fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold, color: Colors.red)),
         ]),
       ),
     );
@@ -527,7 +527,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             if (title != null) ...[
-              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(title, style: const TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
             ],
             ...children,
@@ -539,12 +539,12 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
 
   Widget _groupTitle(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 4),
-    child: Text(text, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey)),
+    child: Text(text, style: const TextStyle(fontSize: AppTheme.fontCaption, fontWeight: FontWeight.w600, color: Colors.grey)),
   );
 
   Widget _groupRow(List<String> items) => Row(children: [
     for (final t in items) ...[
-      Expanded(child: Text(t, style: const TextStyle(fontSize: 14))),
+      Expanded(child: Text(t, style: const TextStyle(fontSize: AppTheme.fontBody))),
     ],
   ]);
 
@@ -552,8 +552,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(children: [
-        SizedBox(width: 80, child: Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13))),
-        Expanded(child: Text(value, style: const TextStyle(fontSize: 14))),
+        SizedBox(width: 80, child: Text(label, style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody))),
+        Expanded(child: Text(value, style: const TextStyle(fontSize: AppTheme.fontBody))),
       ]),
     );
   }
@@ -569,14 +569,14 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         ...of.cast<String>().map((f) => Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
-          child: Text(f, style: TextStyle(fontSize: 12, color: Colors.blue.shade700)),
+          child: Text(f, style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.blue.shade700)),
         )),
         if (deco != null && deco.isNotEmpty)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(color: Colors.amber.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 border: Border.all(color: Colors.amber.shade200)),
-            child: Text('装修:$deco', style: TextStyle(fontSize: 12, color: Colors.amber.shade800)),
+            child: Text('装修:$deco', style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.amber.shade800)),
           ),
       ]),
     );
@@ -592,7 +592,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         child: const Row(children: [
           Icon(Icons.info_outline, size: 16, color: Colors.grey),
           SizedBox(width: 8),
-          Text('小区资料补充中', style: TextStyle(color: Colors.grey, fontSize: 13)),
+          Text('小区资料补充中', style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
         ]),
       );
     }
@@ -641,7 +641,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         child: const Row(children: [
           Icon(Icons.info_outline, size: 16, color: Colors.grey),
           SizedBox(width: 8),
-          Text('小区资料补充中', style: TextStyle(color: Colors.grey, fontSize: 13)),
+          Text('小区资料补充中', style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
         ]),
       );
     }
@@ -659,14 +659,14 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
           Row(children: [
             const Icon(Icons.apartment, size: 16, color: Colors.blue),
             const SizedBox(width: 8),
-            Text(item['community']?.toString() ?? '小区信息', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            Text(item['community']?.toString() ?? '小区信息', style: const TextStyle(fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold)),
             const Spacer(),
             if (cid != null) const Icon(Icons.chevron_right, size: 18, color: Colors.blue),
           ]),
           const SizedBox(height: 8),
           ...lines.map((l) => Padding(
             padding: const EdgeInsets.only(bottom: 4),
-            child: Text(l, style: const TextStyle(fontSize: 12, color: Colors.black87)),
+            child: Text(l, style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.black87)),
           )),
         ]),
       ),
@@ -678,9 +678,9 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     child: Padding(
       padding: const EdgeInsets.all(16),
       child: Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
-        const Text('挂牌价', style: TextStyle(color: Colors.grey, fontSize: 13)), const SizedBox(width: 12),
-        Text('¥${item['price_wan']}', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.red)),
-        const SizedBox(width: 4), const Text('万', style: TextStyle(color: Colors.red, fontSize: 14)),
+        const Text('挂牌价', style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)), const SizedBox(width: 12),
+        Text('¥${item['price_wan']}', style: const TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold, color: Colors.red)),
+        const SizedBox(width: 4), const Text('万', style: TextStyle(color: Colors.red, fontSize: AppTheme.fontBody)),
       ]),
     ),
   );
@@ -695,16 +695,16 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
-            const Text('成交价', style: TextStyle(color: Colors.grey, fontSize: 13)), const SizedBox(width: 12),
-            Text('¥$wan', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.green)),
-            const SizedBox(width: 4), const Text('万', style: TextStyle(color: Colors.green, fontSize: 14)),
+            const Text('成交价', style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)), const SizedBox(width: 12),
+            Text('¥$wan', style: const TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold, color: Colors.green)),
+            const SizedBox(width: 4), const Text('万', style: TextStyle(color: Colors.green, fontSize: AppTheme.fontBody)),
           ]),
           const SizedBox(height: 4),
           Row(children: [
             const Icon(Icons.calendar_today, size: 12, color: Colors.grey), const SizedBox(width: 4),
-            Text('成交日期:${soldDate ?? '-'}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-            const SizedBox(width: 12), const Text('·', style: TextStyle(color: Colors.grey, fontSize: 12)), const SizedBox(width: 12),
-            Text('原挂牌:¥${item['price_wan']}万', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            Text('成交日期:${soldDate ?? '-'}', style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
+            const SizedBox(width: 12), const Text('·', style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)), const SizedBox(width: 12),
+            Text('原挂牌:¥${item['price_wan']}万', style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
           ]),
         ]),
       ),
@@ -742,9 +742,9 @@ class _StatusChangeSheet extends StatelessWidget {
     return SafeArea(child: Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Column(mainAxisSize: MainAxisSize.min, children: [
       Padding(padding: const EdgeInsets.all(16), child: Row(children: [
         const Icon(Icons.swap_horiz, color: Colors.orange), const SizedBox(width: 8),
-        const Text('变更交易状态', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const Text('变更交易状态', style: TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold)),
         const Spacer(),
-        Text('当前:${_label(currentStatus)}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+        Text('当前:${_label(currentStatus)}', style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
       ])),
       const Divider(height: 1),
       if (currentStatus == 'on_sale') ...[
@@ -755,7 +755,7 @@ class _StatusChangeSheet extends StatelessWidget {
         _tile(icon: Icons.undo, color: Colors.red, title: '回退到「在售」', subtitle: '买方反悔或交易取消', onTap: () => onAction('rollback')),
       ] else if (currentStatus == 'transaction_ongoing') ...[
         _tile(icon: Icons.undo, color: Colors.red, title: '回退到「在售」', subtitle: '交易取消,需要选原因', onTap: () => onAction('rollback')),
-        const Padding(padding: EdgeInsets.all(16), child: Text('进入已售:只能通过 BA 发起的成交确认流程自动触发,不能手动操作。', style: TextStyle(color: Colors.grey, fontSize: 12))),
+        const Padding(padding: EdgeInsets.all(16), child: Text('进入已售:只能通过 BA 发起的成交确认流程自动触发,不能手动操作。', style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption))),
       ] else ...[
         const Padding(padding: EdgeInsets.all(24), child: Text('当前状态不支持手动切换', style: TextStyle(color: Colors.grey))),
       ],
@@ -765,8 +765,8 @@ class _StatusChangeSheet extends StatelessWidget {
   Widget _tile({required IconData icon, required Color color, required String title, required String subtitle, required VoidCallback onTap}) {
     return ListTile(
       leading: CircleAvatar(backgroundColor: color.withValues(alpha: 0.1), child: Icon(icon, color: color, size: 20)),
-      title: Text(title, style: const TextStyle(fontSize: 14)),
-      subtitle: Text(subtitle, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+      title: Text(title, style: const TextStyle(fontSize: AppTheme.fontBody)),
+      subtitle: Text(subtitle, style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       onTap: onTap,
     );
@@ -792,12 +792,12 @@ class _RollbackReasonDialogState extends State<_RollbackReasonDialog> {
   Widget build(BuildContext context) => AlertDialog(
     title: const Text('回退到「在售」'),
     content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Text('请填写回退原因:', style: TextStyle(color: Colors.grey, fontSize: 12)),
+      const Text('请填写回退原因:', style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
       const SizedBox(height: 10),
       TextField(controller: _controller, maxLines: 2, maxLength: 100, autofocus: true,
           decoration: const InputDecoration(hintText: '如:买方反悔', border: OutlineInputBorder())),
       const SizedBox(height: 8),
-      const Text('⚠️ 若该房源有正在进行的成交确认,请先由 BA 撤回后再回退', style: TextStyle(color: Colors.orange, fontSize: 11)),
+      const Text('⚠️ 若该房源有正在进行的成交确认,请先由 BA 撤回后再回退', style: TextStyle(color: Colors.orange, fontSize: AppTheme.fontCaption)),
     ]),
     actions: [
       TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('取消')),
@@ -828,7 +828,7 @@ class _PhotoCarouselState extends State<_PhotoCarousel> {
       return Container(height: 200, color: Colors.grey.shade200, alignment: Alignment.center,
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         Icon(Icons.image_not_supported_outlined, color: Colors.grey.shade400, size: 48),
-        const SizedBox(height: 8), Text('暂无照片', style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+        const SizedBox(height: 8), Text('暂无照片', style: TextStyle(color: Colors.grey.shade500, fontSize: AppTheme.fontBody)),
       ]));
     }
     return AspectRatio(aspectRatio: 4/3, child: Stack(children: [
@@ -842,7 +842,7 @@ class _PhotoCarouselState extends State<_PhotoCarousel> {
       Positioned(right: 12, bottom: 12, child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.55), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
-        child: Text('${_currentIndex+1}/${widget.photos.length}', style: const TextStyle(color: Colors.white, fontSize: 12)),
+        child: Text('${_currentIndex+1}/${widget.photos.length}', style: const TextStyle(color: Colors.white, fontSize: AppTheme.fontCaption)),
       )),
     ]));
   }
@@ -899,19 +899,19 @@ class _ShowingSummaryCard extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            Expanded(child: Text(summary.baName, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
+            Expanded(child: Text(summary.baName, style: const TextStyle(fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold))),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
-              child: Text(summary.currentStatusLabel, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.bold)),
+              child: Text(summary.currentStatusLabel, style: TextStyle(fontSize: AppTheme.fontCaption, color: color, fontWeight: FontWeight.bold)),
             ),
           ]),
           const SizedBox(height: 4),
           Text('${summary.customerName}${summary.customerDemand != null && summary.customerDemand!.isNotEmpty ? ' · ${summary.customerDemand}' : ''}',
-              style: const TextStyle(fontSize: 12, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis),
+              style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 8),
           Row(children: [
-            Text('${summary.createdAt.month}月${summary.createdAt.day}日', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+            Text('${summary.createdAt.month}月${summary.createdAt.day}日', style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
             const Spacer(),
             if (summary.baPhone != null)
               InkWell(
@@ -925,7 +925,7 @@ class _ShowingSummaryCard extends StatelessWidget {
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     const Icon(Icons.phone, size: 14, color: Colors.green),
                     const SizedBox(width: 4),
-                    Text('拨号 ${_maskPhone(summary.baPhone!)}', style: TextStyle(fontSize: 12, color: Colors.green.shade700)),
+                    Text('拨号 ${_maskPhone(summary.baPhone!)}', style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.green.shade700)),
                   ]),
                 ),
               ),

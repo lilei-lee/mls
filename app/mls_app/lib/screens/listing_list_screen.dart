@@ -131,7 +131,7 @@ class _ListingListScreenState extends State<ListingListScreen>
             ? TextField(
                 controller: _searchController,
                 autofocus: true,
-                style: TextStyle(color: appBarTextColor, fontSize: 16),
+                style: TextStyle(color: appBarTextColor, fontSize: AppTheme.fontSectionTitle),
                 cursorColor: appBarTextColor,
                 decoration: InputDecoration(
                   hintText: '搜索小区名',
@@ -234,7 +234,7 @@ class _ListingListScreenState extends State<ListingListScreen>
                         Text(
                           _headerText(processed.length, allItems.length),
                           style: const TextStyle(
-                              color: Colors.grey, fontSize: 13),
+                              color: Colors.grey, fontSize: AppTheme.fontBody),
                         ),
                         if (_filters.isActive) ...[
                           const SizedBox(width: 8),
@@ -284,7 +284,7 @@ class _ListingListScreenState extends State<ListingListScreen>
           children: [
             Text(
               '已筛选 ${_filters.activeDimensionCount} 项',
-              style: const TextStyle(color: Colors.orange, fontSize: 11),
+              style: const TextStyle(color: Colors.orange, fontSize: AppTheme.fontCaption),
             ),
             const SizedBox(width: 4),
             const Icon(Icons.close, color: Colors.orange, size: 12),
@@ -348,11 +348,11 @@ class _ListingListScreenState extends State<ListingListScreen>
         children: [
           const Icon(Icons.home_outlined, size: 80, color: Colors.grey),
           const SizedBox(height: 16),
-          Text(title, style: const TextStyle(color: Colors.grey, fontSize: 16)),
+          Text(title, style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontSectionTitle)),
           if (subtitle != null) ...[
             const SizedBox(height: 6),
             Text(subtitle,
-                style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
           ],
         ],
       ),
@@ -432,7 +432,7 @@ class _ListingCard extends StatelessWidget {
                               Text(
                                 '$photoCount',
                                 style: const TextStyle(
-                                    color: Colors.white, fontSize: 10),
+                                    color: Colors.white, fontSize: AppTheme.fontSmall),
                               ),
                             ],
                           ),
@@ -456,7 +456,7 @@ class _ListingCard extends StatelessWidget {
                                 child: Text(
                                   addr,
                                   style: const TextStyle(
-                                      fontSize: 15,
+                                      fontSize: AppTheme.fontSectionTitle,
                                       fontWeight: FontWeight.bold),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -478,13 +478,13 @@ class _ListingCard extends StatelessWidget {
                               return p.join(' · ');
                             }(),
                             style: const TextStyle(
-                                color: Colors.grey, fontSize: 12),
+                                color: Colors.grey, fontSize: AppTheme.fontCaption),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             '朝向:${item['orientation']}',
                             style: const TextStyle(
-                                color: Colors.grey, fontSize: 12),
+                                color: Colors.grey, fontSize: AppTheme.fontCaption),
                           ),
                         ],
                       ),
@@ -493,7 +493,7 @@ class _ListingCard extends StatelessWidget {
                           Text(
                             '¥$price',
                             style: const TextStyle(
-                              fontSize: 18,
+                              fontSize: AppTheme.fontAppBar,
                               fontWeight: FontWeight.bold,
                               color: Colors.red,
                             ),
@@ -501,7 +501,7 @@ class _ListingCard extends StatelessWidget {
                           const SizedBox(width: 2),
                           const Text('万',
                               style: TextStyle(
-                                  color: Colors.red, fontSize: 11)),
+                                  color: Colors.red, fontSize: AppTheme.fontCaption)),
                           const Spacer(),
                           const Icon(Icons.chevron_right,
                               color: Colors.grey, size: 18),

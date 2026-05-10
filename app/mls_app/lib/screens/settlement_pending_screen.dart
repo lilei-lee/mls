@@ -90,10 +90,10 @@ class _SettlementPendingScreenState extends State<SettlementPendingScreen> {
           Icon(Icons.payments_outlined, size: 80, color: Colors.grey),
           SizedBox(height: 16),
           Text('暂无待操作的奖金单',
-              style: TextStyle(color: Colors.grey, fontSize: 16)),
+              style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontSectionTitle)),
           SizedBox(height: 6),
           Text('成交确认通过且有奖金的交易会自动生成结算单',
-              style: TextStyle(color: Colors.grey, fontSize: 12)),
+              style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
         ],
       ),
     );
@@ -171,7 +171,7 @@ class _SettlementCard extends StatelessWidget {
                     child: Text(tagText,
                         style: TextStyle(
                             color: tagColor,
-                            fontSize: 11,
+                            fontSize: AppTheme.fontCaption,
                             fontWeight: FontWeight.bold)),
                   ),
                   const Spacer(),
@@ -184,7 +184,7 @@ class _SettlementCard extends StatelessWidget {
                 '${sp['community'] ?? '-'} ${sp['building'] ?? ''}号楼'
                 '${sp['unit'] ?? ''}单元${sp['room_no'] ?? ''}',
                 style: const TextStyle(
-                    fontSize: 15, fontWeight: FontWeight.bold),
+                    fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -192,7 +192,7 @@ class _SettlementCard extends StatelessWidget {
               Text(
                 '成交价 ¥${(dealPrice / 10000).toStringAsFixed(1)} 万'
                 ' · 对方:$counterpart',
-                style: const TextStyle(color: Colors.grey, fontSize: 12),
+                style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
               ),
               const SizedBox(height: 10),
               Row(
@@ -200,26 +200,26 @@ class _SettlementCard extends StatelessWidget {
                 textBaseline: TextBaseline.alphabetic,
                 children: [
                   const Text('奖金 ',
-                      style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
                   Text('¥$bonus',
                       style: TextStyle(
-                          fontSize: 20,
+                          fontSize: AppTheme.fontAppBar,
                           fontWeight: FontWeight.bold,
                           color: tagColor)),
                   const SizedBox(width: 4),
                   const Text('元',
-                      style: TextStyle(fontSize: 11, color: Colors.grey)),
+                      style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
                   const SizedBox(width: 8),
                   Text('≈ ${(bonus / 10000).toStringAsFixed(2)} 万',
                       style: const TextStyle(
-                          fontSize: 11, color: Colors.grey)),
+                          fontSize: AppTheme.fontCaption, color: Colors.grey)),
                 ],
               ),
               if (actionHint.isNotEmpty) ...[
                 const SizedBox(height: 6),
                 Text(actionHint,
                     style: TextStyle(
-                        fontSize: 11, color: tagColor.withValues(alpha: 0.9))),
+                        fontSize: AppTheme.fontCaption, color: tagColor.withValues(alpha: 0.9))),
               ],
             ],
           ),

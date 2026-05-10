@@ -171,13 +171,13 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
                       Text(
                         '${sp['community']} ${sp['building']}号楼${sp['unit']}单元${sp['room_no']}',
                         style: const TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.bold),
+                            fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '${sp['layout'] ?? ''} · ${sp['area_sqm']}㎡ · ¥${sp['price_wan']}万',
                         style: const TextStyle(
-                            color: Colors.grey, fontSize: 13),
+                            color: Colors.grey, fontSize: AppTheme.fontBody),
                       ),
                     ],
                   ),
@@ -194,7 +194,7 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
                       const Icon(Icons.access_time, size: 18, color: Colors.grey),
                       const SizedBox(width: 8),
                       Text(_formatTime(d['showing_time']),
-                          style: const TextStyle(fontSize: 15)),
+                          style: const TextStyle(fontSize: AppTheme.fontSectionTitle)),
                     ],
                   ),
                 ),
@@ -210,7 +210,7 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(14),
-                    child: Text(notes, style: const TextStyle(fontSize: 14)),
+                    child: Text(notes, style: const TextStyle(fontSize: AppTheme.fontBody)),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -227,7 +227,7 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
                       Text(
                         d['ba_agent_name'] ?? '-',
                         style: const TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.bold),
+                            fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -288,7 +288,7 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
       padding: const EdgeInsets.only(bottom: 8, left: 4),
       child: Text(text,
           style: const TextStyle(
-              color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold)),
+              color: Colors.grey, fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold)),
     );
   }
 
@@ -330,7 +330,7 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
           Expanded(
             child: Text(text,
                 style: TextStyle(
-                    color: color, fontSize: 14, fontWeight: FontWeight.bold)),
+                    color: color, fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -389,7 +389,7 @@ class _RejectDialogState extends State<_RejectDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('请简要说明驳回原因,BA 可根据此反馈重新提交:',
-              style: TextStyle(fontSize: 13, color: Colors.grey)),
+              style: TextStyle(fontSize: AppTheme.fontBody, color: Colors.grey)),
           const SizedBox(height: 8),
           TextField(
             controller: _controller,

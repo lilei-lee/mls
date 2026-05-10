@@ -85,7 +85,7 @@ class _TransactionPendingLaScreenState
                   SizedBox(height: 12),
                   Center(
                     child: Text('暂无待确认的成交记录',
-                        style: TextStyle(color: Colors.grey, fontSize: 14)),
+                        style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
                   ),
                 ],
               );
@@ -127,26 +127,26 @@ class _TransactionPendingLaScreenState
                                 child: const Text('待独立填价',
                                     style: TextStyle(
                                         color: Colors.orange,
-                                        fontSize: 11,
+                                        fontSize: AppTheme.fontCaption,
                                         fontWeight: FontWeight.bold)),
                               ),
                               const Spacer(),
                               Text('BA 已填 $baWan 万',
                                   style: const TextStyle(
-                                      color: Colors.grey, fontSize: 12)),
+                                      color: Colors.grey, fontSize: AppTheme.fontCaption)),
                             ],
                           ),
                           const SizedBox(height: 8),
                           Text(
                             '${sp['community']} ${sp['building']}-${sp['unit']}-${sp['room_no']}',
                             style: const TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.bold),
+                                fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             '${sp['layout'] ?? ''} · ${sp['area_sqm']}㎡ · 挂牌 ¥${sp['price_wan']}万',
                             style: const TextStyle(
-                                color: Colors.grey, fontSize: 12),
+                                color: Colors.grey, fontSize: AppTheme.fontCaption),
                           ),
                           const SizedBox(height: 8),
                           Row(
@@ -156,7 +156,7 @@ class _TransactionPendingLaScreenState
                               const SizedBox(width: 4),
                               Text('BA:${it['ba_agent_name']}',
                                   style: const TextStyle(
-                                      color: Colors.grey, fontSize: 12)),
+                                      color: Colors.grey, fontSize: AppTheme.fontCaption)),
                               const Spacer(),
                               const Icon(Icons.access_time,
                                   size: 14, color: Colors.grey),
@@ -164,7 +164,7 @@ class _TransactionPendingLaScreenState
                               Text(
                                   '提交 ${_formatDate(it['ba_submitted_at'] as String?)}',
                                   style: const TextStyle(
-                                      color: Colors.grey, fontSize: 12)),
+                                      color: Colors.grey, fontSize: AppTheme.fontCaption)),
                             ],
                           ),
                         ],

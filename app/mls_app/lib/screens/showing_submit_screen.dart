@@ -191,17 +191,17 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text('目标房源',
-                      style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
                   const SizedBox(height: 6),
                   Text(
                     '${sp['community']} ${sp['building']}号楼${sp['unit']}单元${sp['room_no']}',
                     style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.bold),
+                        fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '${sp['layout'] ?? ''} · ${sp['area_sqm']}㎡ · ¥${sp['price_wan']}万',
-                    style: const TextStyle(color: Colors.grey, fontSize: 13),
+                    style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody),
                   ),
                 ],
               ),
@@ -210,7 +210,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
           const SizedBox(height: 20),
 
           const Text('带看时间 *',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppTheme.fontBody)),
           const SizedBox(height: 8),
           InkWell(
             onTap: _pickTime,
@@ -229,7 +229,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
                     _showingTime == null ? '点击选择实际带看时间' : _formatTime(_showingTime!),
                     style: TextStyle(
                       color: _showingTime == null ? Colors.grey : Colors.black,
-                      fontSize: 14,
+                      fontSize: AppTheme.fontBody,
                     ),
                   ),
                 ],
@@ -241,10 +241,10 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
           Row(
             children: [
               const Text('现场照片 *',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppTheme.fontBody)),
               const SizedBox(width: 8),
               Text('${_photos.length}/$_maxPhotos',
-                  style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                  style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
             ],
           ),
           const SizedBox(height: 4),
@@ -252,7 +252,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
           const SizedBox(height: 20),
 
           const Text('带看备注(选填)',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppTheme.fontBody)),
           const SizedBox(height: 8),
           TextField(
             controller: _notesController,
@@ -277,7 +277,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
                     )
                   : const Icon(Icons.check),
               label: Text(_submitting ? '提交中...' : '提交带看记录',
-                  style: const TextStyle(fontSize: 16)),
+                  style: const TextStyle(fontSize: AppTheme.fontSectionTitle)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
                 foregroundColor: Colors.white,
@@ -358,7 +358,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
                 : const Icon(Icons.camera_alt, color: Colors.grey, size: 28),
             const SizedBox(height: 4),
             Text(_picking ? '处理中' : '拍照',
-                style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
           ],
         ),
       ),

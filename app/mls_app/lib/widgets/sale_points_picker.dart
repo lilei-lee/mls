@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import '../constants/sale_points_library.dart';
 
 /// V2.2 #1: 卖点标签选择器共用组件(录入页 + 编辑页)
@@ -112,14 +113,14 @@ class _SalePointsPickerState extends State<SalePointsPicker> {
           padding: const EdgeInsets.only(bottom: 8),
           child: Wrap(spacing: 6, runSpacing: 4, children: [
             ..._selectedPreset.map((t) => Chip(
-                  label: Text(t, style: const TextStyle(fontSize: 12)),
+                  label: Text(t, style: const TextStyle(fontSize: AppTheme.fontCaption)),
                   deleteIcon: const Icon(Icons.close, size: 16),
                   onDeleted: () => _togglePreset(t),
                   backgroundColor: Colors.red.shade50,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 )),
             ..._customTags.map((t) => Chip(
-                  label: Text(t, style: const TextStyle(fontSize: 12)),
+                  label: Text(t, style: const TextStyle(fontSize: AppTheme.fontCaption)),
                   deleteIcon: const Icon(Icons.close, size: 16),
                   onDeleted: () => _removeCustom(t),
                   backgroundColor: Colors.deepOrange.shade50,
@@ -132,12 +133,12 @@ class _SalePointsPickerState extends State<SalePointsPicker> {
       ...SalePointsLibrary.presetGroups.entries.map((group) => Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(group.key, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+              Text(group.key, style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
               const SizedBox(height: 4),
               Wrap(spacing: 6, runSpacing: 4, children: group.value.map((tag) {
                 final sel = _selectedPreset.contains(tag);
                 return FilterChip(
-                  label: Text(tag, style: TextStyle(fontSize: 12)),
+                  label: Text(tag, style: TextStyle(fontSize: AppTheme.fontCaption)),
                   selected: sel,
                   onSelected: (_) => _togglePreset(tag),
                   selectedColor: Colors.blue.shade50,
@@ -160,7 +161,7 @@ class _SalePointsPickerState extends State<SalePointsPicker> {
                 border: OutlineInputBorder(), isDense: true,
                 contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               ),
-              style: const TextStyle(fontSize: 13),
+              style: const TextStyle(fontSize: AppTheme.fontBody),
               maxLength: widget.customMaxLength,
               buildCounter: (_, {required currentLength, required maxLength, required bool isFocused}) => null,
             ),
@@ -172,13 +173,13 @@ class _SalePointsPickerState extends State<SalePointsPicker> {
           child: ElevatedButton(
             onPressed: (_total >= SalePointsLibrary.maxTotal || _customTags.length >= widget.maxCustomCount)
                 ? null : _addCustom,
-            child: const Text('添加', style: TextStyle(fontSize: 13)),
+            child: const Text('添加', style: TextStyle(fontSize: AppTheme.fontBody)),
           ),
         ),
       ]),
       Text(
         '$_total/${SalePointsLibrary.maxTotal} 标签  |  自定义 ${_customTags.length}/${widget.maxCustomCount}',
-        style: const TextStyle(fontSize: 11, color: Colors.grey),
+        style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey),
       ),
     ]);
   }
