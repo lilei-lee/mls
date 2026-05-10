@@ -70,6 +70,9 @@ from communities import (
     search_communities,
     create_community,
     get_community_by_id,
+    get_community_detail,
+    get_community_listings,
+    get_community_deals,
 )
 from transactions import (
     InitiateTransactionBody,
@@ -1018,6 +1021,30 @@ def get_community_api(
 ):
     doc = get_community_by_id(community_id)
     return {"success": True, "data": doc}
+
+
+@app.get("/api/v1/communities/{community_id}/detail")
+def get_community_detail_api(community_id: str, agent: dict = Depends(get_current_agent)):
+    """V2.2 #4: 社区详情(档案+统计+预览)"""
+    return {"success": True, "data": get_community_detail(community_id)}
+
+
+@app.get("/api/v1/communities/{community_id}/listings")
+def get_community_listings_api(
+    community_id: str,
+    room: int | None = Query(None),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=50),
+    agent: dict = Depends(get_current_agent),
+):
+    """V2.2 #4: 社区在售房源分页"""
+    return {"success": True, "data": get_community_listings(community_id, room=room, page=page, page_size=page_size)}
+
+
+@app.get("/api/v1/communities/{community_id}/deals")
+def get_community_deals_api(community_id: str, agent: dict = Depends(get_current_agent)):
+    """V2.2 #4: 社区成交记录(V3 占位)"""
+    return {"success": True, "data": get_community_deals(community_id)}
 
     # ==================== 奖金结算(节点 ⑥) ====================
 

@@ -176,3 +176,91 @@ def _format_community(doc: dict) -> dict:
         "created_at": doc["created_at"].isoformat()
         if doc.get("created_at") else None,
     }
+
+
+# ==================== V2.2 #4: 社区 3-tab 详情 ====================
+
+def get_community_detail(community_id: str) -> dict:
+    """GET /communities/{id}/detail — 社区档案 + 统计 + 房源预览"""
+    from database import db as mls_db
+    oid = _to_oid(community_id, "无效的小区ID")
+    doc = communities_collection.find_one({"_id": oid})
+    if not doc:
+        raise HTTPException(status_code=404, detail="小区不存在")
+
+    # 基本 + 辞典富化
+    result = _format_community(doc)
+    _enrich_from_dict(result, doc)
+
+    # 统计:在售房源
+    from datetime import datetime
+    now = datetime.now()
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    listings_cursor = mls_db["listings"].find({
+        "community_id": oid,
+        "status": {"$in": ["on_sale", "deposit_paid", "transaction_ongoing"]},
+    })
+    active_listings = list(listings_cursor)
+    active_count = len(active_listings)
+    monthly_new = sum(1 for l in active_listings if l.get("created_at") and l["created_at"] >= month_start)
+
+    # 均价计算
+    total_prices = []
+    total_areas = []
+    for l in active_listings:
+        p = l.get("price_wan")
+        a = l.get("area_sqm")
+        if p and a and a > 0:
+            total_prices.append(p)
+            total_areas.append(a)
+    avg_price = round(sum(total_prices) / sum(total_areas) * 10000) if total_areas else None
+
+    result["stats"] = {
+        "avg_price": avg_price,
+        "deal_avg_price": None,
+        "active_listings": active_count,
+        "monthly_new": monthly_new,
+    }
+
+    # 前 3 条预览
+    from listings import _format_listing_anonymous_lite
+    preview = [_format_listing_anonymous_lite(l) for l in active_listings[:3]]
+    result["listings_preview"] = preview
+
+    return result
+
+
+def get_community_listings(community_id: str, room: Optional[int] = None,
+                           page: int = 1, page_size: int = 20) -> dict:
+    """GET /communities/{id}/listings — 社区在售房源分页"""
+    from database import db as mls_db
+    oid = _to_oid(community_id, "无效的小区ID")
+    doc = communities_collection.find_one({"_id": oid})
+    if not doc:
+        raise HTTPException(status_code=404, detail="小区不存在")
+
+    query = {
+        "community_id": oid,
+        "status": {"$in": ["on_sale", "deposit_paid", "transaction_ongoing"]},
+    }
+    if room is not None:
+        query["rooms"] = room
+
+    total = mls_db["listings"].count_documents(query)
+    skip = (page - 1) * page_size
+    docs = list(mls_db["listings"].find(query).sort("created_at", -1).skip(skip).limit(page_size))
+
+    from listings import _format_listing_anonymous_lite
+    return {
+        "items": [_format_listing_anonymous_lite(d) for d in docs],
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "has_more": skip + page_size < total,
+    }
+
+
+def get_community_deals(community_id: str) -> dict:
+    """GET /communities/{id}/deals — V3 占位"""
+    return {"items": [], "total": 0}
