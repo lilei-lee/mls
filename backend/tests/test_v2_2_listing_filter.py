@@ -20,7 +20,8 @@ def _seed_listing(owner_id, community="共享测试小区", property_code="FLT00
         "community": community, "building": "1", "unit": "1",
         "room_no": str(ObjectId())[-6:],
         "district": "桥东区", "property_code": property_code,
-        "orientation": extra.get("orientation", "南"), "price_wan": 80.0, "status": "on_sale",
+        "orientation": extra.get("orientation", "南"), "price_wan": extra.get("price_wan", 80.0),
+        "area_sqm": extra.get("area_sqm"), "status": "on_sale",
         "owner_agent_id": owner_id, "owner_agent_name": "测试LA",
         "owner_agent_phone": "13900001111",
         "layout": "", "photo_count": 0, "photos": [],
@@ -357,3 +358,58 @@ def test_filter_house_structure(mock_comm, mock_batch, agent):
 
     from database import db
     db["listings"].delete_many({"_id": {"$in": [lid1, lid2]}})
+
+
+# ═══════════════════════════════════════════
+# V2.2 #2 段 5: 服务端排序
+# ═══════════════════════════════════════════
+
+def test_filter_sort_price_asc(agent):
+    """sort=price_asc 按总价升序"""
+    from database import db
+    from listings import list_shared_listings
+    la_id = ObjectId()
+    codes = ["SRTA1", "SRTA2", "SRTA3"]
+    lid1 = _seed_listing(la_id, property_code=codes[0], price_wan=50)
+    lid2 = _seed_listing(la_id, property_code=codes[1], price_wan=100)
+    lid3 = _seed_listing(la_id, property_code=codes[2], price_wan=150)
+
+    items, total = list_shared_listings(agent["_id"], sort="price_asc")
+    my_prices = [it["price_wan"] for it in items if it["property_code"] in codes]
+    assert my_prices == sorted(my_prices), f"Should be sorted asc: {my_prices}"
+
+    db["listings"].delete_many({"_id": {"$in": [lid1, lid2, lid3]}})
+
+
+def test_filter_sort_price_desc(agent):
+    """sort=price_desc 按总价降序"""
+    from database import db
+    from listings import list_shared_listings
+    la_id = ObjectId()
+    codes = ["SRTD1", "SRTD2", "SRTD3"]
+    lid1 = _seed_listing(la_id, property_code=codes[0], price_wan=50)
+    lid2 = _seed_listing(la_id, property_code=codes[1], price_wan=100)
+    lid3 = _seed_listing(la_id, property_code=codes[2], price_wan=150)
+
+    items, total = list_shared_listings(agent["_id"], sort="price_desc")
+    my_prices = [it["price_wan"] for it in items if it["property_code"] in codes]
+    assert my_prices == sorted(my_prices, reverse=True), f"Sorted desc: {my_prices}"
+
+    db["listings"].delete_many({"_id": {"$in": [lid1, lid2, lid3]}})
+
+
+def test_filter_sort_area_desc(agent):
+    """sort=area_desc 按面积降序"""
+    from database import db
+    from listings import list_shared_listings
+    la_id = ObjectId()
+    codes = ["SRTA21", "SRTA22", "SRTA23"]
+    lid1 = _seed_listing(la_id, property_code=codes[0], area_sqm=80)
+    lid2 = _seed_listing(la_id, property_code=codes[1], area_sqm=120)
+    lid3 = _seed_listing(la_id, property_code=codes[2], area_sqm=160)
+
+    items, total = list_shared_listings(agent["_id"], sort="area_desc")
+    my_areas = [it.get("area_sqm", 0) or 0 for it in items if it["property_code"] in codes]
+    assert my_areas == sorted(my_areas, reverse=True), f"Sorted desc: {my_areas}"
+
+    db["listings"].delete_many({"_id": {"$in": [lid1, lid2, lid3]}})

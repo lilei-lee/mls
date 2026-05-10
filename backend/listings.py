@@ -405,6 +405,7 @@ def list_shared_listings(
     # V2.2 #2: 朝向 + 户型结构
     orientation: Optional[str] = None,
     house_structure: Optional[str] = None,
+    sort: Optional[str] = None,
 ) -> tuple[list, int]:
     """共享库:所有交易状态的房源都展示(V10:sold 也公开展示成交价)
 
@@ -442,12 +443,17 @@ def list_shared_listings(
         # 需要后端聚合时,先全量拉取(无 skip/limit),过滤后再分页
         docs = list(listings_collection.find(query).sort("created_at", -1))
     else:
-        docs = list(
-            listings_collection.find(query)
-            .sort("created_at", -1)
-            .skip(skip)
-            .limit(limit)
-        )
+        if sort and sort != "default":
+            docs = list(listings_collection.find(query))
+            _sort_docs(docs, sort)
+            docs = docs[skip:skip + limit]
+        else:
+            docs = list(
+                listings_collection.find(query)
+                .sort("created_at", -1)
+                .skip(skip)
+                .limit(limit)
+            )
 
     if not docs:
         return [], 0
@@ -474,6 +480,7 @@ def list_shared_listings(
             ):
                 continue
             filtered_docs.append(doc)
+        _sort_docs(filtered_docs, sort)
         total = len(filtered_docs)
         docs = filtered_docs[skip:skip + limit]
     else:
@@ -515,6 +522,23 @@ def count_shared_listings(
     if orientation:
         query["orientation"] = orientation
     return listings_collection.count_documents(query)
+
+
+def _sort_docs(docs: list, sort: Optional[str]) -> None:
+    """服务端排序。default/latest 不排序(MongoDB 已按 created_at desc)。"""
+    if not sort or sort in ("default", "latest"):
+        docs.sort(key=lambda d: d.get("created_at") or "", reverse=True)
+    elif sort == "price_asc":
+        docs.sort(key=lambda d: d.get("price_wan", 0) or 0)
+    elif sort == "price_desc":
+        docs.sort(key=lambda d: d.get("price_wan", 0) or 0, reverse=True)
+    elif sort == "unit_price_asc":
+        def _unit_price(d):
+            area = (d.get("area_sqm") or 0)
+            return (d.get("price_wan", 0) or 0) / area if area > 0 else 0
+        docs.sort(key=_unit_price)
+    elif sort == "area_desc":
+        docs.sort(key=lambda d: d.get("area_sqm") or 0, reverse=True)
 
 
 def get_listing_by_id(listing_id: str, viewer_id=None) -> dict | None:

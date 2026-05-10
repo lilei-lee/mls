@@ -533,6 +533,7 @@ def get_shared_listings_api(
     # V2.2 #2: 新增朝向 + 户型结构筛选
     orientation: str | None = Query(None, description="朝向(朝东/朝西/朝南/朝北)"),
     house_structure: str | None = Query(None, description="户型结构(平层/复式/Loft/跃层/错层/跃复一体)"),
+    sort: str | None = Query(None, description="排序:default/latest/price_asc/price_desc/unit_price_asc/area_desc"),
     agent: dict = Depends(get_current_agent),
 ):
     items, total = list_shared_listings(
@@ -546,6 +547,7 @@ def get_shared_listings_api(
         community_id=community_id,
         orientation=orientation,
         house_structure=house_structure,
+        sort=sort,
     )
     return ListingListResponse(success=True, total=total, items=items)
 
