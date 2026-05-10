@@ -401,3 +401,102 @@ def test_sync_physical_optional_fields_not_in_attrs_when_none(mock_client_class,
     assert "area_sqm" in sync_result["synced_fields"]
 
     db["listings"].delete_one({"_id": ObjectId(lid)})
+
+
+# ═══════════════════ V2.3 #1: BA 越权脱敏 ═══════════════════
+
+@patch("dictionary_client.DictionaryClient")
+def test_ba_without_collab_masked(mock_client_class, agent, physical):
+    """BA 未协作→building/unit/room_no/house_code/owner_name 全空"""
+    mock_client = MagicMock()
+    mock_client.identify_property.return_value = {"property_code": "SEC01"}
+    mock_client.submit_claim.return_value = {"total_claims_after": 1}
+    mock_client_class.return_value = mock_client
+
+    from listings import create_listing, get_listing_by_id
+    from database import db
+
+    req = FakeReqV2()
+    result = create_listing(req, physical, agent)
+    lid = result["listing_id"]
+
+    mock_client2 = MagicMock()
+    mock_client2.get_property.return_value = {}
+    mock_client_class.return_value = mock_client2
+
+    ba_id = ObjectId()
+    detail = get_listing_by_id(lid, viewer_id=ba_id)
+    assert detail["building"] == ""
+    assert detail["unit"] == ""
+    assert detail["room_no"] == ""
+    assert detail["house_code"] == ""
+    assert detail["owner_agent_name"] == ""
+    assert detail["_is_owner"] is False
+
+    db["listings"].delete_one({"_id": ObjectId(lid)})
+
+
+@patch("dictionary_client.DictionaryClient")
+def test_la_sees_full(mock_client_class, agent, physical):
+    """LA 自己→全字段+_is_owner=True"""
+    mock_client = MagicMock()
+    mock_client.identify_property.return_value = {"property_code": "SEC02"}
+    mock_client.submit_claim.return_value = {"total_claims_after": 1}
+    mock_client_class.return_value = mock_client
+
+    from listings import create_listing, get_listing_by_id
+    from database import db
+
+    req = FakeReqV2()
+    result = create_listing(req, physical, agent)
+    lid = result["listing_id"]
+
+    mock_client2 = MagicMock()
+    mock_client2.get_property.return_value = {}
+    mock_client_class.return_value = mock_client2
+
+    detail = get_listing_by_id(lid, viewer_id=agent["_id"])
+    assert detail["building"] == "1"
+    assert detail["unit"] == "1"
+    assert detail["room_no"] == "101"
+    assert detail["house_code"] != ""
+    assert detail["_is_owner"] is True
+
+    db["listings"].delete_one({"_id": ObjectId(lid)})
+
+
+@patch("dictionary_client.DictionaryClient")
+def test_ba_with_collab_unmasked(mock_client_class, agent, physical):
+    """BA 协作通过→全字段+_is_owner=False"""
+    mock_client = MagicMock()
+    mock_client.identify_property.return_value = {"property_code": "SEC03"}
+    mock_client.submit_claim.return_value = {"total_claims_after": 1}
+    mock_client_class.return_value = mock_client
+
+    from listings import create_listing, get_listing_by_id
+    from database import db
+
+    req = FakeReqV2()
+    result = create_listing(req, physical, agent)
+    lid = result["listing_id"]
+
+    ba_id = ObjectId()
+    db["showing_requests"].insert_one({
+        "listing_id": ObjectId(lid),
+        "buyer_agent_id": ba_id,
+        "listing_agent_id": agent["_id"],
+        "status": "approved",
+        "created_at": __import__("datetime").datetime.now(),
+    })
+
+    mock_client2 = MagicMock()
+    mock_client2.get_property.return_value = {}
+    mock_client_class.return_value = mock_client2
+
+    detail = get_listing_by_id(lid, viewer_id=ba_id)
+    assert detail["building"] == "1"
+    assert detail["_is_owner"] is False
+    assert detail["_can_edit"] is False
+
+    db["showing_requests"].delete_many({"listing_id": ObjectId(lid)})
+    db["listings"].delete_one({"_id": ObjectId(lid)})

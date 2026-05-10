@@ -556,12 +556,24 @@ def get_listing_by_id(listing_id: str, viewer_id=None) -> dict | None:
     enrich_from_dictionary(result, doc, viewer_id)
     # V2.2 #1: 从 property_dict 补社区特征字段
     enrich_community_from_dict(result, doc)
-    # V2.2 #1: 权限分层 — 非协作方隐藏 agent_remarks / showing_instructions / LA 手机号
+    # V2.2 #1: 权限分层 — 非协作方隐藏敏感字段
     from utils.collaboration_status import is_collaboration_unlocked
-    if not is_collaboration_unlocked(viewer_id, listing_id):
+    is_owner = str(viewer_id) == str(doc.get("owner_agent_id", ""))
+    unlocked = is_owner or is_collaboration_unlocked(viewer_id, listing_id)
+    if not unlocked:
         result["agent_remarks"] = ""
         result["showing_instructions"] = ""
         result["owner_agent_phone"] = ""
+        result["owner_agent_name"] = ""
+        # V2.3 #1: 脱敏门牌号 + UUID
+        result["building"] = ""
+        result["unit"] = ""
+        result["room_no"] = ""
+        result["house_code"] = ""
+
+    # V2.3 #1: 前端权限标记
+    result["_is_owner"] = is_owner
+    result["_can_edit"] = is_owner and doc.get("status") not in ("sold", "offline")
 
     # V2.2 #5: 附加统计字段
     result["showing_count_7d"] = _count_showings_7d(doc["_id"])
