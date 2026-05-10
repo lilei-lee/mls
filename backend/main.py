@@ -128,6 +128,10 @@ app = FastAPI(
 )
 
 
+# V2.5: Q&A 问答系统
+from qna import qna_router as _qna_router
+app.include_router(_qna_router)
+
 @app.on_event("startup")
 def startup_check():
     if ping():
@@ -1270,6 +1274,24 @@ def api_dashboard_todos(
             "subtitle": reject_reason or "请修改后重新提交",
             "action_route": f"/transaction/{str(t['_id'])}",
             "created_at": t["created_at"].isoformat() if t.get("created_at") else None,
+        })
+
+    # --- 6. 待回答的问题(LA) ---
+    pending_qna = list(db["qna_threads"].find(
+        {"answerer_id": str(agent_id), "status": "pending"},
+    ).sort("question_at", -1).limit(5))
+
+    for q in pending_qna:
+        listing = db["listings"].find_one({"_id": ObjectId(q["listing_id"])}) if q.get("listing_id") else None
+        comm = listing.get("community", "") if listing else ""
+        todos.append({
+            "type": "answer_pending",
+            "priority": "medium",
+            "icon": "help_circle",
+            "title": f'{q.get("asker_anonymous_name", "同行")} 对你的{comm}提问',
+            "subtitle": f'问:{q["question"][:40]}{"..." if len(q.get("question",""))>40 else ""}',
+            "action_route": f'/listing/{q["listing_id"]}?tab=qna',
+            "created_at": q["question_at"].isoformat() if q.get("question_at") else None,
         })
 
     return {
