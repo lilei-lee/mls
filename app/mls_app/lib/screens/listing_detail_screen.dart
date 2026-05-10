@@ -17,6 +17,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   late Future<Map<String, dynamic>> _future;
   late Future<List<ListingShowingSummary>?> _showingsFuture;
   bool _listChanged = false;
+  bool _isOwner = false;
 
   @override
   void initState() {
@@ -33,9 +34,13 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   Future<List<ListingShowingSummary>?> _fetchShowingsSummary() async {
     try {
       final r = await ApiClient.instance.dio.get('/listings/${widget.listingId}/showings-summary');
+      _isOwner = true;
+      if (mounted) setState(() {});
       final items = (r.data['items'] as List).cast<Map<String, dynamic>>();
       return items.map((e) => ListingShowingSummary.fromJson(e)).toList();
     } catch (_) {
+      _isOwner = false;
+      if (mounted) setState(() {});
       return null;  // 403 = not owner, or error → skip section
     }
   }
@@ -168,38 +173,59 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
             final photos = ((item['photos'] as List?) ?? []).cast<Map<String, dynamic>>();
             final agentRemarks = (item['agent_remarks'] ?? '').toString();
             final showingInst = (item['showing_instructions'] ?? '').toString();
-            final isUnlocked = agentRemarks.isNotEmpty || showingInst.isNotEmpty;
+            // V2.2 #5: LA(owner)永远展开; BA有协作通过(agentRemarks非空)才展开
+            final isUnlocked = _isOwner || agentRemarks.isNotEmpty || showingInst.isNotEmpty;
 
             return ListView(
               padding: EdgeInsets.zero,
               children: [
                 _PhotoCarousel(photos: photos),
 
-                // ═══ ①/② 基础信息卡 ═══
+                // ═══ ① 照片 + ② 概览 ═══
                 _sectionCard(children: [
                   Row(children: [
-                    Expanded(child: Text('${item['community']} ${item['building']}号楼${item['unit']}单元${item['room_no']}',
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
+                    Expanded(child: Text('${item['community']} ${item['building']}-${item['unit']}-${item['room_no']}',
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
                     _StatusBadge(status: status),
                   ]),
-                  const SizedBox(height: 8),
-                  Text('一户一码:${item['house_code']}', style: const TextStyle(fontFamily: 'monospace', color: Colors.grey, fontSize: 12)),
+                  const SizedBox(height: 4),
+                  Text('${item['district'] ?? ''} · 一户一码:${item['house_code']}',
+                      style: const TextStyle(fontFamily: 'monospace', color: Colors.grey, fontSize: 11)),
                   const SizedBox(height: 12),
                   if (isSold) _soldPriceCard(item) else _askingPriceCard(item),
                   const SizedBox(height: 12),
-                  // 物理信息行
-                  _infoRow('户型', item['layout'] ?? '-'),
-                  _infoRow('建筑面积', '${item['area_sqm']}㎡'),
-                  _infoRow('楼层', '${item['floor']}/${item['total_floor']}层'),
-                  _infoRow('朝向', item['orientation'] ?? '-'),
-                  if ((item['district'] ?? '').toString().isNotEmpty) _infoRow('行政区', item['district']),
 
-                  // ★ 格局特点 chips
-                  if (_buildObjectiveChips(item) case final w?) w,
-                  // ★ 装修徽标(已合入格局行,跳过)
+                  // ── 楼栋 ──
+                  _groupTitle('楼栋'),
+                  _groupRow(['朝向:${item['orientation'] ?? '-'}',
+                             '${item['floor'] ?? '-'}/${item['totalFloor'] ?? '-'}层']),
+                  if (item['house_structure']?.toString() case final hs? when hs.isNotEmpty)
+                    Padding(padding: const EdgeInsets.only(top: 4),
+                      child: Text('户型结构: $hs', style: const TextStyle(fontSize: 13, color: Colors.black87))),
+                  const SizedBox(height: 12),
 
-                  const Divider(height: 24),
-                  // ★ 小区主页迷你卡
+                  // ── 房源 ──
+                  _groupTitle('房源'),
+                  _groupRow(['${item['layout'] ?? '-'}', '${item['area_sqm']}㎡']),
+                  if (_buildObjectiveChips(item) case final w?) Padding(
+                    padding: const EdgeInsets.only(top: 4), child: w),
+                  if (item['decoration']?.toString() case final d? when d.isNotEmpty)
+                    Padding(padding: const EdgeInsets.only(top: 4),
+                      child: Text('装修: $d', style: const TextStyle(fontSize: 13, color: Colors.black54))),
+                  const SizedBox(height: 12),
+
+                  // ── 费用 ──
+                  _groupTitle('费用'),
+                  if ((item['price_wan'] as num?)?.toDouble() case final pw? when pw > 0)
+                    if ((item['area_sqm'] as num?)?.toDouble() case final a? when a > 0)
+                      Padding(padding: const EdgeInsets.only(bottom: 4),
+                        child: Text('单价 ${(pw * 10000 / a).round()} 元/㎡', style: const TextStyle(fontSize: 13))),
+                  if ((item['bonus_yuan'] as num?)?.toInt() case final b? when b > 0)
+                    Text('合作奖金 ¥$b 元', style: const TextStyle(fontSize: 13, color: Colors.orange)),
+                  const SizedBox(height: 12),
+
+                  // ── 小区(锚点) ──
+                  _groupTitle('小区'),
                   _buildCommunityMiniCard(item),
                 ]),
 
@@ -483,6 +509,17 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       ),
     );
   }
+
+  Widget _groupTitle(String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 4),
+    child: Text(text, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey)),
+  );
+
+  Widget _groupRow(List<String> items) => Row(children: [
+    for (final t in items) ...[
+      Expanded(child: Text(t, style: const TextStyle(fontSize: 14))),
+    ],
+  ]);
 
   Widget _infoRow(String label, String value) {
     return Padding(
