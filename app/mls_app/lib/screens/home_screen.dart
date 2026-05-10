@@ -21,23 +21,31 @@ class _HomeScreenState extends State<HomeScreen> {
   static const _storage = FlutterSecureStorage();
   late Future<_DashboardAllData> _future;
   String _myName = '';
+  String _role = 'LA';
+  int _unreadCount = 0;
 
   @override
   void initState() {
     super.initState();
     _future = _loadAll();
-    _loadName();
+    _loadProfile();
   }
 
-  Future<void> _loadName() async {
+  Future<void> _loadProfile() async {
     final n = await _storage.read(key: 'name');
-    if (mounted) setState(() => _myName = n ?? '');
+    final r = await _storage.read(key: 'role');
+    if (mounted) setState(() {
+      _myName = n ?? '';
+      _role = r?.isNotEmpty == true ? r! : 'LA';
+    });
   }
 
   Future<_DashboardAllData> _loadAll() async {
     final todosF = DashboardService.instance.todos();
     final eventsF = DashboardService.instance.recentEvents();
+    // TODO: 接口待补 — 通知未读数
     final results = await Future.wait([todosF, eventsF]);
+    if (mounted) setState(() => _unreadCount = 3); // mock
     return _DashboardAllData(
       todos: (results[0]['todos'] as List).cast<Map<String, dynamic>>(),
       events: (results[1]['events'] as List).cast<Map<String, dynamic>>(),
@@ -48,12 +56,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _greeting() {
     final h = DateTime.now().hour;
-    if (h < 6) return '还在忙呀';
+    if (h < 6) return '凌晨好';
     if (h < 11) return '早上好';
-    if (h < 13) return '午饭时间';
+    if (h < 13) return '中午好';
     if (h < 18) return '下午好';
     if (h < 22) return '晚上好';
-    return '夜深了';
+    return '深夜了，早些休息';
   }
 
   void _showMyMenu(BuildContext context) {
@@ -122,17 +130,37 @@ class _HomeScreenState extends State<HomeScreen> {
                                 style: AppTheme.caption.copyWith(color: AppTheme.n0.withValues(alpha: 0.65), fontSize: 11)),
                           ]),
                           const Spacer(),
-                          const Icon(LucideIcons.bell, size: 22, color: AppTheme.n0),
+                          // Bell with badge
+                          Stack(clipBehavior: Clip.none, children: [
+                            const Icon(LucideIcons.bell, size: 22, color: AppTheme.n0),
+                            if (_unreadCount > 0)
+                              Positioned(right: -6, top: -4, child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                decoration: const BoxDecoration(color: AppTheme.danger, shape: BoxShape.circle),
+                                constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                                alignment: Alignment.center,
+                                child: Text('${_unreadCount > 99 ? '99+' : _unreadCount}', style: AppTheme.caption.copyWith(color: AppTheme.n0, fontSize: 9, fontWeight: FontWeight.w700)),
+                              )),
+                          ]),
                         ]),
                         const Spacer(),
                         // Row 2: 3 stat columns at bottom of hero
-                        Row(children: [
-                          _heroStat('${_countForType(data.todos, 'showing_request')}', '待审带看'),
-                          _heroDivider(),
-                          _heroStat('${_countForType(data.todos, 'transaction')}', '待确认成交'),
-                          _heroDivider(),
-                          _heroStat('${_countForType(data.todos, 'listing')}', '在售房源'),
-                        ]),
+                        if (_role == 'LA')
+                          Row(children: [
+                            _heroStat('${_countForType(data.todos, 'showing_request')}', '待审带看'),
+                            _heroDivider(),
+                            _heroStat('${_countForType(data.todos, 'transaction')}', '待确认成交'),
+                            _heroDivider(),
+                            _heroStat('${_countForType(data.todos, 'listing')}', '在售房源'),
+                          ])
+                        else
+                          Row(children: [
+                            _heroStat('${_countForType(data.todos, 'my_application')}', '我的申请'),
+                            _heroDivider(),
+                            _heroStat('${_countForType(data.todos, 'pending_showing')}', '待提交带看'),
+                            _heroDivider(),
+                            _heroStat('${_countForType(data.todos, 'my_customer')}', '我的客户'),
+                          ]),
                       ]),
                     ),
                   ),
@@ -144,7 +172,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: AppSection(
                   title: '今日动态', actionLabel: '全部 →',
                   children: data.events.isEmpty
-                      ? [AppCard.flat(child: Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('暂无新动态', style: AppTheme.bodyM.copyWith(color: AppTheme.n500)))))]
+                      ? [SizedBox(
+                          height: 160,
+                          child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                            const SizedBox(height: 24),
+                            const Icon(LucideIcons.inbox, size: 40, color: AppTheme.n300),
+                            const SizedBox(height: 12),
+                            Text('暂无新动态', style: AppTheme.titleS.copyWith(color: AppTheme.n700)),
+                            const SizedBox(height: 4),
+                            Text('等待房源动态更新', style: AppTheme.bodyS.copyWith(color: AppTheme.n500)),
+                          ])))
+                        ]
                       : data.events.take(3).map((e) => _buildTimelineCard(e)).toList(),
                 ),
               ),
@@ -211,9 +249,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _heroStat(String count, String label) {
     return Expanded(
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Text(count, style: AppTheme.numberL.copyWith(fontSize: 24, color: AppTheme.n0)),
+        Text(count, style: AppTheme.numberL.copyWith(fontSize: 28, color: AppTheme.n0)),
         const SizedBox(height: 2),
-        Text(label, style: AppTheme.caption.copyWith(color: AppTheme.n0.withValues(alpha: 0.7), fontSize: 10)),
+        Text(label, style: AppTheme.caption.copyWith(color: AppTheme.n0.withValues(alpha: 0.7), fontSize: 11)),
       ]),
     );
   }
