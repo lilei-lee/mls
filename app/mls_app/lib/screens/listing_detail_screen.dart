@@ -7,6 +7,9 @@ import '../services/transaction_service.dart';
 import '../widgets/base64_image.dart';
 import '../models/listing_showing_summary.dart';
 import '../widgets/status_badge.dart';
+import '../services/qna_service.dart';
+import '../models/qna_thread.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 /// V2.2 #1: 6-section 详情页 + 权限分层渲染
 class ListingDetailScreen extends StatefulWidget {
@@ -237,9 +240,9 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       spacing: 8, runSpacing: 6,
                       children: (item['sale_points'] as List).cast<String>().map((t) => Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(color: AppTheme.danger.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                        decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                             border: Border.all(color: Colors.red.shade200)),
-                        child: Text(t, style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.danger)),
+                        child: Text(t, style: TextStyle(fontSize: AppTheme.fontBody, color: Colors.red.shade700)),
                       )).toList(),
                     ),
                   ]),
@@ -352,6 +355,9 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
 
                 // ═══ V2.2 #5: 同小区同居室 ═══
                 _buildSameLayoutSection(item),
+
+                // ═══ V2.5: Q&A 问答 ═══
+                _buildQnaSection(item),
 
                 // ── Action buttons ──
                 Padding(
@@ -490,7 +496,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: active ? AppTheme.primary50 : AppTheme.grey100,
+        color: active ? Colors.blue.shade50 : AppTheme.grey100,
         borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
         border: active ? Border.all(color: Colors.blue.shade300) : null,
       ),
@@ -567,8 +573,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       child: Wrap(spacing: 8, runSpacing: 4, children: [
         ...of.cast<String>().map((f) => Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          decoration: BoxDecoration(color: AppTheme.primary50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
-          child: Text(f, style: TextStyle(fontSize: AppTheme.fontCaption, color: AppTheme.primary600)),
+          decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+          child: Text(f, style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.blue.shade700)),
         )),
         if (deco != null && deco.isNotEmpty)
           Container(
@@ -653,7 +659,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: AppTheme.primary50.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+        decoration: BoxDecoration(color: Colors.blue.shade50.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             const Icon(Icons.apartment, size: 16, color: Colors.blue),
@@ -689,7 +695,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     final soldDate = item['sold_date'] as String?;
     final wan = soldPriceYuan != null ? ((soldPriceYuan as num) / 10000).toStringAsFixed(1) : '-';
     return Card(
-      color: AppTheme.success.withValues(alpha: 0.06),
+      color: Colors.green.withValues(alpha: 0.06),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -711,7 +717,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   }
 
   Widget _soldActionsSection() => Card(
-    color: AppTheme.success.withValues(alpha: 0.05),
+    color: Colors.green.withValues(alpha: 0.05),
     child: const Padding(padding: EdgeInsets.all(16), child: Row(children: [
       Icon(Icons.check_circle, color: Colors.green, size: 20), SizedBox(width: 10),
       Expanded(child: Text('该房源已通过成交确认流程生效,不可再编辑。', style: TextStyle(color: Colors.green))),
@@ -727,6 +733,151 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     SizedBox(height: 48, child: ElevatedButton.icon(onPressed: _reactivate, icon: const Icon(Icons.unarchive), label: const Text('重新上架'),
         style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white))),
   ]);
+
+  // ═══ V2.5: Q&A 问答 ═══
+  Widget _buildQnaSection(Map<String, dynamic> item) {
+    final isOwner = item['_is_owner'] == true;
+    return FutureBuilder<QnaListResp>(
+      future: QnaService.instance.getList(widget.listingId, limit: 4),
+      builder: (ctx, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return _sectionCard(title: '问答', children: [const SizedBox(height: 40, child: Center(child: CircularProgressIndicator()))]);
+        }
+        final data = snap.data;
+        if (data == null || data.items.isEmpty) {
+          return _sectionCard(title: '问答', children: [
+            SizedBox(height: 80, child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(LucideIcons.helpCircle, size: 32, color: AppTheme.n300),
+              const SizedBox(height: 8),
+              Text(isOwner ? '等待 BA 提问中' : '看到这套房有疑问?第一个提问吧',
+                  style: AppTheme.bodyS.copyWith(color: AppTheme.n500)),
+            ]))),
+          ]);
+        }
+        return _sectionCard(title: '问答 (${data.total})', children: [
+          ...data.items.take(3).map((t) => _buildQnaItem(t, isOwner: isOwner)),
+          if (!isOwner)
+            Center(child: OutlinedButton.icon(
+              onPressed: () => _showAskSheet(context, item['community'] ?? ''),
+              icon: const Icon(LucideIcons.helpCircle, size: 16),
+              label: const Text('发起提问'),
+              style: OutlinedButton.styleFrom(foregroundColor: AppTheme.n700, side: const BorderSide(color: AppTheme.n200)),
+            )),
+        ]);
+      },
+    );
+  }
+
+  Widget _buildQnaItem(QnaThread t, {required bool isOwner}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          const Icon(LucideIcons.user, size: 14, color: AppTheme.n500),
+          const SizedBox(width: 4), Text(t.askerName, style: AppTheme.caption),
+          const Spacer(),
+          Text(_fmtTime(t.questionAt), style: AppTheme.caption.copyWith(fontSize: AppTheme.fontSmall, color: AppTheme.n300)),
+        ]),
+        const SizedBox(height: 4),
+        Text('问:${t.question}', style: AppTheme.bodyM),
+        const SizedBox(height: 4),
+        if (t.isAnswered)
+          Container(
+            width: double.infinity, padding: const EdgeInsets.all(10),
+            margin: const EdgeInsets.only(left: 24),
+            decoration: BoxDecoration(color: AppTheme.n50, borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Text(t.answererName ?? '', style: AppTheme.caption.copyWith(color: AppTheme.primary500)),
+                const Spacer(),
+                Text(_fmtTime(t.answeredAt), style: AppTheme.caption.copyWith(fontSize: AppTheme.fontSmall, color: AppTheme.n300)),
+              ]),
+              const SizedBox(height: 4),
+              Text(t.answer ?? '', style: AppTheme.bodyM),
+            ]),
+          )
+        else
+          Padding(
+            padding: const EdgeInsets.only(left: 24),
+            child: Row(children: [
+              Expanded(child: Text('等待回答...', style: AppTheme.bodyS.copyWith(color: AppTheme.n300, fontStyle: FontStyle.italic))),
+              if (isOwner && t.answererSelf)
+                SizedBox(height: 32, child: TextButton.icon(
+                  onPressed: () => _showAnswerSheet(context, t),
+                  icon: const Icon(LucideIcons.pencil, size: 14),
+                  label: const Text('回答', style: TextStyle(fontSize: 12)),
+                  style: TextButton.styleFrom(foregroundColor: AppTheme.primary500),
+                )),
+            ]),
+          ),
+      ]),
+    );
+  }
+
+  void _showAskSheet(BuildContext context, String community) {
+    final ctrl = TextEditingController();
+    showModalBottomSheet(context: context, isScrollControlled: true,
+      builder: (ctx) => Padding(padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: SingleChildScrollView(child: Padding(padding: const EdgeInsets.all(20),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppTheme.n200, borderRadius: BorderRadius.circular(2)))),
+            const SizedBox(height: 16), Text('对「$community」提问', style: AppTheme.titleM),
+            const SizedBox(height: 8), Text('LA 收到后会尽快回复,问答公开可见', style: AppTheme.caption.copyWith(color: AppTheme.n500)),
+            const SizedBox(height: 16),
+            TextField(controller: ctrl, maxLength: 200, minLines: 3, maxLines: 5,
+              decoration: const InputDecoration(hintText: '例:满五唯一吗?可议价?能看房吗?', border: OutlineInputBorder())),
+            const SizedBox(height: 16),
+            Row(children: [
+              Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消'))),
+              const SizedBox(width: 12),
+              Expanded(child: ElevatedButton(onPressed: ctrl.text.trim().isEmpty ? null : () async {
+                try {
+                  await QnaService.instance.ask(widget.listingId, ctrl.text.trim());
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  if (context.mounted) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('提问已发出'))); _reload(); }
+                } on QnaException catch (e) { if (ctx.mounted) ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(e.message))); }
+              }, child: const Text('提交'))),
+            ]),
+          ])))));
+  }
+
+  void _showAnswerSheet(BuildContext context, QnaThread t) {
+    final ctrl = TextEditingController();
+    showModalBottomSheet(context: context, isScrollControlled: true,
+      builder: (ctx) => Padding(padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: SingleChildScrollView(child: Padding(padding: const EdgeInsets.all(20),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppTheme.n200, borderRadius: BorderRadius.circular(2)))),
+            const SizedBox(height: 16), Text('回答 ${t.askerName} 的提问', style: AppTheme.titleM),
+            const SizedBox(height: 8),
+            Container(width: double.infinity, padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: AppTheme.n50, borderRadius: BorderRadius.circular(8)),
+              child: Text('问:${t.question}', style: AppTheme.bodyM.copyWith(color: AppTheme.n700))),
+            const SizedBox(height: 16),
+            TextField(controller: ctrl, maxLength: 300, minLines: 3, maxLines: 6,
+              decoration: const InputDecoration(hintText: '请客观作答,避免泄露敏感信息', border: OutlineInputBorder())),
+            const SizedBox(height: 16),
+            Row(children: [
+              Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消'))),
+              const SizedBox(width: 12),
+              Expanded(child: ElevatedButton(onPressed: ctrl.text.trim().isEmpty ? null : () async {
+                try {
+                  await QnaService.instance.answer(t.threadId, ctrl.text.trim());
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  if (context.mounted) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已回答'))); _reload(); }
+                } on QnaException catch (e) { if (ctx.mounted) ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(e.message))); }
+              }, child: const Text('回答'))),
+            ]),
+          ])))));
+  }
+
+  String _fmtTime(DateTime? dt) {
+    if (dt == null) return '';
+    final diff = DateTime.now().difference(dt);
+    if (diff.inDays > 0) return '${diff.inDays}天前';
+    if (diff.inHours > 0) return '${diff.inHours}小时前';
+    if (diff.inMinutes > 0) return '${diff.inMinutes}分钟前';
+    return '刚刚';
+  }
 }
 
 // ═══════════════════════ 原有组件保留 ═══════════════════════
@@ -919,12 +1070,12 @@ class _ShowingSummaryCard extends StatelessWidget {
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: AppTheme.success.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                  decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                       border: Border.all(color: Colors.green.shade200)),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     const Icon(Icons.phone, size: 14, color: Colors.green),
                     const SizedBox(width: 4),
-                    Text('拨号 ${_maskPhone(summary.baPhone!)}', style: TextStyle(fontSize: AppTheme.fontCaption, color: AppTheme.success)),
+                    Text('拨号 ${_maskPhone(summary.baPhone!)}', style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.green.shade700)),
                   ]),
                 ),
               ),
