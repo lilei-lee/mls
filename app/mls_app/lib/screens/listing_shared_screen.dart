@@ -495,6 +495,7 @@ class _SharedListingCard extends StatelessWidget {
     final bonusYuan = (item['bonus_yuan'] as num?)?.toInt() ?? 0;
     final unitPrice = area > 0 ? (priceWan * 10000 / area).round() : 0;
     final tags = _collectTags();
+    final qc = (item['qna_count'] as num?)?.toInt() ?? 0;
     final hotKeywords = {'急售', '诚售', '诚意', '低价', '必看', '满五', '业主诚意'};
     final isHot = item['sale_points'] is List && (item['sale_points'] as List).cast<String>().any((t) => hotKeywords.contains(t));
 
@@ -657,6 +658,24 @@ class _SharedListingCard extends StatelessWidget {
                       Text(_relativeTime(createdAt), style: TextStyle(color: AppTheme.n500, fontSize: AppTheme.fontSmall)),
                     ],
                     const Spacer(),
+                    // V2.5: Q&A 计数角标
+                    if (qc > 0)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: InkWell(
+                          onTap: () => context.push('/listing/${item['listing_id']}/qna'),
+                          borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(color: AppTheme.n50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall), border: Border.all(color: AppTheme.n150)),
+                            child: Row(mainAxisSize: MainAxisSize.min, children: [
+                              const Icon(LucideIcons.helpCircle, size: 12, color: AppTheme.n500),
+                              const SizedBox(width: 2),
+                              Text('${item['qna_count']}', style: AppTheme.caption.copyWith(fontSize: AppTheme.fontSmall, color: AppTheme.n500)),
+                            ]),
+                          ),
+                        ),
+                      ),
                     Material(
                       color: _myRequestStatus == 'pending'
                           ? AppTheme.warning

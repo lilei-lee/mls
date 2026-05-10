@@ -105,6 +105,7 @@ final GoRouter appRouter = GoRouter(
       path: '/listing/:id/qna',
       builder: (context, state) => QnaListScreen(
         listingId: state.pathParameters['id']!,
+        highlightId: state.uri.queryParameters['highlight'],
       ),
     ),
     GoRoute(

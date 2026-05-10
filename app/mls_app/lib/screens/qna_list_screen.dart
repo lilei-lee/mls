@@ -4,17 +4,19 @@ import '../theme/app_theme.dart';
 import '../services/qna_service.dart';
 import '../models/qna_thread.dart';
 
-/// Q&A 问答列表页 — 全屏展示该房源所有问答
 class QnaListScreen extends StatefulWidget {
   final String listingId;
   final String community;
   final bool isOwner;
-  const QnaListScreen({super.key, required this.listingId, this.community = '', this.isOwner = false});
+  final String? highlightId;
+  const QnaListScreen({super.key, required this.listingId, this.community = '', this.isOwner = false, this.highlightId});
   @override State<QnaListScreen> createState() => _QnaListScreenState();
 }
 
 class _QnaListScreenState extends State<QnaListScreen> {
   late Future<QnaListResp> _future;
+  final _scrollCtrl = ScrollController();
+  int _highlightIdx = -1;
 
   @override
   void initState() {
@@ -22,7 +24,21 @@ class _QnaListScreenState extends State<QnaListScreen> {
     _future = QnaService.instance.getList(widget.listingId, limit: 50);
   }
 
-  void _refresh() => setState(() => _future = QnaService.instance.getList(widget.listingId, limit: 50));
+  @override void dispose() { _scrollCtrl.dispose(); super.dispose(); }
+
+  void _scrollToHighlight(QnaListResp data) {
+    if (widget.highlightId == null) return;
+    final idx = data.items.indexWhere((t) => t.threadId == widget.highlightId);
+    if (idx >= 0) {
+      setState(() => _highlightIdx = idx);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollCtrl.hasClients) {
+          _scrollCtrl.animateTo(idx * 180.0, duration: const Duration(milliseconds: 400), curve: Curves.easeOut);
+        }
+      });
+      Future.delayed(const Duration(seconds: 2), () { if (mounted) setState(() => _highlightIdx = -1); });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,19 +56,24 @@ class _QnaListScreenState extends State<QnaListScreen> {
               Text('暂无问答', style: AppTheme.titleS.copyWith(color: AppTheme.n700)),
             ]));
           }
-          return RefreshIndicator(
-            onRefresh: () async => _refresh(),
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: data.items.length + 1,
-              itemBuilder: (ctx, i) {
-                if (i == data.items.length) {
-                  return const SizedBox(height: 80);
-                }
-                final t = data.items[i];
-                return _buildItem(t);
-              },
-            ),
+          // Trigger scroll after build
+          WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToHighlight(data));
+
+          return ListView.builder(
+            controller: _scrollCtrl,
+            padding: const EdgeInsets.all(16),
+            itemCount: data.items.length + 1,
+            itemBuilder: (ctx, i) {
+              if (i == data.items.length) return const SizedBox(height: 80);
+              final t = data.items[i];
+              final isHL = i == _highlightIdx;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
+                decoration: isHL ? BoxDecoration(color: AppTheme.primary50, borderRadius: BorderRadius.circular(12)) : null,
+                padding: EdgeInsets.all(isHL ? 8 : 0),
+                child: _buildItem(t),
+              );
+            },
           );
         },
       ),
@@ -75,8 +96,7 @@ class _QnaListScreenState extends State<QnaListScreen> {
           child: Text(t.question, style: AppTheme.bodyM)),
         const SizedBox(height: 6),
         if (t.isAnswered)
-          Container(
-            width: double.infinity, padding: const EdgeInsets.all(14),
+          Container(width: double.infinity, padding: const EdgeInsets.all(14),
             margin: const EdgeInsets.only(left: 24),
             decoration: BoxDecoration(color: AppTheme.primary50, borderRadius: BorderRadius.circular(12)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -90,10 +110,8 @@ class _QnaListScreenState extends State<QnaListScreen> {
             ]),
           )
         else
-          Padding(
-            padding: const EdgeInsets.only(left: 24),
-            child: Text('等待回答...', style: AppTheme.bodyS.copyWith(color: AppTheme.n300, fontStyle: FontStyle.italic)),
-          ),
+          Padding(padding: const EdgeInsets.only(left: 24),
+            child: Text('等待回答...', style: AppTheme.bodyS.copyWith(color: AppTheme.n300, fontStyle: FontStyle.italic))),
         const Divider(height: 24),
       ]),
     );

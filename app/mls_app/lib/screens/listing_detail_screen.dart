@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../services/api_client.dart';
 import '../services/transaction_service.dart';
 import '../widgets/base64_image.dart';
@@ -22,10 +23,12 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   late Future<Map<String, dynamic>> _future;
   late Future<List<ListingShowingSummary>?> _showingsFuture;
   bool _listChanged = false;
+  String _userRole = '';
 
   @override
   void initState() {
     super.initState();
+    _loadRole();
     _future = _fetch();
     _showingsFuture = _fetchShowingsSummary();
   }
@@ -33,6 +36,12 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   Future<Map<String, dynamic>> _fetch() async {
     final response = await ApiClient.instance.dio.get('/listings/${widget.listingId}');
     return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<void> _loadRole() async {
+    const FlutterSecureStorage storage = FlutterSecureStorage();
+    final r = await storage.read(key: 'role');
+    if (mounted) setState(() => _userRole = r ?? '');
   }
 
   Future<List<ListingShowingSummary>?> _fetchShowingsSummary() async {
@@ -754,14 +763,21 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
             ]))),
           ]);
         }
+        final myPending = data.items.where((t) => t.askerIdSelf && t.status == 'pending').length;
+        final canAsk = _userRole == 'BA' && !isOwner && myPending < 3;
+
         return _sectionCard(title: '问答 (${data.total})', children: [
           ...data.items.take(3).map((t) => _buildQnaItem(t, isOwner: isOwner)),
-          if (!isOwner)
+          if (_userRole == 'BA' && !isOwner)
             Center(child: OutlinedButton.icon(
-              onPressed: () => _showAskSheet(context, item['community'] ?? ''),
-              icon: const Icon(LucideIcons.helpCircle, size: 16),
-              label: const Text('发起提问'),
-              style: OutlinedButton.styleFrom(foregroundColor: AppTheme.n700, side: const BorderSide(color: AppTheme.n200)),
+              onPressed: canAsk ? () async {
+                await _showAskSheet(context, item['community'] ?? '');
+                _reload();
+              } : null,
+              icon: Icon(LucideIcons.helpCircle, size: 16, color: canAsk ? AppTheme.n700 : AppTheme.n300),
+              label: Text(canAsk ? '发起提问' : '已有 $myPending 个问题待回答',
+                  style: TextStyle(color: canAsk ? AppTheme.n700 : AppTheme.n300)),
+              style: OutlinedButton.styleFrom(foregroundColor: canAsk ? AppTheme.n700 : AppTheme.n300, side: BorderSide(color: canAsk ? AppTheme.n200 : AppTheme.n150)),
             )),
         ]);
       },
@@ -814,9 +830,9 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     );
   }
 
-  void _showAskSheet(BuildContext context, String community) {
+  Future<void> _showAskSheet(BuildContext context, String community) async {
     final ctrl = TextEditingController();
-    showModalBottomSheet(context: context, isScrollControlled: true,
+    await showModalBottomSheet(context: context, isScrollControlled: true,
       builder: (ctx) => Padding(padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
         child: SingleChildScrollView(child: Padding(padding: const EdgeInsets.all(20),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [

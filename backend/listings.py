@@ -498,6 +498,8 @@ def list_shared_listings(
     ]
     for r in results:
         _enrich_physical_fields(r, props_map)
+    # V2.5: Q&A 计数批量追加
+    _enrich_qna_counts(results)
     return results, total
 
 
@@ -525,6 +527,24 @@ def count_shared_listings(
     if orientation:
         query["orientation"] = orientation
     return listings_collection.count_documents(query)
+
+
+def _enrich_qna_counts(results: list) -> None:
+    """V2.5: 批量补 Q&A 计数(pending+answered)"""
+    listing_ids = [r.get("listing_id") for r in results if r.get("listing_id")]
+    if not listing_ids:
+        return
+    try:
+        pipeline = [
+            {"$match": {"listing_id": {"$in": listing_ids}, "status": {"$in": ["pending", "answered"]}}},
+            {"$group": {"_id": "$listing_id", "count": {"$sum": 1}}},
+        ]
+        counts = {d["_id"]: d["count"] for d in db["qna_threads"].aggregate(pipeline)}
+        for r in results:
+            r["qna_count"] = counts.get(r.get("listing_id"), 0)
+    except Exception:
+        for r in results:
+            r.setdefault("qna_count", 0)
 
 
 def _sort_docs(docs: list, sort: Optional[str]) -> None:

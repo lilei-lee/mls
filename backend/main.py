@@ -1290,7 +1290,7 @@ def api_dashboard_todos(
             "icon": "help_circle",
             "title": f'{q.get("asker_anonymous_name", "同行")} 对你的{comm}提问',
             "subtitle": f'问:{q["question"][:40]}{"..." if len(q.get("question",""))>40 else ""}',
-            "action_route": f'/listing/{q["listing_id"]}?tab=qna',
+            "action_route": f'/listing/{q["listing_id"]}/qna?highlight={q.get("thread_id","")}',
             "created_at": q["question_at"].isoformat() if q.get("question_at") else None,
         })
 
