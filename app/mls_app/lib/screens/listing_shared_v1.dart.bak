@@ -151,7 +151,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
         onDeleted: () => _removeFilter(dimension),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         visualDensity: VisualDensity.compact,
-        backgroundColor: AppTheme.primary50,
+        backgroundColor: Colors.blue.shade50,
       ),
     );
   }
@@ -286,7 +286,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
 
   Widget _anonymousBadge() => Container(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-    decoration: BoxDecoration(color: AppTheme.primary500.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+    decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
     child: const Text('匿名浏览', style: TextStyle(color: Colors.blue, fontSize: AppTheme.fontCaption)),
   );
 
@@ -488,7 +488,7 @@ class _SharedListingCard extends StatelessWidget {
                 if (bonusYuan > 0)
                   Positioned(left: 4, top: 4, child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(color: AppTheme.gold600, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+                    decoration: BoxDecoration(color: Colors.orange.shade700, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       const Icon(Icons.local_offer, size: 10, color: Colors.white), const SizedBox(width: 2),
                       Text('奖¥$bonusYuan', style: const TextStyle(color: Colors.white, fontSize: AppTheme.fontSmall, fontWeight: FontWeight.bold)),
@@ -503,7 +503,7 @@ class _SharedListingCard extends StatelessWidget {
                     if (district.isNotEmpty) ...[
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                        decoration: BoxDecoration(color: AppTheme.primary500.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+                        decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
                         child: Text(district, style: const TextStyle(color: Colors.blue, fontSize: AppTheme.fontSmall)),
                       ),
                       const SizedBox(width: 4),
@@ -543,8 +543,8 @@ class _SharedListingCard extends StatelessWidget {
                           padding: const EdgeInsets.only(right: 4),
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                            decoration: BoxDecoration(color: AppTheme.primary50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
-                            child: Text(t, style: TextStyle(fontSize: AppTheme.fontSmall, color: AppTheme.primary600)),
+                            decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+                            child: Text(t, style: TextStyle(fontSize: AppTheme.fontSmall, color: Colors.blue.shade700)),
                           ),
                         )),
                       ]),

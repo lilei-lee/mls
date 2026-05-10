@@ -69,7 +69,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: AppTheme.primary50),
+              decoration: BoxDecoration(color: Colors.blue.shade50),
               child: Column(children: [
                 Text(name, style: const TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),

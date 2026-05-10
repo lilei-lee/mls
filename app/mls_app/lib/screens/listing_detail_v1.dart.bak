@@ -237,9 +237,9 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       spacing: 8, runSpacing: 6,
                       children: (item['sale_points'] as List).cast<String>().map((t) => Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(color: AppTheme.danger.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                        decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                             border: Border.all(color: Colors.red.shade200)),
-                        child: Text(t, style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.danger)),
+                        child: Text(t, style: TextStyle(fontSize: AppTheme.fontBody, color: Colors.red.shade700)),
                       )).toList(),
                     ),
                   ]),
@@ -490,7 +490,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: active ? AppTheme.primary50 : AppTheme.grey100,
+        color: active ? Colors.blue.shade50 : AppTheme.grey100,
         borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
         border: active ? Border.all(color: Colors.blue.shade300) : null,
       ),
@@ -567,8 +567,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       child: Wrap(spacing: 8, runSpacing: 4, children: [
         ...of.cast<String>().map((f) => Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          decoration: BoxDecoration(color: AppTheme.primary50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
-          child: Text(f, style: TextStyle(fontSize: AppTheme.fontCaption, color: AppTheme.primary600)),
+          decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+          child: Text(f, style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.blue.shade700)),
         )),
         if (deco != null && deco.isNotEmpty)
           Container(
@@ -653,7 +653,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: AppTheme.primary50.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+        decoration: BoxDecoration(color: Colors.blue.shade50.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             const Icon(Icons.apartment, size: 16, color: Colors.blue),
@@ -689,7 +689,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     final soldDate = item['sold_date'] as String?;
     final wan = soldPriceYuan != null ? ((soldPriceYuan as num) / 10000).toStringAsFixed(1) : '-';
     return Card(
-      color: AppTheme.success.withValues(alpha: 0.06),
+      color: Colors.green.withValues(alpha: 0.06),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -711,7 +711,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   }
 
   Widget _soldActionsSection() => Card(
-    color: AppTheme.success.withValues(alpha: 0.05),
+    color: Colors.green.withValues(alpha: 0.05),
     child: const Padding(padding: EdgeInsets.all(16), child: Row(children: [
       Icon(Icons.check_circle, color: Colors.green, size: 20), SizedBox(width: 10),
       Expanded(child: Text('该房源已通过成交确认流程生效,不可再编辑。', style: TextStyle(color: Colors.green))),
@@ -919,12 +919,12 @@ class _ShowingSummaryCard extends StatelessWidget {
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: AppTheme.success.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                  decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                       border: Border.all(color: Colors.green.shade200)),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     const Icon(Icons.phone, size: 14, color: Colors.green),
                     const SizedBox(width: 4),
-                    Text('拨号 ${_maskPhone(summary.baPhone!)}', style: TextStyle(fontSize: AppTheme.fontCaption, color: AppTheme.success)),
+                    Text('拨号 ${_maskPhone(summary.baPhone!)}', style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.green.shade700)),
                   ]),
                 ),
               ),
