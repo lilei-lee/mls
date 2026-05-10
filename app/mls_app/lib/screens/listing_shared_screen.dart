@@ -93,6 +93,8 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
         heatingType: dimension == 'heating_type' ? null : _filters.heatingType,
         bldYearMin: dimension == 'bld_year' ? null : _filters.bldYearMin,
         bldYearMax: dimension == 'bld_year' ? null : _filters.bldYearMax,
+        orientation: dimension == 'orientation' ? null : _filters.orientation,
+        houseStructure: dimension == 'house_structure' ? null : _filters.houseStructure,
       );
     });
     _refresh();
@@ -137,6 +139,12 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
       final s = _filters.bldYearMin != null ? _filters.bldYearMin.toString() : '1990';
       final e = _filters.bldYearMax != null ? _filters.bldYearMax.toString() : '2026';
       chips.add(_filterChip('楼龄:$s-$e', 'bld_year'));
+    }
+    if (_filters.orientation != null) {
+      chips.add(_filterChip('朝向:${_filters.orientation}', 'orientation'));
+    }
+    if (_filters.houseStructure != null) {
+      chips.add(_filterChip('结构:${_filters.houseStructure}', 'house_structure'));
     }
     return chips;
   }

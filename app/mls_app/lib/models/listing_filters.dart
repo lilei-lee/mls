@@ -8,13 +8,16 @@ class ListingFilters {
   final double minPrice;
   final double maxPrice;
 
-  // V2.2 新增
+  // V2.2 #1 新增
   final Set<String> salePoints;
   final Set<String> objectiveFeatures;
   final String? decoration;
   final String? heatingType;
   final int? bldYearMin;
   final int? bldYearMax;
+  // V2.2 #2 新增
+  final String? orientation;
+  final String? houseStructure;
 
   const ListingFilters({
     this.districts = const {},
@@ -29,6 +32,8 @@ class ListingFilters {
     this.heatingType,
     this.bldYearMin,
     this.bldYearMax,
+    this.orientation,
+    this.houseStructure,
   });
 
   static const double _defaultMinArea = 30;
@@ -48,7 +53,9 @@ class ListingFilters {
       decoration == null &&
       heatingType == null &&
       bldYearMin == null &&
-      bldYearMax == null;
+      bldYearMax == null &&
+      orientation == null &&
+      houseStructure == null;
 
   bool get isActive => !isEmpty;
 
@@ -63,6 +70,8 @@ class ListingFilters {
     if (decoration != null) count++;
     if (heatingType != null) count++;
     if (bldYearMin != null || bldYearMax != null) count++;
+    if (orientation != null) count++;
+    if (houseStructure != null) count++;
     return count;
   }
 
@@ -77,6 +86,8 @@ class ListingFilters {
     if (heatingType != null) p['heating_type'] = heatingType!;
     if (bldYearMin != null) p['bld_year_min'] = bldYearMin.toString();
     if (bldYearMax != null) p['bld_year_max'] = bldYearMax.toString();
+    if (orientation != null) p['orientation'] = orientation!;
+    if (houseStructure != null) p['house_structure'] = houseStructure!;
     return p;
   }
 

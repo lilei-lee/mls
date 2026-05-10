@@ -28,9 +28,12 @@ class _FilterSheetState extends State<FilterSheet> {
   late Set<String> _objectiveFeatures;
   String? _decoration;
   String? _heatingType;
+  String? _orientation;
+  String? _houseStructure;
   RangeValues _bldYearRange = const RangeValues(1990, 2026);
 
   static const _heatingOptions = ['集体供暖', '自供暖'];
+  static const _orientationOptions = ['朝东', '朝西', '朝南', '朝北'];
 
   @override
   void initState() {
@@ -45,6 +48,8 @@ class _FilterSheetState extends State<FilterSheet> {
     _objectiveFeatures = Set.from(widget.initial.objectiveFeatures);
     _decoration = widget.initial.decoration;
     _heatingType = widget.initial.heatingType;
+    _orientation = widget.initial.orientation;
+    _houseStructure = widget.initial.houseStructure;
     _bldYearRange = RangeValues(
       (widget.initial.bldYearMin ?? 1990).toDouble(),
       (widget.initial.bldYearMax ?? 2026).toDouble(),
@@ -72,6 +77,8 @@ class _FilterSheetState extends State<FilterSheet> {
       _objectiveFeatures = {};
       _decoration = null;
       _heatingType = null;
+      _orientation = null;
+      _houseStructure = null;
       _bldYearRange = const RangeValues(1990, 2026);
     });
   }
@@ -90,6 +97,8 @@ class _FilterSheetState extends State<FilterSheet> {
       heatingType: _heatingType,
       bldYearMin: _bldYearRange.start.toInt() == 1990 ? null : _bldYearRange.start.toInt(),
       bldYearMax: _bldYearRange.end.toInt() == 2026 ? null : _bldYearRange.end.toInt(),
+      orientation: _orientation,
+      houseStructure: _houseStructure,
     ));
   }
 
@@ -146,6 +155,21 @@ class _FilterSheetState extends State<FilterSheet> {
                       });
                     }).toList(),
                   ),
+                  const SizedBox(height: 24),
+                  _sectionTitle('朝向(单选)'),
+                  const SizedBox(height: 8),
+                  Wrap(spacing: 8, runSpacing: 4, children: [
+                    ChoiceChip(
+                      label: const Text('不限', style: TextStyle(fontSize: 12)),
+                      selected: _orientation == null,
+                      onSelected: (_) => setState(() => _orientation = null),
+                    ),
+                    ..._orientationOptions.map((o) => ChoiceChip(
+                      label: Text(o, style: const TextStyle(fontSize: 12)),
+                      selected: _orientation == o,
+                      onSelected: (_) => setState(() => _orientation = _orientation == o ? null : o),
+                    )),
+                  ]),
                   const SizedBox(height: 24),
                   _sectionTitle('面积'),
                   const SizedBox(height: 4),
@@ -236,6 +260,23 @@ class _FilterSheetState extends State<FilterSheet> {
                       label: Text(h, style: const TextStyle(fontSize: 12)),
                       selected: _heatingType == h,
                       onSelected: (_) => setState(() => _heatingType = _heatingType == h ? null : h),
+                    )),
+                  ]),
+                  const SizedBox(height: 24),
+
+                  // ═══ V2.2 #2: 户型结构(单选) ═══
+                  _sectionTitle('户型结构(单选)'),
+                  const SizedBox(height: 8),
+                  Wrap(spacing: 8, runSpacing: 4, children: [
+                    ChoiceChip(
+                      label: const Text('不限', style: TextStyle(fontSize: 12)),
+                      selected: _houseStructure == null,
+                      onSelected: (_) => setState(() => _houseStructure = null),
+                    ),
+                    ...SalePointsLibrary.houseStructureOptions.map((h) => ChoiceChip(
+                      label: Text(h, style: const TextStyle(fontSize: 12)),
+                      selected: _houseStructure == h,
+                      onSelected: (_) => setState(() => _houseStructure = _houseStructure == h ? null : h),
                     )),
                   ]),
                   const SizedBox(height: 24),
