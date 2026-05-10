@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/api_client.dart';
 import '../widgets/photo_picker.dart';
+import '../widgets/sale_points_picker.dart';
 import '../constants/sale_points_library.dart';
 
 /// V2.2: +4 字段编辑(格局特点 / 卖点标签 / 3 remarks) + 双流程提交
@@ -28,9 +29,7 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
   String? _selectedDecoration;
 
   // V2.2: 卖点标签
-  final List<String> _selectedSalePoints = [];
-  final List<String> _customSalePoints = [];
-  final _customSalePointController = TextEditingController();
+  List<String> _salePoints = [];
 
   late List<PickedPhoto> _photos;
   String? _coverThumbnail;
@@ -71,17 +70,7 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
 
     // V2.2: 预填卖点标签
     if (o['sale_points'] is List) {
-      final allSp = (o['sale_points'] as List).cast<String>();
-      final presets = <String>[], customs = <String>[];
-      for (final t in allSp) {
-        if (SalePointsLibrary.allPreset.contains(t)) {
-          presets.add(t);
-        } else {
-          customs.add(t);
-        }
-      }
-      _selectedSalePoints = presets;
-      _customSalePoints = customs;
+      _salePoints = List<String>.from((o['sale_points'] as List).cast<String>());
     }
 
     final rawPhotos = (o['photos'] as List?) ?? [];
@@ -95,58 +84,7 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
     _publicRemarks.dispose(); _agentRemarks.dispose(); _showingInstructions.dispose();
     _area.dispose(); _floor.dispose(); _totalFloor.dispose();
     _rooms.dispose(); _halls.dispose(); _bathrooms.dispose();
-    _customSalePointController.dispose();
     super.dispose();
-  }
-
-  // ── 卖点标签辅助 ──
-  int get _totalSalePointCount => _selectedSalePoints.length + _customSalePoints.length;
-
-  void _addCustomSalePoint() {
-    final raw = _customSalePointController.text.trim();
-    if (raw.isEmpty) return;
-    if (raw.length > SalePointsLibrary.customMaxLength) {
-      _showSnack('自定义标签最多${SalePointsLibrary.customMaxLength}字');
-      return;
-    }
-    if (SalePointsLibrary.allPreset.contains(raw) || _customSalePoints.contains(raw)) {
-      _showSnack('标签已存在');
-      return;
-    }
-    if (_customSalePoints.length >= SalePointsLibrary.customMaxCount) {
-      _showSnack('自定义标签最多${SalePointsLibrary.customMaxCount}个');
-      return;
-    }
-    if (_totalSalePointCount >= SalePointsLibrary.maxTotal) {
-      _showSnack('标签总数最多${SalePointsLibrary.maxTotal}个');
-      return;
-    }
-    setState(() {
-      _customSalePoints.add(raw);
-      _customSalePointController.clear();
-    });
-  }
-
-  void _toggleSalePoint(String tag) {
-    setState(() {
-      if (_selectedSalePoints.contains(tag)) {
-        _selectedSalePoints.remove(tag);
-      } else {
-        if (_totalSalePointCount >= SalePointsLibrary.maxTotal) {
-          _showSnack('标签总数最多${SalePointsLibrary.maxTotal}个');
-          return;
-        }
-        _selectedSalePoints.add(tag);
-      }
-    });
-  }
-
-  void _removeCustomSalePoint(String tag) {
-    setState(() => _customSalePoints.remove(tag));
-  }
-
-  void _showSnack(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), duration: const Duration(seconds: 3)));
   }
 
   // ── 提交 ──
@@ -172,7 +110,7 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
         'public_remarks': _publicRemarks.text.trim(),
         'agent_remarks': _agentRemarks.text.trim(),
         'showing_instructions': _showingInstructions.text.trim(),
-        'sale_points': [..._selectedSalePoints, ..._customSalePoints],
+        'sale_points': _salePoints,
       });
 
       // Step B: 调 sync-physical(物理 6 + 客观 2)
@@ -395,81 +333,10 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
 
             // ═══ V2.2 Section 2: 卖点标签 ═══
             _sectionTitle('卖点标签(营销)'),
-            if (_selectedSalePoints.isNotEmpty || _customSalePoints.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Wrap(
-                  spacing: 6, runSpacing: 4,
-                  children: [
-                    ..._selectedSalePoints.map((t) => Chip(
-                          label: Text(t, style: const TextStyle(fontSize: 12)),
-                          deleteIcon: const Icon(Icons.close, size: 16),
-                          onDeleted: () => _toggleSalePoint(t),
-                          backgroundColor: Colors.red.shade50,
-                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        )),
-                    ..._customSalePoints.map((t) => Chip(
-                          label: Text(t, style: const TextStyle(fontSize: 12)),
-                          deleteIcon: const Icon(Icons.close, size: 16),
-                          onDeleted: () => _removeCustomSalePoint(t),
-                          backgroundColor: Colors.deepOrange.shade50,
-                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        )),
-                  ],
-                ),
-              ),
-            ...SalePointsLibrary.presetGroups.entries.map((group) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(group.key, style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                    const SizedBox(height: 4),
-                    Wrap(
-                      spacing: 6, runSpacing: 4,
-                      children: group.value.map((tag) {
-                        final sel = _selectedSalePoints.contains(tag);
-                        return FilterChip(
-                          label: Text(tag, style: TextStyle(fontSize: 12)),
-                          selected: sel,
-                          onSelected: (_) => _toggleSalePoint(tag),
-                          selectedColor: Colors.blue.shade50,
-                          checkmarkColor: Colors.blue,
-                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        );
-                      }).toList(),
-                    ),
-                  ]),
-                )),
-            Row(children: [
-              Expanded(
-                child: SizedBox(
-                  height: 40,
-                  child: TextField(
-                    controller: _customSalePointController,
-                    decoration: const InputDecoration(
-                      hintText: '自定义标签(≤12字)',
-                      border: OutlineInputBorder(), isDense: true,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                    ),
-                    style: const TextStyle(fontSize: 13),
-                    maxLength: SalePointsLibrary.customMaxLength,
-                    buildCounter: (_, {required currentLength, required maxLength, required bool isFocused}) => null,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                height: 40,
-                child: ElevatedButton(
-                  onPressed: (_totalSalePointCount >= SalePointsLibrary.maxTotal ||
-                          _customSalePoints.length >= SalePointsLibrary.customMaxCount)
-                      ? null
-                      : _addCustomSalePoint,
-                  child: const Text('添加', style: TextStyle(fontSize: 13)),
-                ),
-              ),
-            ]),
-            Text('${_totalSalePointCount}/${SalePointsLibrary.maxTotal} 标签',
-                style: const TextStyle(fontSize: 11, color: Colors.grey)),
+            SalePointsPicker(
+              initialSelected: _salePoints,
+              onChanged: (v) => setState(() => _salePoints = v),
+            ),
             const SizedBox(height: 20),
 
             // ═══ V2.2 Section 3: 房源描述 ═══
