@@ -14,10 +14,10 @@ CLAIM_FIELD_WHITELIST = {
     "floor": int,
     "total_floor": int,
     "rooms": int,
-    "halls": int,
     "bathrooms": int,
     "objective_features": list,
     "decoration": str,
+    "house_structure": str,
 }
 
 
@@ -38,7 +38,7 @@ def _validate_claim_field(field: str, value) -> None:
     if field in ("floor", "total_floor"):
         if value < 1:
             raise InvalidClaimValue(f"{field} must be >= 1, got {value}")
-    if field in ("rooms", "halls", "bathrooms"):
+    if field in ("rooms", "bathrooms"):
         if value < 0:
             raise InvalidClaimValue(f"{field} must be >= 0, got {value}")
 

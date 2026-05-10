@@ -146,3 +146,38 @@ def test_property_objective_features_claim_with_discrepancy(ctx):
     assert disc["field"] == "objective_features"
     assert disc["status"] == "pending"
     assert disc["new_value"] == ["客厅朝南"]
+
+
+# ── V2.2 #2: house_structure + objective_features 14 ──
+
+def test_property_house_structure_claim(ctx):
+    from services.claim_service import submit_claims
+    r = submit_claims(ctx["property"]["property_code"], ObjectId(), ObjectId(),
+                      {"house_structure": "平层"})
+    assert r["total_claims_after"] >= 1
+    for cr in r["comparison_results"]:
+        if cr["field"] == "house_structure":
+            assert cr["consensus"] == "first_claim"
+
+
+def test_property_objective_features_14_values():
+    """V2.2 #2: objective_features 扩到 14 个枚举"""
+    expected = [
+        '南北通透', '全明格局', '全南户型',
+        '客厅朝南', '卧室朝南', '卧室带卫', '明卫',
+        '厅带阳台', '卧室阳台', '明厨', '开放厨房',
+        '带衣帽间', '带阁楼', '带露台',
+    ]
+    assert len(expected) == 14
+    # 验证所有 14 个值都在 claim whitelist 的 objective_features 允许范围内
+    from services.claim_service import CLAIM_FIELD_WHITELIST
+    assert "objective_features" in CLAIM_FIELD_WHITELIST
+    # 验证无重复
+    assert len(set(expected)) == 14
+
+
+def test_property_halls_removed_from_whitelist():
+    """V2.2 #2: halls 从 claim whitelist 删除"""
+    from services.claim_service import CLAIM_FIELD_WHITELIST
+    assert "halls" not in CLAIM_FIELD_WHITELIST, "halls should be removed from whitelist"
+    assert "house_structure" in CLAIM_FIELD_WHITELIST
