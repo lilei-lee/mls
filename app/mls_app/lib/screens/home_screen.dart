@@ -8,7 +8,7 @@ import '../components/app_card.dart';
 import '../components/app_section.dart';
 import '../components/app_avatar.dart';
 
-/// 工作台 v2.0 — Gradient Hero + Gold 奖金卡 + 统计 + 动态 + 快捷操作
+/// 工作台 v2.0 — Gradient Hero(140) + 3 统计 + 动态 + 快捷操作
 class HomeScreen extends StatefulWidget {
   final String name;
   const HomeScreen({super.key, this.name = ''});
@@ -93,86 +93,50 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (ctx, snap) {
           if (snap.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
           final data = snap.data ?? _DashboardAllData(todos: [], events: []);
-          final activeTodos = data.todos.where((t) { final c = (t['count'] as num?)?.toInt() ?? 0; return c > 0; }).toList();
 
           return RefreshIndicator(
             onRefresh: () async => _refresh(),
             child: CustomScrollView(slivers: [
-              // ═══ Hero Section ═══
+              // ═══ Hero Section (h=140) ═══
               SliverAppBar(
-                expandedHeight: 220,
+                expandedHeight: 140,
                 pinned: true,
                 backgroundColor: AppTheme.n0,
                 flexibleSpace: FlexibleSpaceBar(background: Container(
                   decoration: const BoxDecoration(gradient: AppTheme.gradientPrimary),
                   child: SafeArea(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                      child: Column(children: [
+                        // Row 1: Avatar + greeting + bell
                         Row(children: [
                           GestureDetector(
                             onTap: () => _showMyMenu(context),
-                            child: AppAvatar(name: _myName, size: 44),
+                            child: AppAvatar(name: _myName, size: 32),
                           ),
+                          const SizedBox(width: 10),
+                          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Text('${_greeting()}，${_myName.isNotEmpty ? _myName : '用户'}',
+                                style: AppTheme.titleM.copyWith(color: AppTheme.n0, fontSize: 15)),
+                            Text('工作台 · ${_todayLabel()}',
+                                style: AppTheme.caption.copyWith(color: AppTheme.n0.withValues(alpha: 0.65), fontSize: 11)),
+                          ]),
                           const Spacer(),
-                          const Icon(LucideIcons.bell, size: 24, color: AppTheme.n0),
-                          const SizedBox(width: 12),
+                          const Icon(LucideIcons.bell, size: 22, color: AppTheme.n0),
                         ]),
-                        const SizedBox(height: 16),
-                        Text('${_greeting()}，${_myName.isNotEmpty ? _myName : ''}', style: AppTheme.titleL.copyWith(color: AppTheme.n0)),
-                        const SizedBox(height: 6),
-                        Text('今日有 ${activeTodos.length} 个待办，本月已成交 2 单',
-                            style: AppTheme.bodyM.copyWith(color: AppTheme.n0.withValues(alpha: 0.7))),
+                        const Spacer(),
+                        // Row 2: 3 stat columns at bottom of hero
+                        Row(children: [
+                          _heroStat('${_countForType(data.todos, 'showing_request')}', '待审带看'),
+                          _heroDivider(),
+                          _heroStat('${_countForType(data.todos, 'transaction')}', '待确认成交'),
+                          _heroDivider(),
+                          _heroStat('${_countForType(data.todos, 'listing')}', '在售房源'),
+                        ]),
                       ]),
                     ),
                   ),
                 )),
-              ),
-
-              // ═══ Gold 奖金卡 ═══
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                  child: AppCard.gold(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Row(children: [
-                        Expanded(child: Text('本月奖金', style: AppTheme.caption.copyWith(color: AppTheme.n0.withValues(alpha: 0.7), fontSize: 13))),
-                        Text('查看明细 →', style: AppTheme.caption.copyWith(color: AppTheme.n0.withValues(alpha: 0.75))),
-                      ]),
-                      const SizedBox(height: 8),
-                      Text('¥4,800.00', style: AppTheme.numberXL.copyWith(color: AppTheme.n0)),
-                      const SizedBox(height: 4),
-                      Text('较上月 +¥1,200（↑33%）', style: AppTheme.caption.copyWith(color: AppTheme.n0.withValues(alpha: 0.65), fontSize: 11)),
-                    ]),
-                  ),
-                ),
-              ),
-
-              // ═══ 3 Stat Cards ═══
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(children: activeTodos.take(3).map((todo) {
-                    final isLast = todo == activeTodos.last;
-                    return Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(right: isLast ? 0 : 8),
-                        child: AppCard.base(
-                          padding: const EdgeInsets.all(14),
-                          onTap: todo['route'] != null ? () => context.push(todo['route'] as String) : null,
-                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Icon(_iconForTodo(todo['type'] as String?), size: 24, color: _colorForTodo(todo['type'] as String?)),
-                            const SizedBox(height: 8),
-                            Text(todo['label']?.toString() ?? '', style: AppTheme.caption.copyWith(fontSize: 11)),
-                            const SizedBox(height: 2),
-                            Text('${todo['count'] ?? 0}', style: _numStyleForTodo(todo['type'] as String?)),
-                          ]),
-                        ),
-                      ),
-                    );
-                  }).toList()),
-                ),
               ),
 
               // ═══ 今日动态 ═══
@@ -244,24 +208,27 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  IconData _iconForTodo(String? type) {
-    switch (type) {
-      case 'showing_request': return LucideIcons.userCheck;
-      case 'transaction': return LucideIcons.checkCircle;
-      default: return LucideIcons.building;
-    }
+  Widget _heroStat(String count, String label) {
+    return Expanded(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Text(count, style: AppTheme.numberL.copyWith(fontSize: 24, color: AppTheme.n0)),
+        const SizedBox(height: 2),
+        Text(label, style: AppTheme.caption.copyWith(color: AppTheme.n0.withValues(alpha: 0.7), fontSize: 10)),
+      ]),
+    );
   }
 
-  Color _colorForTodo(String? type) {
-    switch (type) {
-      case 'showing_request': return AppTheme.warning;
-      case 'transaction': return AppTheme.info;
-      default: return AppTheme.primary500;
-    }
+  Widget _heroDivider() => Container(width: 1, height: 32, color: AppTheme.n0.withValues(alpha: 0.2));
+
+  int _countForType(List<Map<String, dynamic>> todos, String type) {
+    final match = todos.where((t) => t['type'] == type).firstOrNull;
+    return (match?['count'] as num?)?.toInt() ?? 0;
   }
 
-  TextStyle _numStyleForTodo(String? type) {
-    return AppTheme.numberL.copyWith(color: _colorForTodo(type));
+  String _todayLabel() {
+    final now = DateTime.now();
+    const weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+    return '${weekdays[now.weekday - 1]} ${now.month}月${now.day}日';
   }
 
   Color _eventColor(String? type) {
