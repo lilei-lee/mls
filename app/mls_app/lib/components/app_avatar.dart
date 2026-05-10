@@ -19,13 +19,21 @@ class AppAvatar extends StatelessWidget {
       width: size,
       height: size,
       child: Stack(children: [
-        Container(
-          width: size, height: size,
-          decoration: BoxDecoration(color: _hashColor().withValues(alpha: 0.15), shape: BoxShape.circle),
-          alignment: Alignment.center,
-          child: Text(name.isNotEmpty ? name[0].toUpperCase() : '?',
-              style: AppTheme.caption.copyWith(fontSize: size * 0.4, fontWeight: FontWeight.w700, color: _hashColor())),
-        ),
+        if (name.isEmpty)
+          Container(
+            width: size, height: size,
+            decoration: BoxDecoration(color: AppTheme.n100, shape: BoxShape.circle),
+            alignment: Alignment.center,
+            child: Icon(Icons.person_outline, size: size * 0.5, color: AppTheme.n500),
+          )
+        else
+          Container(
+            width: size, height: size,
+            decoration: BoxDecoration(color: _hashColor().withValues(alpha: 0.15), shape: BoxShape.circle),
+            alignment: Alignment.center,
+            child: Text(name[0].toUpperCase(),
+                style: AppTheme.caption.copyWith(fontSize: size * 0.4, fontWeight: FontWeight.w700, color: _hashColor())),
+          ),
         if (showStatusDot)
           Positioned(right: 0, bottom: 0, child: Container(width: size * 0.3, height: size * 0.3,
               decoration: BoxDecoration(color: statusColor ?? AppTheme.success, shape: BoxShape.circle, border: Border.all(color: AppTheme.n0, width: 2)))),

@@ -39,10 +39,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final todosF = DashboardService.instance.todos();
     final eventsF = DashboardService.instance.recentEvents();
     final results = await Future.wait([todosF, eventsF]);
+    final todosData = results[0];
     if (mounted) setState(() => _unreadCount = 3); // mock
     return _DashboardAllData(
-      todoItems: (results[0]['todos'] as List).cast<Map<String, dynamic>>(),
-      todoTotal: (results[0]['total'] as num?)?.toInt() ?? 0,
+      todoItems: (todosData['todos'] as List).cast<Map<String, dynamic>>(),
+      todoTotal: (todosData['total'] as num?)?.toInt() ?? 0,
       events: (results[1]['events'] as List).cast<Map<String, dynamic>>(),
     );
   }
@@ -143,13 +144,27 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
               // ═══ 待办列表 ═══
-              if (data.todoTotal > 0)
-                SliverToBoxAdapter(
-                  child: AppSection(
-                    title: '待办',
-                    children: data.todoItems.take(5).map((todo) => _buildTodoCard(todo, context)).toList(),
-                  ),
+              SliverToBoxAdapter(
+                child: AppSection(
+                  title: '待办',
+                  actionLabel: data.todoTotal > 0 ? '全部 →' : null,
+                  children: data.todoTotal > 0
+                      ? data.todoItems.take(5).map((todo) => _buildTodoCard(todo, context)).toList()
+                      : [SizedBox(
+                          height: 120,
+                          child: AppCard.flat(
+                            child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                              Container(width: 48, height: 48, decoration: BoxDecoration(color: AppTheme.success.withValues(alpha: 0.12), shape: BoxShape.circle),
+                                  child: const Icon(LucideIcons.checkCircle, size: 28, color: AppTheme.success)),
+                              const SizedBox(height: 12),
+                              Text('待办都处理完了', style: AppTheme.titleS.copyWith(color: AppTheme.n700)),
+                              const SizedBox(height: 4),
+                              Text('保持节奏,新申请会及时通知你', style: AppTheme.bodyS.copyWith(color: AppTheme.n500)),
+                            ])),
+                          ),
+                        )],
                 ),
+              ),
 
               // ═══ 今日动态 ═══
               SliverToBoxAdapter(
