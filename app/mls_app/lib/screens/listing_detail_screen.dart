@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../services/api_client.dart';
 import '../services/transaction_service.dart';
 import '../widgets/base64_image.dart';
+import '../models/listing_showing_summary.dart';
 
 /// V2.2 #1: 6-section 详情页 + 权限分层渲染
 class ListingDetailScreen extends StatefulWidget {
@@ -14,17 +15,29 @@ class ListingDetailScreen extends StatefulWidget {
 
 class _ListingDetailScreenState extends State<ListingDetailScreen> {
   late Future<Map<String, dynamic>> _future;
+  late Future<List<ListingShowingSummary>?> _showingsFuture;
   bool _listChanged = false;
 
   @override
   void initState() {
     super.initState();
     _future = _fetch();
+    _showingsFuture = _fetchShowingsSummary();
   }
 
   Future<Map<String, dynamic>> _fetch() async {
     final response = await ApiClient.instance.dio.get('/listings/${widget.listingId}');
     return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<List<ListingShowingSummary>?> _fetchShowingsSummary() async {
+    try {
+      final r = await ApiClient.instance.dio.get('/listings/${widget.listingId}/showings-summary');
+      final items = (r.data['items'] as List).cast<Map<String, dynamic>>();
+      return items.map((e) => ListingShowingSummary.fromJson(e)).toList();
+    } catch (_) {
+      return null;  // 403 = not owner, or error → skip section
+    }
   }
 
   void _reload() {
@@ -217,6 +230,37 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                   if (isUnlocked)
                     _infoRow('联系电话', item['owner_agent_phone'] ?? ''),
                 ]),
+
+                // ═══ ⑦ V2.2 #3: LA 视角带看记录 ═══
+                FutureBuilder<List<ListingShowingSummary>?>(
+                  future: _showingsFuture,
+                  builder: (ctx, snap) {
+                    if (snap.connectionState == ConnectionState.waiting) {
+                      return _sectionCard(title: '带看记录', children: [
+                        const Padding(padding: EdgeInsets.all(12), child: Center(child: CircularProgressIndicator())),
+                      ]);
+                    }
+                    final summaries = snap.data;
+                    if (summaries == null) return const SizedBox.shrink();  // BA/error → skip
+                    if (summaries.isEmpty) {
+                      return _sectionCard(title: '带看记录', children: [
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(8)),
+                          child: const Row(children: [
+                            Icon(Icons.people_outline, size: 24, color: Colors.grey),
+                            SizedBox(width: 12),
+                            Expanded(child: Text('暂无带看申请,等买方经纪人发现你的房源', style: TextStyle(color: Colors.grey, fontSize: 14))),
+                          ]),
+                        ),
+                      ]);
+                    }
+                    return _sectionCard(
+                      title: '带看记录  ·  共 ${summaries.length} 条',
+                      children: summaries.map((s) => _ShowingSummaryCard(summary: s)).toList(),
+                    );
+                  },
+                ),
 
                 // ═══ ⑥ 权限分层 ═══
                 if (isUnlocked) ...[
@@ -642,6 +686,72 @@ class _FullscreenViewerState extends State<_FullscreenViewer> {
           child: Base64Image(dataUrl: widget.photos[i]['data'] as String?, fit: BoxFit.contain))),
     ),
   );
+}
+
+/// V2.2 #3: 带看记录卡片
+class _ShowingSummaryCard extends StatelessWidget {
+  final ListingShowingSummary summary;
+  const _ShowingSummaryCard({required this.summary});
+
+  static const _statusColors = {
+    'pending': Colors.amber,
+    'approved': Colors.green,
+    'showing_done': Colors.blue,
+    'transaction_initiated': Colors.blue,
+    'transaction_confirmed': Colors.indigo,
+    'rejected': Colors.grey,
+    'canceled': Colors.grey,
+  };
+
+  String _maskPhone(String phone) {
+    if (phone.length < 11) return phone;
+    return '${phone.substring(0, 3)}****${phone.substring(7)}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _statusColors[summary.currentStatus] ?? Colors.grey;
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Expanded(child: Text(summary.baName, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(4)),
+              child: Text(summary.currentStatusLabel, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.bold)),
+            ),
+          ]),
+          const SizedBox(height: 4),
+          Text('${summary.customerName}${summary.customerDemand != null && summary.customerDemand!.isNotEmpty ? ' · ${summary.customerDemand}' : ''}',
+              style: const TextStyle(fontSize: 12, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 8),
+          Row(children: [
+            Text('${summary.createdAt.month}月${summary.createdAt.day}日', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+            const Spacer(),
+            if (summary.baPhone != null)
+              InkWell(
+                onTap: () {
+                  // Simple fallback — url_launcher integration
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.green.shade200)),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    const Icon(Icons.phone, size: 14, color: Colors.green),
+                    const SizedBox(width: 4),
+                    Text('拨号 ${_maskPhone(summary.baPhone!)}', style: TextStyle(fontSize: 12, color: Colors.green.shade700)),
+                  ]),
+                ),
+              ),
+          ]),
+        ]),
+      ),
+    );
+  }
 }
 
 class _StatusBadge extends StatelessWidget {
