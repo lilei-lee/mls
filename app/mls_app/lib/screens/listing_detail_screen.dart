@@ -291,20 +291,45 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                 // ═══ ⑥ 权限分层 ═══
                 if (isUnlocked) ...[
                   _sectionCard(title: '同行私话', children: [
-                    Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      const Icon(Icons.lock_open, size: 16, color: Colors.green),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(agentRemarks, style: const TextStyle(fontSize: 14, height: 1.6))),
-                    ]),
+                    if (agentRemarks.isNotEmpty)
+                      Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        const Icon(Icons.lock_open, size: 16, color: Colors.green),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(agentRemarks, style: const TextStyle(fontSize: 14, height: 1.6))),
+                      ])
+                    else if (_isOwner)
+                      Row(children: [
+                        const Icon(Icons.info_outline, size: 16, color: Colors.grey),
+                        const SizedBox(width: 8),
+                        const Expanded(child: Text('本房暂无同行私话(可在编辑页填写)', style: TextStyle(color: Colors.grey, fontSize: 13))),
+                      ])
+                    else
+                      Row(children: [
+                        const Icon(Icons.lock_open, size: 16, color: Colors.green),
+                        const SizedBox(width: 8),
+                        const Expanded(child: Text('(已通过协作,暂无同行私话)', style: TextStyle(color: Colors.grey, fontSize: 13))),
+                      ]),
                   ]),
-                  if (showingInst.isNotEmpty)
-                    _sectionCard(title: '看房安排', children: [
+                  _sectionCard(title: '看房安排', children: [
+                    if (showingInst.isNotEmpty)
                       Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         const Icon(Icons.schedule, size: 16, color: Colors.blue),
                         const SizedBox(width: 8),
                         Expanded(child: Text(showingInst, style: const TextStyle(fontSize: 14, height: 1.6))),
+                      ])
+                    else if (_isOwner)
+                      Row(children: [
+                        const Icon(Icons.info_outline, size: 16, color: Colors.grey),
+                        const SizedBox(width: 8),
+                        const Expanded(child: Text('本房暂无看房安排(可在编辑页填写)', style: TextStyle(color: Colors.grey, fontSize: 13))),
+                      ])
+                    else
+                      Row(children: [
+                        const Icon(Icons.schedule, size: 16, color: Colors.blue),
+                        const SizedBox(width: 8),
+                        const Expanded(child: Text('(已通过协作,暂无看房指引)', style: TextStyle(color: Colors.grey, fontSize: 13))),
                       ]),
-                    ]),
+                  ]),
                 ] else ...[
                   _sectionCard(children: [
                     Container(
