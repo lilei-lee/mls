@@ -295,6 +295,12 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
 
                 const SizedBox(height: 12),
 
+                // ═══ V2.2 #5: 房源动态 ═══
+                _buildActivitySection(item),
+
+                // ═══ V2.2 #5: 同小区同居室 ═══
+                _buildSameLayoutSection(item),
+
                 // ── Action buttons ──
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -341,6 +347,118 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
             );
           },
         ),
+      ),
+    );
+  }
+
+  // ── V2.2 #5: 房源动态 ──
+  Widget _buildActivitySection(Map<String, dynamic> item) {
+    final showings7d = (item['showing_count_7d'] as num?)?.toInt() ?? 0;
+    final priceHistory = (item['price_history'] as List?) ?? [];
+    final listedAt = item['listed_at'] as String?;
+    final currentPrice = item['price_wan'];
+
+    final rows = <Widget>[];
+    rows.add(Row(children: [
+      _miniStat('近7天带看', '$showings7d 次', Icons.visibility),
+      const SizedBox(width: 24),
+      _miniStat('关注', '0', Icons.favorite_border),  // V3 占位
+    ]));
+
+    if (priceHistory.isNotEmpty || listedAt != null) {
+      rows.add(const SizedBox(height: 8));
+      rows.add(const Text('调价记录', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)));
+      rows.add(const SizedBox(height: 4));
+      // 挂牌
+      if (listedAt != null) {
+        final dt = DateTime.tryParse(listedAt);
+        rows.add(_timelineRow('首次挂牌 ${currentPrice}万', dt, isFirst: true));
+      }
+      // 调价记录(倒序)
+      for (final h in priceHistory.reversed) {
+        final p = h['price_wan'] ?? h['price'];
+        final at = h['changed_at']?.toString() ?? '';
+        final dt = DateTime.tryParse(at);
+        rows.add(_timelineRow('调价至 ${p}万', dt));
+      }
+    }
+
+    return _sectionCard(title: '房源动态', children: rows);
+  }
+
+  Widget _miniStat(String label, String value, IconData icon) {
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      Icon(icon, size: 16, color: Colors.grey),
+      const SizedBox(width: 4),
+      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+      ]),
+    ]);
+  }
+
+  Widget _timelineRow(String text, DateTime? time, {bool isFirst = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, bottom: 4),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Column(children: [
+          Container(width: 10, height: 10, decoration: BoxDecoration(
+            color: isFirst ? Colors.blue : Colors.grey, shape: BoxShape.circle)),
+          if (!isFirst) Container(width: 1, height: 20, color: Colors.grey.shade300),
+        ]),
+        const SizedBox(width: 8),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(text, style: const TextStyle(fontSize: 13)),
+          if (time != null) Text('${time.month}月${time.day}日', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+        ])),
+      ]),
+    );
+  }
+
+  // ── V2.2 #5: 同小区同居室 ──
+  Widget _buildSameLayoutSection(Map<String, dynamic> item) {
+    final sameLayout = (item['same_layout_listings'] as List?) ?? [];
+    final sameLayoutDeals = (item['same_layout_deals'] as List?) ?? [];
+
+    return _sectionCard(title: '同小区 · 同居室', children: [
+      Row(children: [
+        _sameLayoutTab('在售 ${sameLayout.length}', true),
+        const SizedBox(width: 8),
+        _sameLayoutTab('成交 ${sameLayoutDeals.length}', false),
+      ]),
+      const SizedBox(height: 8),
+      if (sameLayout.isEmpty)
+        const Text('暂无同居室在售房源', style: TextStyle(color: Colors.grey, fontSize: 13))
+      else
+        ...sameLayout.take(3).map((l) => _sameLayoutCard(l as Map<String, dynamic>)),
+    ]);
+  }
+
+  Widget _sameLayoutTab(String label, bool active) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: active ? Colors.blue.shade50 : Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(16),
+        border: active ? Border.all(color: Colors.blue.shade300) : null,
+      ),
+      child: Text(label, style: TextStyle(fontSize: 12, color: active ? Colors.blue : Colors.grey)),
+    );
+  }
+
+  Widget _sameLayoutCard(Map<String, dynamic> l) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: InkWell(
+        onTap: () => context.push('/listing/${l['listing_id']}'),
+        child: Row(children: [
+          Text('${l['building']}-${l['unit']}-${l['room_no']}',
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+          const SizedBox(width: 8),
+          Text('${l['layout']}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          const Spacer(),
+          Text('¥${l['price_wan']}万', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.red)),
+        ]),
       ),
     );
   }
