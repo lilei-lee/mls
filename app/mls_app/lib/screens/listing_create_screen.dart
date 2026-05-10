@@ -30,12 +30,11 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
   final _areaSqm = TextEditingController();
 
   final _rooms = TextEditingController();
-  final _halls = TextEditingController();
   final _bathrooms = TextEditingController();
 
   final _floor = TextEditingController();
   final _totalFloor = TextEditingController();
-  final _orientation = TextEditingController(text: '南北通透');
+  String _orientation = '朝南';  // V2.2 #2: 4 选枚举
 
   final _priceWan = TextEditingController();
   final _bonusYuan = TextEditingController(text: '0');
@@ -48,6 +47,7 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
   // V2.2: 格局特点(辞典 claim)
   List<String> _selectedObjectiveFeatures = [];
   String? _selectedDecoration;
+  String? _selectedHouseStructure;  // V2.2 #2: 户型结构
 
   // V2.2: 卖点标签
   List<String> _salePoints = [];
@@ -86,8 +86,8 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
   @override
   void dispose() {
     _building.dispose(); _unit.dispose(); _roomNo.dispose();
-    _areaSqm.dispose(); _rooms.dispose(); _halls.dispose(); _bathrooms.dispose();
-    _floor.dispose(); _totalFloor.dispose(); _orientation.dispose();
+    _areaSqm.dispose(); _rooms.dispose(); _bathrooms.dispose();
+    _floor.dispose(); _totalFloor.dispose();
     _priceWan.dispose(); _bonusYuan.dispose();
     _publicRemarks.dispose(); _agentRemarks.dispose(); _showingInstructions.dispose();
     super.dispose();
@@ -112,11 +112,10 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
         'room_no': _roomNo.text.trim(),
         'area_sqm': double.parse(_areaSqm.text),
         'rooms': int.parse(_rooms.text),
-        'halls': int.parse(_halls.text),
         'bathrooms': int.parse(_bathrooms.text),
         'floor': int.parse(_floor.text),
         'total_floor': int.parse(_totalFloor.text),
-        'orientation': _orientation.text.trim(),
+        'orientation': _orientation,
         'price_wan': double.parse(_priceWan.text),
         'bonus_yuan': int.tryParse(_bonusYuan.text.trim()) ?? 0,
         'cover_thumbnail': _coverThumbnail,
@@ -128,13 +127,14 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
         'showing_instructions': _showingInstructions.text.trim(),
         'objective_features': _selectedObjectiveFeatures.isNotEmpty ? _selectedObjectiveFeatures : null,
         'decoration': _selectedDecoration,
+        'house_structure': _selectedHouseStructure,
       });
 
       final listingId = response.data['listing_id'];
 
       // Step B: sync-physical (objective_features + decoration)
       // 失败不阻塞 listing 创建
-      if (_selectedObjectiveFeatures.isNotEmpty || _selectedDecoration != null) {
+      if (_selectedObjectiveFeatures.isNotEmpty || _selectedDecoration != null || _selectedHouseStructure != null) {
         try {
           final syncBody = <String, dynamic>{};
           if (_selectedObjectiveFeatures.isNotEmpty) {
@@ -142,6 +142,9 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
           }
           if (_selectedDecoration != null) {
             syncBody['decoration'] = _selectedDecoration;
+          }
+          if (_selectedHouseStructure != null) {
+            syncBody['house_structure'] = _selectedHouseStructure;
           }
           await ApiClient.instance.dio.post(
             '/listings/$listingId/sync-physical', data: syncBody);
@@ -199,10 +202,12 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
       _coverThumbnail = null;
       _selectedObjectiveFeatures = [];
       _selectedDecoration = null;
+      _selectedHouseStructure = null;
+      _orientation = '朝南';
       _salePoints = [];
     });
     _building.clear(); _unit.clear(); _roomNo.clear(); _areaSqm.clear();
-    _rooms.text = ''; _halls.text = ''; _bathrooms.text = '';
+    _rooms.text = ''; _bathrooms.text = '';
     _floor.clear(); _totalFloor.clear(); _priceWan.clear(); _bonusYuan.text = '0';
     _publicRemarks.clear(); _agentRemarks.clear(); _showingInstructions.clear();
   }
@@ -276,19 +281,27 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
                   const SizedBox(height: 20),
                   _sectionTitle('户型'),
                   Row(children: [
-                    Expanded(child: _textField(_rooms, '卧室', numeric: true)),
+                    Expanded(child: _textField(_rooms, '居室数', numeric: true, hint: '3')),
                     const SizedBox(width: 12),
-                    Expanded(child: _textField(_halls, '客厅', numeric: true)),
-                    const SizedBox(width: 12),
-                    Expanded(child: _textField(_bathrooms, '卫生间', numeric: true)),
+                    Expanded(child: _textField(_bathrooms, '卫生间数', numeric: true, hint: '1')),
                   ]),
                   const SizedBox(height: 20),
                   _sectionTitle('房源信息'),
                   Row(children: [
                     Expanded(child: _textField(_areaSqm, '建筑面积(㎡)', hint: '89.5', numeric: true, allowDecimal: true)),
-                    const SizedBox(width: 12),
-                    Expanded(child: _textField(_orientation, '朝向')),
                   ]),
+                  const SizedBox(height: 4),
+                  const Text('朝向', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  const SizedBox(height: 6),
+                  Wrap(spacing: 8, runSpacing: 4, children: ['朝东', '朝西', '朝南', '朝北'].map((d) {
+                    final sel = _orientation == d;
+                    return ChoiceChip(
+                      label: Text(d, style: TextStyle(fontSize: 13)),
+                      selected: sel,
+                      onSelected: (_) => setState(() => _orientation = d),
+                      selectedColor: Colors.blue.shade50,
+                    );
+                  }).toList()),
                   Row(children: [
                     Expanded(child: _textField(_floor, '所在楼层', hint: '5', numeric: true)),
                     const SizedBox(width: 12),
@@ -338,6 +351,23 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
                         selected: sel,
                         onSelected: (_) {
                           setState(() => _selectedDecoration = sel ? null : d);
+                        },
+                        selectedColor: Colors.blue.shade50,
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('户型结构(单选)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8, runSpacing: 4,
+                    children: SalePointsLibrary.houseStructureOptions.map((h) {
+                      final sel = _selectedHouseStructure == h;
+                      return ChoiceChip(
+                        label: Text(h, style: TextStyle(fontSize: 13)),
+                        selected: sel,
+                        onSelected: (_) {
+                          setState(() => _selectedHouseStructure = sel ? null : h);
                         },
                         selectedColor: Colors.blue.shade50,
                       );

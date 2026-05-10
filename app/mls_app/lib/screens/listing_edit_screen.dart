@@ -21,12 +21,13 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
   // 营销字段
   late final TextEditingController _orientation, _priceWan, _bonusYuan;
   late final TextEditingController _publicRemarks, _agentRemarks, _showingInstructions;
-  // 物理字段(Bug B)
-  late final TextEditingController _area, _floor, _totalFloor, _rooms, _halls, _bathrooms;
+  // 物理字段(Bug B)  V2.2 #2: 删 halls
+  late final TextEditingController _area, _floor, _totalFloor, _rooms, _bathrooms;
 
   // V2.2: 格局特点(辞典 claim)
   List<String> _selectedObjectiveFeatures = [];
   String? _selectedDecoration;
+  String? _selectedHouseStructure;  // V2.2 #2: 户型结构
 
   // V2.2: 卖点标签
   List<String> _salePoints = [];
@@ -56,7 +57,6 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
     _floor = TextEditingController(text: (mc['floor'] ?? o['floor'])?.toString() ?? '');
     _totalFloor = TextEditingController(text: (mc['total_floor'] ?? o['total_floor'])?.toString() ?? '');
     _rooms = TextEditingController(text: (mc['rooms'] ?? o['rooms'])?.toString() ?? '');
-    _halls = TextEditingController(text: (mc['halls'] ?? o['halls'])?.toString() ?? '');
     _bathrooms = TextEditingController(text: (mc['bathrooms'] ?? o['bathrooms'])?.toString() ?? '');
 
     // V2.2: 预填格局特点(my_last_claim 优先,否则 authoritative_attrs / original)
@@ -67,6 +67,7 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
       _selectedObjectiveFeatures = List<String>.from((o['objective_features'] as List).cast<String>());
     }
     _selectedDecoration = (mc['decoration'] ?? o['decoration'])?.toString();
+    _selectedHouseStructure = (mc['house_structure'] ?? o['house_structure'])?.toString();
 
     // V2.2: 预填卖点标签
     if (o['sale_points'] is List) {
@@ -83,7 +84,7 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
     _orientation.dispose(); _priceWan.dispose(); _bonusYuan.dispose();
     _publicRemarks.dispose(); _agentRemarks.dispose(); _showingInstructions.dispose();
     _area.dispose(); _floor.dispose(); _totalFloor.dispose();
-    _rooms.dispose(); _halls.dispose(); _bathrooms.dispose();
+    _rooms.dispose(); _bathrooms.dispose();
     super.dispose();
   }
 
@@ -149,11 +150,11 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
     addInt(_floor, 'floor');
     addInt(_totalFloor, 'total_floor');
     addInt(_rooms, 'rooms');
-    addInt(_halls, 'halls');
     addInt(_bathrooms, 'bathrooms');
     // V2.2: 客观字段(非 null 才入 body)
     if (_selectedObjectiveFeatures.isNotEmpty) m['objective_features'] = _selectedObjectiveFeatures;
     if (_selectedDecoration != null) m['decoration'] = _selectedDecoration;
+    if (_selectedHouseStructure != null) m['house_structure'] = _selectedHouseStructure;
     return m;
   }
 
@@ -282,11 +283,9 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
 
             _sectionTitle('户型'),
             Row(children: [
-              Expanded(child: _tf(_rooms, '卧室', numeric: true)),
+              Expanded(child: _tf(_rooms, '居室数', numeric: true)),
               const SizedBox(width: 12),
-              Expanded(child: _tf(_halls, '客厅', numeric: true)),
-              const SizedBox(width: 12),
-              Expanded(child: _tf(_bathrooms, '卫生间', numeric: true)),
+              Expanded(child: _tf(_bathrooms, '卫生间数', numeric: true)),
             ]),
             const SizedBox(height: 20),
 
@@ -324,6 +323,23 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
                   selected: sel,
                   onSelected: (_) {
                     setState(() => _selectedDecoration = sel ? null : d);
+                  },
+                  selectedColor: Colors.blue.shade50,
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+            const Text('户型结构(单选)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8, runSpacing: 4,
+              children: SalePointsLibrary.houseStructureOptions.map((h) {
+                final sel = _selectedHouseStructure == h;
+                return ChoiceChip(
+                  label: Text(h, style: TextStyle(fontSize: 13)),
+                  selected: sel,
+                  onSelected: (_) {
+                    setState(() => _selectedHouseStructure = sel ? null : h);
                   },
                   selectedColor: Colors.blue.shade50,
                 );
