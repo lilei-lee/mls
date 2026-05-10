@@ -21,7 +21,6 @@ class _HomeScreenState extends State<HomeScreen> {
   static const _storage = FlutterSecureStorage();
   late Future<_DashboardAllData> _future;
   String _myName = '';
-  String _role = 'LA';
   int _unreadCount = 0;
 
   @override
@@ -33,21 +32,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadProfile() async {
     final n = await _storage.read(key: 'name');
-    final r = await _storage.read(key: 'role');
-    if (mounted) setState(() {
-      _myName = n ?? '';
-      _role = r?.isNotEmpty == true ? r! : 'LA';
-    });
+    if (mounted) setState(() => _myName = n ?? '');
   }
 
   Future<_DashboardAllData> _loadAll() async {
     final todosF = DashboardService.instance.todos();
     final eventsF = DashboardService.instance.recentEvents();
-    // TODO: 接口待补 — 通知未读数
     final results = await Future.wait([todosF, eventsF]);
     if (mounted) setState(() => _unreadCount = 3); // mock
     return _DashboardAllData(
-      todos: (results[0]['todos'] as List).cast<Map<String, dynamic>>(),
+      todoItems: (results[0]['todos'] as List).cast<Map<String, dynamic>>(),
+      todoTotal: (results[0]['total'] as num?)?.toInt() ?? 0,
       events: (results[1]['events'] as List).cast<Map<String, dynamic>>(),
     );
   }
@@ -100,14 +95,14 @@ class _HomeScreenState extends State<HomeScreen> {
         future: _future,
         builder: (ctx, snap) {
           if (snap.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-          final data = snap.data ?? _DashboardAllData(todos: [], events: []);
+          final data = snap.data ?? _DashboardAllData(todoItems: [], todoTotal: 0, events: []);
 
           return RefreshIndicator(
             onRefresh: () async => _refresh(),
             child: CustomScrollView(slivers: [
-              // ═══ Hero Section (h=140) ═══
+              // ═══ Hero Section (h=100, compact) ═══
               SliverAppBar(
-                expandedHeight: 140,
+                expandedHeight: 100,
                 pinned: true,
                 backgroundColor: AppTheme.n0,
                 flexibleSpace: FlexibleSpaceBar(background: Container(
@@ -115,57 +110,46 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: SafeArea(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                      child: Column(children: [
-                        // Row 1: Avatar + greeting + bell
-                        Row(children: [
-                          GestureDetector(
-                            onTap: () => _showMyMenu(context),
-                            child: AppAvatar(name: _myName, size: 32),
-                          ),
-                          const SizedBox(width: 10),
-                          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Text('${_greeting()}，${_myName.isNotEmpty ? _myName : '用户'}',
-                                style: AppTheme.titleM.copyWith(color: AppTheme.n0, fontSize: 15)),
-                            Text('工作台 · ${_todayLabel()}',
-                                style: AppTheme.caption.copyWith(color: AppTheme.n0.withValues(alpha: 0.65), fontSize: 11)),
-                          ]),
+                      child: Row(children: [
+                        GestureDetector(
+                          onTap: () => _showMyMenu(context),
+                          child: AppAvatar(name: _myName, size: 32),
+                        ),
+                        const SizedBox(width: 10),
+                        Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
                           const Spacer(),
-                          // Bell with badge
-                          Stack(clipBehavior: Clip.none, children: [
-                            const Icon(LucideIcons.bell, size: 22, color: AppTheme.n0),
-                            if (_unreadCount > 0)
-                              Positioned(right: -6, top: -4, child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                                decoration: const BoxDecoration(color: AppTheme.danger, shape: BoxShape.circle),
-                                constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                                alignment: Alignment.center,
-                                child: Text('${_unreadCount > 99 ? '99+' : _unreadCount}', style: AppTheme.caption.copyWith(color: AppTheme.n0, fontSize: 9, fontWeight: FontWeight.w700)),
-                              )),
-                          ]),
+                          Text('${_greeting()}，${_myName.isNotEmpty ? _myName : '用户'}',
+                              style: AppTheme.titleM.copyWith(color: AppTheme.n0, fontSize: 15)),
+                          Text('工作台 · ${_todayLabel()}',
+                              style: AppTheme.caption.copyWith(color: AppTheme.n0.withValues(alpha: 0.65), fontSize: 11)),
+                          const Spacer(),
                         ]),
                         const Spacer(),
-                        // Row 2: 3 stat columns at bottom of hero
-                        if (_role == 'LA')
-                          Row(children: [
-                            _heroStat('${_countForType(data.todos, 'showing_request')}', '待审带看'),
-                            _heroDivider(),
-                            _heroStat('${_countForType(data.todos, 'transaction')}', '待确认成交'),
-                            _heroDivider(),
-                            _heroStat('${_countForType(data.todos, 'listing')}', '在售房源'),
-                          ])
-                        else
-                          Row(children: [
-                            _heroStat('${_countForType(data.todos, 'my_application')}', '我的申请'),
-                            _heroDivider(),
-                            _heroStat('${_countForType(data.todos, 'pending_showing')}', '待提交带看'),
-                            _heroDivider(),
-                            _heroStat('${_countForType(data.todos, 'my_customer')}', '我的客户'),
-                          ]),
+                        Stack(clipBehavior: Clip.none, children: [
+                          const Icon(LucideIcons.bell, size: 22, color: AppTheme.n0),
+                          if (_unreadCount > 0)
+                            Positioned(right: -6, top: -4, child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                              decoration: const BoxDecoration(color: AppTheme.danger, shape: BoxShape.circle),
+                              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                              alignment: Alignment.center,
+                              child: Text('${_unreadCount > 99 ? '99+' : _unreadCount}', style: AppTheme.caption.copyWith(color: AppTheme.n0, fontSize: 9, fontWeight: FontWeight.w700)),
+                            )),
+                        ]),
                       ]),
                     ),
                   ),
                 )),
               ),
+
+              // ═══ 待办列表 ═══
+              if (data.todoTotal > 0)
+                SliverToBoxAdapter(
+                  child: AppSection(
+                    title: '待办',
+                    children: data.todoItems.take(5).map((todo) => _buildTodoCard(todo, context)).toList(),
+                  ),
+                ),
 
               // ═══ 今日动态 ═══
               SliverToBoxAdapter(
@@ -246,21 +230,40 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _heroStat(String count, String label) {
-    return Expanded(
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Text(count, style: AppTheme.numberL.copyWith(fontSize: 28, color: AppTheme.n0)),
-        const SizedBox(height: 2),
-        Text(label, style: AppTheme.caption.copyWith(color: AppTheme.n0.withValues(alpha: 0.7), fontSize: 11)),
+  Widget _buildTodoCard(Map<String, dynamic> todo, BuildContext context) {
+    final color = switch (todo['priority']) {
+      'high' => AppTheme.warning,
+      _ => AppTheme.primary500,
+    };
+    final icon = switch (todo['icon']) {
+      'person_add' => LucideIcons.userPlus,
+      'rate_review' => LucideIcons.fileText,
+      'gavel' => LucideIcons.gavel,
+      'monetization_on' => LucideIcons.banknote,
+      'edit' => LucideIcons.pencil,
+      'user_check' => LucideIcons.userCheck,
+      'circle_check' => LucideIcons.checkCircle,
+      _ => LucideIcons.bell,
+    };
+    final route = todo['action_route'] as String?;
+
+    return AppCard.base(
+      padding: const EdgeInsets.all(14),
+      onTap: route != null ? () => context.push(route) : null,
+      child: Row(children: [
+        Container(width: 40, height: 40, decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
+            child: Icon(icon, size: 20, color: color)),
+        const SizedBox(width: 12),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(todo['title']?.toString() ?? '', style: AppTheme.titleS.copyWith(fontSize: 14), maxLines: 2, overflow: TextOverflow.ellipsis),
+          if (todo['subtitle'] != null && (todo['subtitle'] as String).isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(todo['subtitle'] as String, style: AppTheme.bodyS.copyWith(fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
+          ],
+        ])),
+        if (route != null) const Icon(LucideIcons.chevronRight, size: 18, color: AppTheme.n300),
       ]),
     );
-  }
-
-  Widget _heroDivider() => Container(width: 1, height: 32, color: AppTheme.n0.withValues(alpha: 0.2));
-
-  int _countForType(List<Map<String, dynamic>> todos, String type) {
-    final match = todos.where((t) => t['type'] == type).firstOrNull;
-    return (match?['count'] as num?)?.toInt() ?? 0;
   }
 
   String _todayLabel() {
@@ -279,7 +282,8 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class _DashboardAllData {
-  final List<Map<String, dynamic>> todos;
+  final List<Map<String, dynamic>> todoItems;
+  final int todoTotal;
   final List<Map<String, dynamic>> events;
-  _DashboardAllData({required this.todos, required this.events});
+  _DashboardAllData({required this.todoItems, required this.todoTotal, required this.events});
 }
