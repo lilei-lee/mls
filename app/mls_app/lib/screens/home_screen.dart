@@ -114,7 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Row(children: [
                         GestureDetector(
                           onTap: () => _showMyMenu(context),
-                          child: AppAvatar(name: _myName, size: 32),
+                          child: AppAvatar(name: _myName, size: 32, onDark: true),
                         ),
                         const SizedBox(width: 10),
                         Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -150,19 +150,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   actionLabel: data.todoTotal > 0 ? '全部 →' : null,
                   children: data.todoTotal > 0
                       ? data.todoItems.take(5).map((todo) => _buildTodoCard(todo, context)).toList()
-                      : [SizedBox(
-                          height: 120,
-                          child: AppCard.flat(
-                            child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                              Container(width: 48, height: 48, decoration: BoxDecoration(color: AppTheme.success.withValues(alpha: 0.12), shape: BoxShape.circle),
-                                  child: const Icon(LucideIcons.checkCircle, size: 28, color: AppTheme.success)),
-                              const SizedBox(height: 12),
-                              Text('待办都处理完了', style: AppTheme.titleS.copyWith(color: AppTheme.n700)),
-                              const SizedBox(height: 4),
-                              Text('保持节奏,新申请会及时通知你', style: AppTheme.bodyS.copyWith(color: AppTheme.n500)),
-                            ])),
-                          ),
-                        )],
+                      : [AppCard.flat(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          child: Row(children: [
+                            const Icon(LucideIcons.checkCircle, size: 18, color: AppTheme.success),
+                            const SizedBox(width: 8),
+                            Text('待办都处理完了 · 保持节奏', style: AppTheme.bodyM.copyWith(color: AppTheme.n700)),
+                          ]))],
                 ),
               ),
 
@@ -171,17 +164,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: AppSection(
                   title: '今日动态', actionLabel: '全部 →',
                   children: data.events.isEmpty
-                      ? [SizedBox(
-                          height: 160,
-                          child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                            const SizedBox(height: 24),
-                            const Icon(LucideIcons.inbox, size: 40, color: AppTheme.n300),
-                            const SizedBox(height: 12),
-                            Text('暂无新动态', style: AppTheme.titleS.copyWith(color: AppTheme.n700)),
-                            const SizedBox(height: 4),
-                            Text('等待房源动态更新', style: AppTheme.bodyS.copyWith(color: AppTheme.n500)),
-                          ])))
-                        ]
+                      ? [AppCard.flat(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          child: Row(children: [
+                            const Icon(LucideIcons.inbox, size: 18, color: AppTheme.n300),
+                            const SizedBox(width: 8),
+                            Text('暂无新动态', style: AppTheme.bodyM.copyWith(color: AppTheme.n500)),
+                          ]))]
                       : data.events.take(3).map((e) => _buildTimelineCard(e)).toList(),
                 ),
               ),
@@ -204,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-              const SliverToBoxAdapter(child: SizedBox(height: 80)),
+              const SliverToBoxAdapter(child: SizedBox(height: 24)),
             ]),
           );
         },

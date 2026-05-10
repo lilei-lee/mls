@@ -6,15 +6,19 @@ class AppAvatar extends StatelessWidget {
   final double size;
   final bool showStatusDot;
   final Color? statusColor;
+  final bool onDark;
 
-  const AppAvatar({super.key, required this.name, this.size = 40, this.showStatusDot = false, this.statusColor});
+  const AppAvatar({super.key, required this.name, this.size = 40, this.showStatusDot = false, this.statusColor, this.onDark = false});
 
   static const _colors = [AppTheme.primary500, AppTheme.gold500, AppTheme.accentCyan, AppTheme.accentPurple];
 
-  Color _hashColor() => _colors[name.isNotEmpty ? name.codeUnitAt(0) % _colors.length : 0];
+  Color _hashColor() => name.isNotEmpty ? _colors[name.codeUnitAt(0) % _colors.length] : AppTheme.primary500;
 
   @override
   Widget build(BuildContext context) {
+    final fallbackBg = onDark ? AppTheme.n0.withValues(alpha: 0.2) : AppTheme.n100;
+    final fallbackIcon = onDark ? AppTheme.n0.withValues(alpha: 0.8) : AppTheme.n500;
+
     return SizedBox(
       width: size,
       height: size,
@@ -22,9 +26,9 @@ class AppAvatar extends StatelessWidget {
         if (name.isEmpty)
           Container(
             width: size, height: size,
-            decoration: BoxDecoration(color: AppTheme.n100, shape: BoxShape.circle),
+            decoration: BoxDecoration(color: fallbackBg, shape: BoxShape.circle),
             alignment: Alignment.center,
-            child: Icon(Icons.person_outline, size: size * 0.5, color: AppTheme.n500),
+            child: Icon(Icons.person_outline, size: size * 0.5, color: fallbackIcon),
           )
         else
           Container(
