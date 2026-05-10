@@ -429,12 +429,12 @@ class _BuildSyncBanner extends StatelessWidget {
 
   static const _labels = {
     'area_sqm': '面积', 'floor': '楼层', 'total_floor': '总楼层',
-    'rooms': '卧室数', 'halls': '客厅数', 'bathrooms': '卫生间数',
-    'objective_features': '客观特征', 'decoration': '装修',
+    'rooms': '卧室数', 'bathrooms': '卫生间数',
+    'objective_features': '客观特征', 'decoration': '装修', 'house_structure': '户型结构',
   };
   static const _units = {
-    'area_sqm': '㎡', 'floor': '', 'total_floor': '', 'rooms': '', 'halls': '', 'bathrooms': '',
-    'objective_features': '', 'decoration': '',
+    'area_sqm': '㎡', 'floor': '', 'total_floor': '', 'rooms': '', 'bathrooms': '',
+    'objective_features': '', 'decoration': '', 'house_structure': '',
   };
 
   @override

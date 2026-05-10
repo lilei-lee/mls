@@ -83,7 +83,7 @@ def main():
                 "building": "1", "unit": "1", "room_no": "101",
                 "orientation": "南北", "price_wan": 95,
                 "area_sqm": 120, "floor": 5, "total_floor": 18,
-                "rooms": 3, "halls": 2, "bathrooms": 1,
+                "rooms": 3,  "bathrooms": 1,
                 "sale_points": ["学区房", "业主诚意", "满五唯一"],
                 "public_remarks": "南北通透全明格局,精装修拎包入住",
                 "agent_remarks": "房东诚心出售,底价90万",
@@ -92,6 +92,7 @@ def main():
             "sync": {
                 "objective_features": ["南北通透", "全明格局"],
                 "decoration": "精装",
+                "house_structure": "平层",
             },
         },
         {
@@ -101,7 +102,7 @@ def main():
                 "building": "1", "unit": "1", "room_no": "102",
                 "orientation": "南", "price_wan": 75,
                 "area_sqm": 88, "floor": 12, "total_floor": 18,
-                "rooms": 2, "halls": 1, "bathrooms": 1,
+                "rooms": 2,  "bathrooms": 1,
                 "sale_points": ["急售可议", "近商圈", "送车位"],
                 "public_remarks": "简装两居,总价低适合首套",
                 "agent_remarks": "投资客急卖,可大刀",
@@ -119,7 +120,7 @@ def main():
                 "building": "1", "unit": "2", "room_no": "201",
                 "orientation": "南北", "price_wan": 110,
                 "area_sqm": 140, "floor": 2, "total_floor": 18,
-                "rooms": 4, "halls": 2, "bathrooms": 2,
+                "rooms": 4,  "bathrooms": 2,
                 "sale_points": ["学区房", "满五唯一", "电梯洋房"],
                 "public_remarks": "大四居,双卫,带入户花园",
                 "agent_remarks": "毛坯可自由装修,价格可谈",
@@ -137,7 +138,7 @@ def main():
                 "building": "1", "unit": "2", "room_no": "202",
                 "orientation": "南", "price_wan": 130,
                 "area_sqm": 135, "floor": 8, "total_floor": 18,
-                "rooms": 3, "halls": 2, "bathrooms": 2,
+                "rooms": 3,  "bathrooms": 2,
                 "sale_points": ["红本在手", "近高铁站", "采光好"],
                 "public_remarks": "楼层好,采光极佳",
                 "agent_remarks": "业主出国急售,可降到125万",
@@ -146,6 +147,7 @@ def main():
             "sync": {
                 "objective_features": ["全南户型"],
                 "decoration": "豪装",
+                "house_structure": "复式",
             },
         },
         {
@@ -155,7 +157,7 @@ def main():
                 "building": "2", "unit": "1", "room_no": "301",
                 "orientation": "南北", "price_wan": 88,
                 "area_sqm": 105, "floor": 3, "total_floor": 18,
-                "rooms": 3, "halls": 1, "bathrooms": 1,
+                "rooms": 3,  "bathrooms": 1,
                 "sale_points": ["满二", "近公园", "带阳台"],
                 "public_remarks": "业主自住保养好,所有家电几乎全新,环境清幽近公园,孩子上下学方便",
                 "agent_remarks": "业主诚意度一般,价格相对硬",
@@ -173,7 +175,7 @@ def main():
                 "building": "2", "unit": "1", "room_no": "302",
                 "orientation": "西", "price_wan": 105,
                 "area_sqm": 115, "floor": 10, "total_floor": 18,
-                "rooms": 3, "halls": 2, "bathrooms": 1,
+                "rooms": 3,  "bathrooms": 1,
                 "sale_points": ["不满二", "开放厨房", "带衣帽间"],
                 "public_remarks": "开放式厨房+大衣帽间,适合年轻夫妻",
                 "agent_remarks": "",
@@ -182,6 +184,7 @@ def main():
             "sync": {
                 "objective_features": ["全明格局"],
                 "decoration": "精装",
+                "house_structure": "平层",
             },
         },
         {
@@ -191,7 +194,7 @@ def main():
                 "building": "3", "unit": "1", "room_no": "401",
                 "orientation": "南北", "price_wan": 145,
                 "area_sqm": 160, "floor": 4, "total_floor": 18,
-                "rooms": 4, "halls": 2, "bathrooms": 2,
+                "rooms": 4,  "bathrooms": 2,
                 "sale_points": ["学区房", "业主诚意", "次新房", "南向大平层"],
                 "public_remarks": "次新精装,业主诚心出售",
                 "agent_remarks": "业主因为离婚卖房,可议5-8万",
@@ -200,6 +203,7 @@ def main():
             "sync": {
                 "objective_features": ["南北通透", "客厅朝南", "卧室朝南"],
                 "decoration": "精装",
+                "house_structure": "平层",
             },
         },
         {
@@ -209,7 +213,7 @@ def main():
                 "building": "1", "unit": "1", "room_no": "501",
                 "orientation": "南", "price_wan": 68,
                 "area_sqm": 78, "floor": 5, "total_floor": 6,
-                "rooms": 2, "halls": 1, "bathrooms": 1,
+                "rooms": 2,  "bathrooms": 1,
                 "sale_points": ["业主诚意", "看房方便", "送储物间"],
                 "public_remarks": "最低价房源,刚需首选",
                 "agent_remarks": "老业主换房急售",
