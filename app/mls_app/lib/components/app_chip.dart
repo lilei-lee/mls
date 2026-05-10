@@ -27,7 +27,7 @@ class AppChip extends StatelessWidget {
       height: 28,
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: variant == _ChipVariant.selected ? AppTheme.primary50 : (variant == _ChipVariant.status ? _bgColor : AppTheme.n100),
+        color: variant == _ChipVariant.selected ? AppTheme.primary50 : AppTheme.n100,
         borderRadius: BorderRadius.circular(AppTheme.radiusS),
         border: variant == _ChipVariant.selected ? Border.all(color: AppTheme.primary500) : null,
       ),

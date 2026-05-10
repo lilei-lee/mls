@@ -132,4 +132,28 @@ class AppTheme {
   };
 
   static ThemeData get lightTheme => ThemeData(useMaterial3: true, colorSchemeSeed: primary500, brightness: Brightness.light);
+
+  // ═══ v1.0 向后兼容别名(@deprecated,新代码用 v2.0 名) ═══
+  static const double fontBody = 14;
+  static const double fontCaption = 12;
+  static const double fontSmall = 11;
+  static const double fontSectionTitle = 16;
+  static const double fontAppBar = 20;
+
+  static const double radiusSmall = 4;
+  static const double radiusMedium = 8;
+  static const double radiusLarge = 16;
+
+  static const Color primaryBlue = primary500;
+  static const Color colorPending = warning;
+  static const Color colorOnSale = success;
+  static const Color colorError = danger;
+  static const Color colorDepositPaid = info;
+
+  static const Color grey50 = n50;
+  static const Color grey100 = n100;
+  static const Color grey200 = n150;
+  static const Color grey400 = n300;
+  static const Color grey500 = n500;
+  static const Color grey800 = n800;
 }
