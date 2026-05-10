@@ -175,10 +175,10 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
                   border: InputBorder.none,
                 ),
               )
-            : const Text('共享房源库'),
+            : const Text('共享房源库', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
         actions: [
           IconButton(
-            icon: Icon(_searchMode ? LucideIcons.x : LucideIcons.search, size: 22),
+            icon: Icon(_searchMode ? LucideIcons.x : LucideIcons.search, size: 20),
             tooltip: _searchMode ? '关闭搜索' : '搜索',
             onPressed: _toggleSearch,
           ),
@@ -186,7 +186,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(LucideIcons.slidersHorizontal, size: 22),
+                icon: const Icon(LucideIcons.slidersHorizontal, size: 20),
                 tooltip: '筛选',
                 onPressed: _openFilterSheet,
               ),
@@ -205,7 +205,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
             ],
           ),
           PopupMenuButton<String>(
-            icon: const Icon(LucideIcons.arrowUpDown, size: 22),
+            icon: const Icon(LucideIcons.arrowUpDown, size: 20),
             tooltip: '排序',
             onSelected: (value) {
               setState(() {
@@ -230,7 +230,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
               _sortMenuItem('area_desc', '面积大→小', LucideIcons.maximize),
             ],
           ),
-          IconButton(icon: const Icon(LucideIcons.refreshCw, size: 22), tooltip: '刷新', onPressed: _refresh),
+          IconButton(icon: const Icon(LucideIcons.refreshCw, size: 20), tooltip: '刷新', onPressed: _refresh),
         ],
         bottom: TabBar(
           controller: _tabController,
@@ -404,32 +404,32 @@ class _SharedListingCard extends StatelessWidget {
         return null;
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
       decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
-      child: Text(label, style: TextStyle(color: color, fontSize: AppTheme.fontSmall, fontWeight: FontWeight.w600)),
+      child: Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w600)),
     );
   }
 
   Widget? _buildMyRequestBadge() {
     if (_myRequestStatus == 'pending') {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
         decoration: BoxDecoration(color: AppTheme.warning.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(LucideIcons.clock4, size: 10, color: AppTheme.warning),
           const SizedBox(width: 2),
-          Text('已申请', style: TextStyle(color: AppTheme.warning, fontSize: AppTheme.fontSmall, fontWeight: FontWeight.w600)),
+          Text('已申请', style: TextStyle(color: AppTheme.warning, fontSize: 10, fontWeight: FontWeight.w600)),
         ]),
       );
     }
     if (_myRequestStatus == 'approved') {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
         decoration: BoxDecoration(color: AppTheme.success.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(LucideIcons.checkCircle, size: 10, color: AppTheme.success),
           const SizedBox(width: 2),
-          Text('已通过', style: TextStyle(color: AppTheme.success, fontSize: AppTheme.fontSmall, fontWeight: FontWeight.w600)),
+          Text('已通过', style: TextStyle(color: AppTheme.success, fontSize: 10, fontWeight: FontWeight.w600)),
         ]),
       );
     }
@@ -560,16 +560,16 @@ class _SharedListingCard extends StatelessWidget {
                 Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   if (isHot) ...[
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                       decoration: BoxDecoration(color: const Color(0xFFDC1414), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
-                      child: const Text('必看好房', style: TextStyle(color: Colors.white, fontSize: AppTheme.fontSmall, fontWeight: FontWeight.w700)),
+                      child: const Text('必看好房', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
                     ),
                     const SizedBox(width: 4),
                   ],
                   Expanded(
                     child: Text('$community $building-$unit-$roomNo',
-                      style: TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.w700, color: AppTheme.n900),
-                      maxLines: 1, overflow: TextOverflow.ellipsis),
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.n900),
+                      maxLines: 2, overflow: TextOverflow.ellipsis),
                   ),
                   if (listingStatusBadge != null) ...[const SizedBox(width: 4), listingStatusBadge],
                   if (myRequestBadge != null) ...[const SizedBox(width: 4), myRequestBadge],
@@ -638,14 +638,14 @@ class _SharedListingCard extends StatelessWidget {
                             Text(
                               '¥${priceWan.toStringAsFixed(priceWan == priceWan.roundToDouble() ? 0 : 1)}',
                               style: const TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.w800,
+                                fontSize: 20, fontWeight: FontWeight.w800,
                                 color: Color(0xFFDC1414),
                                 fontFeatures: [FontFeature.tabularFigures()],
                                 height: 1.0,
                               ),
                             ),
                             const SizedBox(width: 2),
-                            Text('万', style: TextStyle(color: AppTheme.n900, fontSize: AppTheme.fontBody, fontWeight: FontWeight.w600)),
+                            Text('万', style: TextStyle(color: AppTheme.n900, fontSize: AppTheme.fontSmall, fontWeight: FontWeight.w600)),
                           ],
                         ),
                         if (unitPrice > 0)
@@ -663,15 +663,15 @@ class _SharedListingCard extends StatelessWidget {
                           : _myRequestStatus == 'approved'
                               ? AppTheme.success
                               : const Color(0xFF2B7FFF),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(16),
                       child: InkWell(
                         onTap: () => _onTapApply(context, snapshot),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(16),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           child: Text(
                             _myRequestStatus == 'pending' ? '已申请' : _myRequestStatus == 'approved' ? '已通过' : '申请带客',
-                            style: const TextStyle(fontSize: 13, color: Colors.white, fontWeight: FontWeight.w600),
+                            style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w600),
                           ),
                         ),
                       ),
