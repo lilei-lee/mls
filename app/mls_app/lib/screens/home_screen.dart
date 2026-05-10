@@ -1,19 +1,15 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import '../theme/app_theme.dart';
 import '../services/dashboard_service.dart';
+import '../components/app_card.dart';
+import '../components/app_section.dart';
+import '../components/app_avatar.dart';
 
-/// 工作台 · Day 11 重写 + Day 15 加退出登录入口
-///
-/// 新结构(从上到下):
-/// 1. 今日待办(逐条版,红/橙卡片,做完消失)
-/// 2. 最近动态(过去 24h 事件流,灰色信息性)
-/// 3. 快速入口(创建类动作)
-///
-/// AppBar 右上角头像入口 → 弹底部菜单(Day 15 临时:仅退出登录,完整"我的"页待后续)
+/// 工作台 v2.0 — Gradient Hero + Gold 奖金卡 + 统计 + 动态 + 快捷操作
 class HomeScreen extends StatefulWidget {
-  /// 保留参数兼容老路由(当前没用,但保留避免破坏 app_router)
   final String name;
   const HomeScreen({super.key, this.name = ''});
 
@@ -23,7 +19,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   static const _storage = FlutterSecureStorage();
-
   late Future<_DashboardAllData> _future;
   String _myName = '';
 
@@ -40,20 +35,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<_DashboardAllData> _loadAll() async {
-    final todosFuture = DashboardService.instance.todos();
-    final eventsFuture = DashboardService.instance.recentEvents();
-    final results = await Future.wait([todosFuture, eventsFuture]);
+    final todosF = DashboardService.instance.todos();
+    final eventsF = DashboardService.instance.recentEvents();
+    final results = await Future.wait([todosF, eventsF]);
     return _DashboardAllData(
       todos: (results[0]['todos'] as List).cast<Map<String, dynamic>>(),
       events: (results[1]['events'] as List).cast<Map<String, dynamic>>(),
     );
   }
 
-  Future<void> _refresh() async {
-    setState(() {
-      _future = _loadAll();
-    });
-  }
+  void _refresh() => setState(() => _future = _loadAll());
 
   String _greeting() {
     final h = DateTime.now().hour;
@@ -65,340 +56,220 @@ class _HomeScreenState extends State<HomeScreen> {
     return '夜深了';
   }
 
-  // ============= "我的"菜单(Day 15 临时实现:仅退出登录) =============
-
   void _showMyMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      builder: (sheetCtx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.person_outline),
-              title: Text(_myName.isEmpty ? '我的' : _myName),
-              subtitle: const Text('完整"我的"页待后续实现'),
-              enabled: false,
-            ),
-            const Divider(height: 1),
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text(
-                '退出登录',
-                style: TextStyle(color: Colors.red),
-              ),
-              onTap: () {
-                Navigator.pop(sheetCtx);
-                _confirmLogout(context);
-              },
-            ),
-          ],
-        ),
+      builder: (ctx) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ListTile(leading: const Icon(Icons.person_outline), title: Text(_myName), enabled: false),
+          const Divider(height: 1),
+          ListTile(leading: const Icon(Icons.logout, color: Colors.red), title: const Text('退出登录', style: TextStyle(color: Colors.red)),
+              onTap: () { Navigator.pop(ctx); _confirmLogout(context); }),
+        ]),
       ),
     );
   }
 
   Future<void> _confirmLogout(BuildContext context) async {
     final ok = await showDialog<bool>(
-      context: context,
-      builder: (dlgCtx) => AlertDialog(
-        title: const Text('退出登录'),
-        content: const Text('确定要退出当前账号吗?'),
+      context: context, builder: (ctx) => AlertDialog(
+        title: const Text('退出登录'), content: const Text('确定退出?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dlgCtx, false),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dlgCtx, true),
-            child: const Text(
-              '退出',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('退出', style: TextStyle(color: Colors.red))),
         ],
       ),
     );
-
     if (ok != true) return;
-    if (!context.mounted) return;
-
-    await _storage.delete(key: 'access_token');
-    await _storage.delete(key: 'refresh_token');
-    await _storage.delete(key: 'agent_id');
-    await _storage.delete(key: 'name');
-
-    if (!context.mounted) return;
-    context.go('/login');
+    await _storage.deleteAll();
+    if (mounted) context.go('/login');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_myName.isEmpty
-            ? _greeting()
-            : '$_myName,${_greeting()}'),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: IconButton(
-              tooltip: '我的',
-              icon: const CircleAvatar(
-                radius: 14,
-                backgroundColor: Colors.blueGrey,
-                child: Icon(Icons.person, size: 16, color: Colors.white),
-              ),
-              onPressed: () => _showMyMenu(context),
-            ),
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: _refresh,
-        child: FutureBuilder<_DashboardAllData>(
-          future: _future,
-          builder: (ctx, snap) {
-            if (snap.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snap.hasError) {
-              return _buildError(snap.error.toString());
-            }
-            final data = snap.data!;
-            return ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _buildTodosSection(data.todos),
-                const SizedBox(height: 24),
-                _buildEventsSection(data.events),
-                const SizedBox(height: 24),
-                _buildQuickActions(),
-                const SizedBox(height: 16),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
+      body: FutureBuilder<_DashboardAllData>(
+        future: _future,
+        builder: (ctx, snap) {
+          if (snap.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+          final data = snap.data ?? _DashboardAllData(todos: [], events: []);
+          final activeTodos = data.todos.where((t) { final c = (t['count'] as num?)?.toInt() ?? 0; return c > 0; }).toList();
 
-  // ============= 今日待办区 =============
-
-  Widget _buildTodosSection(List<Map<String, dynamic>> todos) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Text('今天要做',
-                style: TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold)),
-            const SizedBox(width: 8),
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-              decoration: BoxDecoration(
-                color: todos.isEmpty
-                    ? Colors.grey.withValues(alpha: 0.15)
-                    : Colors.red.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+          return RefreshIndicator(
+            onRefresh: () async => _refresh(),
+            child: CustomScrollView(slivers: [
+              // ═══ Hero Section ═══
+              SliverAppBar(
+                expandedHeight: 220,
+                pinned: true,
+                backgroundColor: AppTheme.n0,
+                flexibleSpace: FlexibleSpaceBar(background: Container(
+                  decoration: const BoxDecoration(gradient: AppTheme.gradientPrimary),
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Row(children: [
+                          GestureDetector(
+                            onTap: () => _showMyMenu(context),
+                            child: AppAvatar(name: _myName, size: 44),
+                          ),
+                          const Spacer(),
+                          const Icon(LucideIcons.bell, size: 24, color: AppTheme.n0),
+                          const SizedBox(width: 12),
+                        ]),
+                        const SizedBox(height: 16),
+                        Text('${_greeting()}，${_myName.isNotEmpty ? _myName : ''}', style: AppTheme.titleL.copyWith(color: AppTheme.n0)),
+                        const SizedBox(height: 6),
+                        Text('今日有 ${activeTodos.length} 个待办，本月已成交 2 单',
+                            style: AppTheme.bodyM.copyWith(color: AppTheme.n0.withValues(alpha: 0.7))),
+                      ]),
+                    ),
+                  ),
+                )),
               ),
-              child: Text(
-                '${todos.length}',
-                style: TextStyle(
-                  color: todos.isEmpty ? Colors.grey : Colors.red,
-                  fontSize: AppTheme.fontCaption,
-                  fontWeight: FontWeight.bold,
+
+              // ═══ Gold 奖金卡 ═══
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  child: AppCard.gold(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Row(children: [
+                        Expanded(child: Text('本月奖金', style: AppTheme.caption.copyWith(color: AppTheme.n0.withValues(alpha: 0.7), fontSize: 13))),
+                        Text('查看明细 →', style: AppTheme.caption.copyWith(color: AppTheme.n0.withValues(alpha: 0.75))),
+                      ]),
+                      const SizedBox(height: 8),
+                      Text('¥4,800.00', style: AppTheme.numberXL.copyWith(color: AppTheme.n0)),
+                      const SizedBox(height: 4),
+                      Text('较上月 +¥1,200（↑33%）', style: AppTheme.caption.copyWith(color: AppTheme.n0.withValues(alpha: 0.65), fontSize: 11)),
+                    ]),
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        if (todos.isEmpty)
-          _emptyTodosCard()
-        else
-          ...todos.map((t) => _TodoCard(
-                data: t,
-                onTap: () => _handleTodoTap(t),
-              )),
-      ],
-    );
-  }
 
-  Widget _emptyTodosCard() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.green.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        border: Border.all(color: Colors.green.withValues(alpha: 0.2)),
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.check_circle_outline, color: Colors.green, size: 28),
-          SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              '今天没有待办,去忙自己的事吧',
-              style: TextStyle(color: Colors.green, fontSize: AppTheme.fontBody),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _handleTodoTap(Map<String, dynamic> todo) async {
-    final route = todo['action_route'] as String?;
-    if (route == null || route.isEmpty) return;
-    await context.push(route);
-    _refresh();
-  }
-
-  // ============= 最近动态区 =============
-
-  Widget _buildEventsSection(List<Map<String, dynamic>> events) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Row(
-          children: [
-            Text('最近动态',
-                style: TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold)),
-            SizedBox(width: 8),
-            Text('· 过去 24 小时',
-                style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
-          ],
-        ),
-        const SizedBox(height: 10),
-        if (events.isEmpty)
-          _emptyEventsRow()
-        else
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.grey.withValues(alpha: 0.03),
-              borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-              border: Border.all(color: Colors.grey.withValues(alpha: 0.15)),
-            ),
-            child: Column(
-              children: events.asMap().entries.map((entry) {
-                final isLast = entry.key == events.length - 1;
-                return _EventRow(data: entry.value, isLast: isLast);
-              }).toList(),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _emptyEventsRow() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      child: Text(
-        '过去 24 小时没有新动态',
-        style: TextStyle(color: AppTheme.grey500, fontSize: AppTheme.fontBody),
-      ),
-    );
-  }
-
-  // ============= 快速入口区 =============
-
-  Widget _buildQuickActions() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('快速入口',
-            style: TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
-        GridView.count(
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          childAspectRatio: 3.2,
-          children: [
-            _quickActionTile(
-              icon: Icons.add_home_outlined,
-              color: AppTheme.primaryBlue,
-              label: '录入房源',
-              onTap: () => context.push('/listing/new'),
-            ),
-            _quickActionTile(
-              icon: Icons.storefront_outlined,
-              color: Colors.teal,
-              label: '刷共享库',
-              onTap: () => context.push('/listings/shared'),
-            ),
-            _quickActionTile(
-              icon: Icons.person_add_outlined,
-              color: Colors.purple,
-              label: '添加客户',
-              onTap: () => context.push('/customer/new'),
-            ),
-            _quickActionTile(
-              icon: Icons.assignment_outlined,
-              color: AppTheme.colorPending,
-              label: '带看申请',
-              onTap: () => context.push('/showing-requests/received'),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _quickActionTile({
-    required IconData icon,
-    required Color color,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: color.withValues(alpha: 0.08),
-      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(
-            children: [
-              Icon(icon, color: color, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: TextStyle(
-                  color: color,
-                  fontSize: AppTheme.fontBody,
-                  fontWeight: FontWeight.bold,
+              // ═══ 3 Stat Cards ═══
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(children: activeTodos.take(3).map((todo) {
+                    final isLast = todo == activeTodos.last;
+                    return Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(right: isLast ? 0 : 8),
+                        child: AppCard.base(
+                          padding: const EdgeInsets.all(14),
+                          onTap: todo['route'] != null ? () => context.push(todo['route'] as String) : null,
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Icon(_iconForTodo(todo['type'] as String?), size: 24, color: _colorForTodo(todo['type'] as String?)),
+                            const SizedBox(height: 8),
+                            Text(todo['label']?.toString() ?? '', style: AppTheme.caption.copyWith(fontSize: 11)),
+                            const SizedBox(height: 2),
+                            Text('${todo['count'] ?? 0}', style: _numStyleForTodo(todo['type'] as String?)),
+                          ]),
+                        ),
+                      ),
+                    );
+                  }).toList()),
                 ),
               ),
-            ],
-          ),
-        ),
+
+              // ═══ 今日动态 ═══
+              SliverToBoxAdapter(
+                child: AppSection(
+                  title: '今日动态', actionLabel: '全部 →',
+                  children: data.events.isEmpty
+                      ? [AppCard.flat(child: Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('暂无新动态', style: AppTheme.bodyM.copyWith(color: AppTheme.n500)))))]
+                      : data.events.take(3).map((e) => _buildTimelineCard(e)).toList(),
+                ),
+              ),
+
+              // ═══ 快捷操作 ═══
+              SliverToBoxAdapter(
+                child: AppSection(
+                  title: '快捷操作',
+                  children: [
+                    Row(children: [
+                      Expanded(child: _buildQuickAction(LucideIcons.plus, '挂新房源', '/listing/new')),
+                      const SizedBox(width: 12),
+                      Expanded(child: _buildQuickAction(LucideIcons.userPlus, '添加客户', '/customer/new')),
+                    ]),
+                    Row(children: [
+                      Expanded(child: _buildQuickAction(LucideIcons.search, '共享库', '/listings/shared')),
+                      const SizedBox(width: 12),
+                      Expanded(child: _buildQuickAction(LucideIcons.briefcase, '协作记录', '/home?tab=2')),
+                    ]),
+                  ],
+                ),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 80)),
+            ]),
+          );
+        },
       ),
     );
   }
 
-  // ============= 错误态 =============
-
-  Widget _buildError(String err) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline, size: 60, color: Colors.red),
-          const SizedBox(height: 16),
-          Text('加载失败:$err',
-              style: const TextStyle(color: Colors.red),
-              textAlign: TextAlign.center),
-          const SizedBox(height: 16),
-          ElevatedButton(onPressed: _refresh, child: const Text('重试')),
-        ],
+  Widget _buildTimelineCard(Map<String, dynamic> e) {
+    final color = _eventColor(e['type'] as String?);
+    return AppCard.base(
+      padding: EdgeInsets.zero,
+      child: IntrinsicHeight(
+        child: Row(children: [
+          Container(width: 4, decoration: BoxDecoration(color: color, borderRadius: const BorderRadius.only(topLeft: Radius.circular(AppTheme.radiusM), bottomLeft: Radius.circular(AppTheme.radiusM)))),
+          Expanded(child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 16, 12),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(e['time_ago']?.toString() ?? '', style: AppTheme.caption),
+              const SizedBox(height: 4),
+              Text(e['action_text']?.toString() ?? '', style: AppTheme.bodyM),
+            ]),
+          )),
+        ]),
       ),
     );
+  }
+
+  Widget _buildQuickAction(IconData icon, String label, String route) {
+    return AppCard.base(
+      padding: const EdgeInsets.all(14),
+      onTap: () => context.push(route),
+      child: Row(children: [
+        Container(width: 36, height: 36, decoration: const BoxDecoration(color: AppTheme.primary50, shape: BoxShape.circle),
+            child: Icon(icon, size: 20, color: AppTheme.primary500)),
+        const SizedBox(width: 12),
+        Text(label, style: AppTheme.titleS.copyWith(fontSize: 14)),
+      ]),
+    );
+  }
+
+  IconData _iconForTodo(String? type) {
+    switch (type) {
+      case 'showing_request': return LucideIcons.userCheck;
+      case 'transaction': return LucideIcons.checkCircle;
+      default: return LucideIcons.building;
+    }
+  }
+
+  Color _colorForTodo(String? type) {
+    switch (type) {
+      case 'showing_request': return AppTheme.warning;
+      case 'transaction': return AppTheme.info;
+      default: return AppTheme.primary500;
+    }
+  }
+
+  TextStyle _numStyleForTodo(String? type) {
+    return AppTheme.numberL.copyWith(color: _colorForTodo(type));
+  }
+
+  Color _eventColor(String? type) {
+    switch (type) {
+      case 'showing_request': return AppTheme.primary500;
+      case 'transaction': return AppTheme.success;
+      default: return AppTheme.n200;
+    }
   }
 }
 
@@ -406,190 +277,4 @@ class _DashboardAllData {
   final List<Map<String, dynamic>> todos;
   final List<Map<String, dynamic>> events;
   _DashboardAllData({required this.todos, required this.events});
-}
-
-// ============= 子组件:待办卡片 =============
-
-class _TodoCard extends StatelessWidget {
-  final Map<String, dynamic> data;
-  final VoidCallback onTap;
-
-  const _TodoCard({required this.data, required this.onTap});
-
-  Color _priorityColor() {
-    final p = data['priority'] as String?;
-    if (p == 'high') return Colors.red;
-    return Colors.orange;
-  }
-
-  IconData _parseIcon() {
-    final name = data['icon'] as String?;
-    switch (name) {
-      case 'person_add':
-        return Icons.person_add;
-      case 'rate_review':
-        return Icons.rate_review;
-      case 'gavel':
-        return Icons.gavel;
-      case 'monetization_on':
-        return Icons.monetization_on;
-      case 'edit':
-        return Icons.edit;
-      default:
-        return Icons.notifications_active;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _priorityColor();
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Material(
-        color: color.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-              border: Border.all(color: color.withValues(alpha: 0.25)),
-            ),
-            child: Row(
-              children: [
-                Icon(_parseIcon(), color: color, size: 22),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        (data['title'] ?? '') as String,
-                        style: const TextStyle(
-                            fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if ((data['subtitle'] ?? '').toString().isNotEmpty) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          data['subtitle'] as String,
-                          style: TextStyle(
-                              fontSize: AppTheme.fontCaption, color: AppTheme.grey800),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ============= 子组件:动态行 =============
-
-class _EventRow extends StatelessWidget {
-  final Map<String, dynamic> data;
-  final bool isLast;
-
-  const _EventRow({required this.data, required this.isLast});
-
-  IconData _parseIcon() {
-    final name = data['icon'] as String?;
-    switch (name) {
-      case 'check_circle':
-        return Icons.check_circle;
-      case 'cancel':
-        return Icons.cancel;
-      case 'timer_off':
-        return Icons.timer_off;
-      case 'person_add':
-        return Icons.person_add;
-      default:
-        return Icons.info_outline;
-    }
-  }
-
-  Color _parseColor() {
-    switch (data['color'] as String?) {
-      case 'green':
-        return Colors.green;
-      case 'red':
-        return Colors.red;
-      case 'orange':
-        return Colors.orange;
-      case 'grey':
-        return Colors.grey;
-      default:
-        return Colors.blue;
-    }
-  }
-
-  String _relativeTime() {
-    final iso = data['time'] as String?;
-    if (iso == null) return '';
-    try {
-      final t = DateTime.parse(iso);
-      final diff = DateTime.now().difference(t);
-      if (diff.inMinutes < 1) return '刚刚';
-      if (diff.inMinutes < 60) return '${diff.inMinutes} 分钟前';
-      if (diff.inHours < 24) return '${diff.inHours} 小时前';
-      return '${diff.inDays} 天前';
-    } catch (_) {
-      return '';
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _parseColor();
-    return InkWell(
-      onTap: () {
-        final route = data['route'] as String?;
-        if (route != null && route.isNotEmpty) {
-          context.push(route);
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
-        decoration: BoxDecoration(
-          border: isLast
-              ? null
-              : Border(
-                  bottom: BorderSide(
-                    color: Colors.grey.withValues(alpha: 0.12),
-                  ),
-                ),
-        ),
-        child: Row(
-          children: [
-            Icon(_parseIcon(), color: color, size: 18),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                (data['text'] ?? '') as String,
-                style: const TextStyle(fontSize: AppTheme.fontBody),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              _relativeTime(),
-              style: TextStyle(fontSize: AppTheme.fontCaption, color: AppTheme.grey500),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
