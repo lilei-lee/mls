@@ -19,7 +19,6 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   late Future<Map<String, dynamic>> _future;
   late Future<List<ListingShowingSummary>?> _showingsFuture;
   bool _listChanged = false;
-  bool _isOwner = false;
 
   @override
   void initState() {
@@ -36,13 +35,9 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   Future<List<ListingShowingSummary>?> _fetchShowingsSummary() async {
     try {
       final r = await ApiClient.instance.dio.get('/listings/${widget.listingId}/showings-summary');
-      _isOwner = true;
-      if (mounted) setState(() {});
       final items = (r.data['items'] as List).cast<Map<String, dynamic>>();
       return items.map((e) => ListingShowingSummary.fromJson(e)).toList();
     } catch (_) {
-      _isOwner = false;
-      if (mounted) setState(() {});
       return null;  // 403 = not owner, or error → skip section
     }
   }
@@ -175,8 +170,10 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
             final photos = ((item['photos'] as List?) ?? []).cast<Map<String, dynamic>>();
             final agentRemarks = (item['agent_remarks'] ?? '').toString();
             final showingInst = (item['showing_instructions'] ?? '').toString();
-            // V2.2 #5: LA(owner)永远展开; BA有协作通过(agentRemarks非空)才展开
-            final isUnlocked = _isOwner || agentRemarks.isNotEmpty || showingInst.isNotEmpty;
+            final isOwner = item['_is_owner'] == true;
+            final isUnlocked = isOwner || agentRemarks.isNotEmpty || showingInst.isNotEmpty;
+            final building = (item['building'] ?? '').toString();
+            final addressFull = '${item['community']} ${building}-${item['unit']}-${item['room_no']}';
 
             return ListView(
               padding: EdgeInsets.zero,
@@ -186,13 +183,15 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                 // ═══ ① 照片 + ② 概览 ═══
                 _sectionCard(children: [
                   Row(children: [
-                    Expanded(child: Text('${item['community']} ${item['building']}-${item['unit']}-${item['room_no']}',
+                    Expanded(child: Text(
+                        building.isNotEmpty ? addressFull : (item['community'] ?? '').toString(),
                         style: const TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold))),
                     StatusBadge(status: status),
                   ]),
                   const SizedBox(height: 4),
-                  Text('${item['district'] ?? ''} · 一户一码:${item['house_code']}',
-                      style: const TextStyle(fontFamily: 'monospace', color: Colors.grey, fontSize: AppTheme.fontCaption)),
+                  Text(
+                    isOwner ? '${item['district'] ?? ''} · 一户一码:${item['house_code']}' : '${item['district'] ?? ''}',
+                    style: const TextStyle(fontFamily: 'monospace', color: Colors.grey, fontSize: AppTheme.fontCaption)),
                   const SizedBox(height: 12),
                   if (isSold) _soldPriceCard(item) else _askingPriceCard(item),
                   const SizedBox(height: 12),
@@ -252,12 +251,12 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                   ]),
 
                 // ═══ ⑤ 协作信息 ═══
-                _sectionCard(title: '协作信息', children: [
-                  _infoRow('挂牌经纪人', item['owner_agent_name'] ?? '-'),
-                  _infoRow('合作奖金', '¥${item['bonus_yuan'] ?? 0} 元'),
-                  if (isUnlocked)
+                if (isOwner)
+                  _sectionCard(title: '协作信息', children: [
+                    _infoRow('挂牌经纪人', item['owner_agent_name'] ?? '-'),
+                    _infoRow('合作奖金', '¥${item['bonus_yuan'] ?? 0} 元'),
                     _infoRow('联系电话', item['owner_agent_phone'] ?? ''),
-                ]),
+                  ]),
 
                 // ═══ ⑦ V2.2 #3: LA 视角带看记录 ═══
                 FutureBuilder<List<ListingShowingSummary>?>(
@@ -299,7 +298,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                         const SizedBox(width: 8),
                         Expanded(child: Text(agentRemarks, style: const TextStyle(fontSize: AppTheme.fontBody, height: 1.6))),
                       ])
-                    else if (_isOwner)
+                    else if (isOwner)
                       Row(children: [
                         const Icon(Icons.info_outline, size: 16, color: Colors.grey),
                         const SizedBox(width: 8),
@@ -319,7 +318,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                         const SizedBox(width: 8),
                         Expanded(child: Text(showingInst, style: const TextStyle(fontSize: AppTheme.fontBody, height: 1.6))),
                       ])
-                    else if (_isOwner)
+                    else if (isOwner)
                       Row(children: [
                         const Icon(Icons.info_outline, size: 16, color: Colors.grey),
                         const SizedBox(width: 8),
@@ -362,7 +361,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       _soldActionsSection()
                     else if (isOffline)
                       _offlineActionsSection()
-                    else ...[
+                    else if (isOwner) ...[
                       SizedBox(height: 48, child: ElevatedButton.icon(
                         onPressed: () async {
                           final changed = await context.push<bool>('/listing/${widget.listingId}/edit', extra: item);
