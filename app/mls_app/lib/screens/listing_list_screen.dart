@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../models/listing_filters.dart';
+import '../widgets/status_badge.dart';
 import '../services/api_client.dart';
 import '../widgets/filter_sheet.dart';
 import '../widgets/base64_image.dart';
@@ -460,7 +461,7 @@ class _ListingCard extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              _StatusBadge(status: status),
+                              StatusBadge(status: status),
                             ],
                           ),
                           const SizedBox(height: 6),
@@ -512,58 +513,6 @@ class _ListingCard extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  final String status;
-  const _StatusBadge({required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    late String label;
-    late Color color;
-    switch (status) {
-      case 'on_sale':
-        label = '在售';
-        color = Colors.green;
-        break;
-      case 'deposit_paid':
-        label = '定金已付';
-        color = Colors.blue;
-        break;
-      case 'transaction_ongoing':
-        label = '成交进行中';
-        color = Colors.orange;
-        break;
-      case 'paused':
-        label = '暂停';
-        color = Colors.orange;
-        break;
-      case 'sold':
-        label = '已成交';
-        color = Colors.grey;
-        break;
-      case 'offline':
-        label = '已下架';
-        color = Colors.grey;
-        break;
-      default:
-        label = status;
-        color = Colors.grey;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-            color: color, fontSize: 12, fontWeight: FontWeight.bold),
       ),
     );
   }

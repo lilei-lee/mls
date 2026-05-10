@@ -5,6 +5,7 @@ import '../services/api_client.dart';
 import '../services/transaction_service.dart';
 import '../widgets/base64_image.dart';
 import '../models/listing_showing_summary.dart';
+import '../widgets/status_badge.dart';
 
 /// V2.2 #1: 6-section 详情页 + 权限分层渲染
 class ListingDetailScreen extends StatefulWidget {
@@ -186,7 +187,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                   Row(children: [
                     Expanded(child: Text('${item['community']} ${item['building']}-${item['unit']}-${item['room_no']}',
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-                    _StatusBadge(status: status),
+                    StatusBadge(status: status),
                   ]),
                   const SizedBox(height: 4),
                   Text('${item['district'] ?? ''} · 一户一码:${item['house_code']}',
@@ -930,28 +931,6 @@ class _ShowingSummaryCard extends StatelessWidget {
           ]),
         ]),
       ),
-    );
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  final String status; const _StatusBadge({required this.status});
-  @override
-  Widget build(BuildContext context) {
-    late String label; late Color color;
-    switch (status) {
-      case 'on_sale': label = '在售'; color = Colors.green; break;
-      case 'deposit_paid': label = '定金已付'; color = Colors.orange; break;
-      case 'transaction_ongoing': label = '成交进行中'; color = Colors.blue; break;
-      case 'sold': label = '已成交'; color = Colors.grey; break;
-      case 'paused': label = '暂停'; color = Colors.orange; break;
-      case 'offline': label = '已下架'; color = Colors.grey; break;
-      default: label = status; color = Colors.grey;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(4)),
-      child: Text(label, style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.bold)),
     );
   }
 }
