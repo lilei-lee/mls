@@ -25,8 +25,9 @@ def passes_dict_filters(
     heating_type: Optional[str],
     bld_year_min: Optional[int],
     bld_year_max: Optional[int],
+    house_structure: Optional[str] = None,
 ) -> bool:
-    """判断 listing 是否满足辞典侧筛选条件。"""
+    """判断 listing 是否满足辞典侧筛选条件。V2.2 #2: 加 house_structure。"""
     prop = props_map.get(doc.get("property_code", "")) or {}
     latest = prop.get("attribute_claims_latest", {}) or {}
 
@@ -41,6 +42,11 @@ def passes_dict_filters(
     if decoration:
         claim_dec = latest.get("decoration")
         if claim_dec != decoration:
+            return False
+
+    if house_structure:
+        claim_hs = latest.get("house_structure")
+        if claim_hs != house_structure:
             return False
 
     comm = community_by_name.get(doc.get("community", "")) or {}

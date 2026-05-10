@@ -530,6 +530,9 @@ def get_shared_listings_api(
     bld_year_min: int | None = Query(None, description="楼龄下限"),
     bld_year_max: int | None = Query(None, description="楼龄上限"),
     community_id: str | None = Query(None, description="小区ID(MLS侧,按小区过滤在售房源)"),
+    # V2.2 #2: 新增朝向 + 户型结构筛选
+    orientation: str | None = Query(None, description="朝向(朝东/朝西/朝南/朝北)"),
+    house_structure: str | None = Query(None, description="户型结构(平层/复式/Loft/跃层/错层/跃复一体)"),
     agent: dict = Depends(get_current_agent),
 ):
     items, total = list_shared_listings(
@@ -541,6 +544,8 @@ def get_shared_listings_api(
         bld_year_min=bld_year_min,
         bld_year_max=bld_year_max,
         community_id=community_id,
+        orientation=orientation,
+        house_structure=house_structure,
     )
     return ListingListResponse(success=True, total=total, items=items)
 

@@ -20,7 +20,7 @@ def _seed_listing(owner_id, community="共享测试小区", property_code="FLT00
         "community": community, "building": "1", "unit": "1",
         "room_no": str(ObjectId())[-6:],
         "district": "桥东区", "property_code": property_code,
-        "orientation": "南", "price_wan": 80.0, "status": "on_sale",
+        "orientation": extra.get("orientation", "南"), "price_wan": 80.0, "status": "on_sale",
         "owner_agent_id": owner_id, "owner_agent_name": "测试LA",
         "owner_agent_phone": "13900001111",
         "layout": "", "photo_count": 0, "photos": [],
@@ -314,3 +314,46 @@ def test_filter_dict_unavailable_returns_empty(mock_comm, mock_batch, agent):
 
     from database import db
     db["listings"].delete_one({"_id": lid})
+
+
+# ═══════════════════════════════════════════
+# V2.2 #2: orientation + house_structure 筛选
+# ═══════════════════════════════════════════
+
+@patch("listings._batch_fetch_props")
+def test_filter_orientation(mock_batch, agent):
+    """orientation 参数走本地过滤"""
+    mock_batch.return_value = {}
+    la_id = ObjectId()
+    lid1 = _seed_listing(la_id, property_code="ORI01", orientation="朝南")
+    lid2 = _seed_listing(la_id, property_code="ORI02", orientation="朝北")
+
+    from listings import list_shared_listings
+    items, total = list_shared_listings(agent["_id"], orientation="朝南")
+    assert total == 1
+    assert items[0]["listing_id"] == str(lid1)
+
+    from database import db
+    db["listings"].delete_many({"_id": {"$in": [lid1, lid2]}})
+
+
+@patch("listings._batch_fetch_props")
+@patch("listings.batch_fetch_communities_by_name")
+def test_filter_house_structure(mock_comm, mock_batch, agent):
+    """house_structure 参数走辞典过滤"""
+    mock_batch.return_value = {
+        "HS01": {"attribute_claims_latest": {"house_structure": "平层"}},
+        "HS02": {"attribute_claims_latest": {"house_structure": "复式"}},
+    }
+    mock_comm.return_value = {}
+    la_id = ObjectId()
+    lid1 = _seed_listing(la_id, property_code="HS01")
+    lid2 = _seed_listing(la_id, property_code="HS02")
+
+    from listings import list_shared_listings
+    items, total = list_shared_listings(agent["_id"], house_structure="平层")
+    assert total == 1
+    assert items[0]["listing_id"] == str(lid1)
+
+    from database import db
+    db["listings"].delete_many({"_id": {"$in": [lid1, lid2]}})

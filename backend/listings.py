@@ -402,11 +402,15 @@ def list_shared_listings(
     bld_year_min: Optional[int] = None,
     bld_year_max: Optional[int] = None,
     community_id: Optional[str] = None,
+    # V2.2 #2: 朝向 + 户型结构
+    orientation: Optional[str] = None,
+    house_structure: Optional[str] = None,
 ) -> tuple[list, int]:
     """共享库:所有交易状态的房源都展示(V10:sold 也公开展示成交价)
 
     V2.2 #1: 5 类筛选 — sale_points(本地 $all) + 4 类辞典过滤(batch 拉取后聚合)。
     community_id: 按 MLS 侧小区 ObjectId 过滤(小区主页"在售房源"用)。
+    V2.2 #2: 加 orientation(本地) + house_structure(辞典) 筛选。
 
     返 (items, total):items 是分页后结果,total 是筛选后总数。
     """
@@ -427,9 +431,12 @@ def list_shared_listings(
             query["community_id"] = ObjectId(community_id)
         except Exception:
             pass
+    if orientation:
+        query["orientation"] = orientation
 
     needs_dict_filter = bool(objective_features or decoration or heating_type
-                              or bld_year_min is not None or bld_year_max is not None)
+                              or bld_year_min is not None or bld_year_max is not None
+                              or house_structure)
 
     if needs_dict_filter:
         # 需要后端聚合时,先全量拉取(无 skip/limit),过滤后再分页
@@ -463,14 +470,14 @@ def list_shared_listings(
             if not passes_dict_filters(
                 doc, props_map, community_by_name,
                 objective_features, decoration, heating_type,
-                bld_year_min, bld_year_max,
+                bld_year_min, bld_year_max, house_structure,
             ):
                 continue
             filtered_docs.append(doc)
         total = len(filtered_docs)
         docs = filtered_docs[skip:skip + limit]
     else:
-        total = count_shared_listings(current_agent_id, new_today=new_today, sale_points=sale_points)
+        total = count_shared_listings(current_agent_id, new_today=new_today, sale_points=sale_points, orientation=orientation)
 
     results = [
         _format_listing_anonymous_lite(
@@ -488,6 +495,7 @@ def count_shared_listings(
     current_agent_id: ObjectId, new_today: bool = False,
     sale_points: Optional[list[str]] = None,
     community_id: Optional[str] = None,
+    orientation: Optional[str] = None,
 ) -> int:
     query = {
         "status": {"$in": SHARED_VISIBLE_STATUSES},
@@ -504,6 +512,8 @@ def count_shared_listings(
             query["community_id"] = ObjectId(community_id)
         except Exception:
             pass
+    if orientation:
+        query["orientation"] = orientation
     return listings_collection.count_documents(query)
 
 
