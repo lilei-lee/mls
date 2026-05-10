@@ -11,6 +11,7 @@ import '../screens/listing_edit_screen.dart';
 import '../screens/listing_list_screen.dart';
 import '../screens/listing_shared_screen.dart';
 import '../screens/community_detail_screen.dart';
+import '../screens/qna_list_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/register_screen.dart';
 import '../screens/showing_request_create_screen.dart';
@@ -98,6 +99,12 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => ListingEditScreen(
         listingId: state.pathParameters['id']!,
         original: state.extra as Map<String, dynamic>,
+      ),
+    ),
+    GoRoute(
+      path: '/listing/:id/qna',
+      builder: (context, state) => QnaListScreen(
+        listingId: state.pathParameters['id']!,
       ),
     ),
     GoRoute(
