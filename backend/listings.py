@@ -298,6 +298,9 @@ def create_listing(req, physical_attrs: dict, agent: dict) -> dict:
         "public_remarks": req.public_remarks or "",
         "showing_instructions": req.showing_instructions or "",
         "sale_points": req.sale_points or [],
+        "layout_image_url": getattr(req, "layout_image_url", None) or None,
+        "price_history": [],
+        "listed_at": now,
         "owner_agent_id": agent["_id"],
         "owner_agent_name": agent["name"],
         "owner_agent_phone": agent["phone"],
@@ -559,6 +562,12 @@ def get_listing_by_id(listing_id: str, viewer_id=None) -> dict | None:
         result["agent_remarks"] = ""
         result["showing_instructions"] = ""
         result["owner_agent_phone"] = ""
+
+    # V2.2 #5: 附加统计字段
+    result["showing_count_7d"] = _count_showings_7d(doc["_id"])
+    result["same_layout_listings"] = _same_layout_listings(doc)
+    result["same_layout_deals"] = []  # V3 占位
+
     return result
 
 
@@ -575,6 +584,34 @@ _SR_STATUS_LABEL = {
 }
 
 _PHONE_HIDDEN_STATUSES = {"pending", "rejected", "canceled"}
+
+
+def _count_showings_7d(listing_oid) -> int:
+    """近 7 天该房源带看次数"""
+    from datetime import timedelta
+    cutoff = datetime.now() - timedelta(days=7)
+    return db["showings"].count_documents({
+        "listing_id": listing_oid,
+        "status": "confirmed",
+        "created_at": {"$gte": cutoff},
+    })
+
+
+def _same_layout_listings(doc: dict) -> list[dict]:
+    """同小区同居室在售房源(同 rooms 值,limit 5)"""
+    rooms = doc.get("rooms")
+    if rooms is None:
+        return []
+    community_id = doc.get("community_id")
+    if not community_id:
+        return []
+    same = list(listings_collection.find({
+        "community_id": community_id,
+        "rooms": rooms,
+        "status": {"$in": ["on_sale", "deposit_paid"]},
+        "_id": {"$ne": doc["_id"]},
+    }).limit(5))
+    return [_format_listing_anonymous_lite(s) for s in same]
 
 
 def get_showings_summary(listing_id: str, viewer_id) -> list[dict]:
@@ -714,6 +751,7 @@ def update_listing(
         # V2.2 #1: remark 拆为 agent_remarks + public_remarks
         "public_remarks", "agent_remarks",
         "showing_instructions", "sale_points",
+        "layout_image_url",  # V2.2 #4: 户型图
     }
     clean_fields = {
         k: v for k, v in update_fields.items()
@@ -735,6 +773,18 @@ def update_listing(
                 detail=f"最多上传 {MAX_PHOTOS} 张照片"
             )
         clean_fields["photo_count"] = len(photos)
+
+    # V2.2 #4: 价格变更 hook — 检测 price_wan 变化时自动记录历史
+    if "price_wan" in clean_fields:
+        old_price = doc.get("price_wan")
+        new_price = clean_fields["price_wan"]
+        if old_price is not None and old_price != new_price:
+            history_entry = {"price_wan": old_price, "changed_at": datetime.now()}
+            clean_fields.setdefault("price_history", [])
+            listings_collection.update_one(
+                {"_id": oid},
+                {"$push": {"price_history": history_entry}},
+            )
 
     clean_fields["updated_at"] = datetime.now()
 
@@ -1077,6 +1127,9 @@ def _format_listing_full(doc: dict) -> dict:
         "public_remarks": doc.get("public_remarks", ""),
         "showing_instructions": doc.get("showing_instructions", ""),
         "sale_points": doc.get("sale_points", []),
+        "layout_image_url": doc.get("layout_image_url"),
+        "price_history": doc.get("price_history", []),
+        "listed_at": doc["listed_at"].isoformat() if doc.get("listed_at") else None,
         "owner_agent_id": str(doc["owner_agent_id"]),
         "owner_agent_name": doc["owner_agent_name"],
         "owner_agent_phone": doc.get("owner_agent_phone", ""),
