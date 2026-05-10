@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/settlement_service.dart';
@@ -276,7 +277,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
       ),
       child: Row(
         children: [
@@ -445,7 +446,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.blue.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
           border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
         ),
         child: const Column(

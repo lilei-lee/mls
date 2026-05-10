@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -213,12 +214,12 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
           const SizedBox(height: 8),
           InkWell(
             onTap: _pickTime,
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey.shade400),
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
               ),
               child: Row(
                 children: [
@@ -315,7 +316,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
       clipBehavior: Clip.none,
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
           child: Image.memory(bytes,
               width: size, height: size, fit: BoxFit.cover),
         ),
@@ -340,12 +341,12 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
   Widget _buildAddTile(double size) {
     return InkWell(
       onTap: _picking ? null : _showSourceSheet,
-      borderRadius: BorderRadius.circular(6),
+      borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
       child: Container(
         width: size, height: size,
         decoration: BoxDecoration(
           border: Border.all(color: Colors.grey.shade400),
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

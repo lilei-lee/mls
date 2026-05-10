@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../services/dashboard_service.dart';
@@ -200,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: todos.isEmpty
                     ? Colors.grey.withValues(alpha: 0.15)
                     : Colors.red.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               ),
               child: Text(
                 '${todos.length}',
@@ -230,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.green.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         border: Border.all(color: Colors.green.withValues(alpha: 0.2)),
       ),
       child: const Row(
@@ -277,7 +278,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             decoration: BoxDecoration(
               color: Colors.grey.withValues(alpha: 0.03),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               border: Border.all(color: Colors.grey.withValues(alpha: 0.15)),
             ),
             child: Column(
@@ -356,9 +357,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     return Material(
       color: color.withValues(alpha: 0.08),
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
       child: InkWell(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -446,14 +447,14 @@ class _TodoCard extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 10),
       child: Material(
         color: color.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         child: InkWell(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
           onTap: onTap,
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               border: Border.all(color: color.withValues(alpha: 0.25)),
             ),
             child: Row(

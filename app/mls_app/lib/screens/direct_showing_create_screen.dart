@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
@@ -192,7 +193,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.blue.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
             ),
             child: const Row(
               children: [
@@ -275,7 +276,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey.shade400),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               ),
               child: Row(
                 children: [
@@ -317,7 +318,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                         image: DecorationImage(
                           image: MemoryImage(base64Decode(b64)),
                           fit: BoxFit.cover,
@@ -355,7 +356,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
                       border: Border.all(
                           color: Colors.grey.shade400,
                           style: BorderStyle.solid),
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                     ),
                     child: const Icon(Icons.add_a_photo,
                         color: Colors.grey),

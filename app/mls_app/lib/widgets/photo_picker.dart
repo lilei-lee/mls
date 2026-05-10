@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -287,7 +288,7 @@ class _PhotoPickerState extends State<PhotoPicker> {
             width: 90,
             height: 90,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
               border: Border.all(color: Colors.grey.shade300),
             ),
             child: ClipRRect(
@@ -306,7 +307,7 @@ class _PhotoPickerState extends State<PhotoPicker> {
                     const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                 decoration: BoxDecoration(
                   color: Colors.blue,
-                  borderRadius: BorderRadius.circular(3),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: const Text(
                   '封面',
@@ -330,7 +331,7 @@ class _PhotoPickerState extends State<PhotoPicker> {
         width: 90,
         height: 90,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
           border: Border.all(
               color: Colors.grey.shade400, style: BorderStyle.solid),
           color: Colors.grey.withValues(alpha: 0.05),

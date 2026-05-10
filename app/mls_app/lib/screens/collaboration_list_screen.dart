@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
 import '../services/collaboration_service.dart';
 import '../widgets/progress_tracker.dart';
@@ -257,7 +258,7 @@ class _CollaborationCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(14),
@@ -286,7 +287,7 @@ class _CollaborationCard extends StatelessWidget {
                         horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: stageColor().withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                     ),
                     child: Text(
                       stageLabel,

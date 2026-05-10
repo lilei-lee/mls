@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
 import '../services/settlement_service.dart';
 
@@ -152,7 +153,7 @@ class _SettlementCard extends StatelessWidget {
       elevation: 1,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Column(
@@ -165,7 +166,7 @@ class _SettlementCard extends StatelessWidget {
                         horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: tagColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(3),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                     ),
                     child: Text(tagText,
                         style: TextStyle(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
 import '../services/transaction_service.dart';
 
@@ -103,7 +104,7 @@ class _TransactionPendingLaScreenState
                 return Card(
                   margin: EdgeInsets.zero,
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                     onTap: () async {
                       final r = await context
                           .push<bool>('/transaction/${it['transaction_id']}');
@@ -121,7 +122,7 @@ class _TransactionPendingLaScreenState
                                     horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
                                   color: Colors.orange.shade100,
-                                  borderRadius: BorderRadius.circular(4),
+                                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                                 ),
                                 child: const Text('待独立填价',
                                     style: TextStyle(

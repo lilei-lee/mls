@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
@@ -592,7 +593,7 @@ class _ShowingRequestDetailScreenState
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.red.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Text(
                   '驳回理由:$rejectReason',
@@ -878,7 +879,7 @@ class _ShowingRequestDetailScreenState
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.red.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Text(
                   '驳回:${tx['reject_reason']}',
@@ -941,7 +942,7 @@ class _ShowingRequestDetailScreenState
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
       ),
       child: Text(text,
           style: TextStyle(
@@ -974,7 +975,7 @@ class _ShowingRequestDetailScreenState
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
       ),
       child: Text(text,
           style: TextStyle(
@@ -1029,7 +1030,7 @@ class _ShowingRequestDetailScreenState
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
       ),
       child: Row(
         children: [

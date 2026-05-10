@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
 import '../services/api_client.dart';
 import '../widgets/base64_image.dart';
@@ -185,12 +186,12 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
       child: Card(
         child: InkWell(
           onTap: () => context.push('/listing/$lid'),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
           child: Padding(
             padding: const EdgeInsets.all(10),
             child: Row(children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 child: SizedBox(width: 72, height: 72,
                     child: cover != null && cover.isNotEmpty
                         ? Base64Image(dataUrl: cover, fit: BoxFit.cover)
@@ -265,7 +266,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
         _expTile('周边对比', Icons.compare_arrows_outlined, [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(6)),
+            decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
             child: const Row(children: [
               Icon(Icons.lock_outline, size: 14, color: Colors.grey),
               SizedBox(width: 8),

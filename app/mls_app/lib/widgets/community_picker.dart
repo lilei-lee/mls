@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:dio/dio.dart';
 import '../services/community_service.dart';
 
@@ -59,7 +60,7 @@ class CommunityPicker extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () => _openPicker(context),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
         child: InputDecorator(
           decoration: InputDecoration(
             labelText: '小区名',
@@ -83,7 +84,7 @@ class CommunityPicker extends StatelessWidget {
                           horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(3),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                       ),
                       child: Text(
                         initial!.district,

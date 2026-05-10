@@ -1,5 +1,6 @@
 /// 房源 / 协作 交易状态徽标 — 统一颜色映射
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 class StatusBadge extends StatelessWidget {
   final String status;
@@ -33,7 +34,7 @@ class StatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
       ),
       child: Text(label, style: TextStyle(color: color, fontSize: fontSize, fontWeight: FontWeight.bold)),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/showing_request_service.dart';
@@ -153,7 +154,7 @@ class _ShowingRequestCreateScreenState
         decoration: BoxDecoration(
           color: Colors.green.withValues(alpha: 0.08),
           border: Border.all(color: Colors.green.withValues(alpha: 0.4)),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         ),
         child: Row(
           children: [
@@ -198,7 +199,7 @@ class _ShowingRequestCreateScreenState
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.grey.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,7 +293,7 @@ class _ShowingRequestCreateScreenState
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.orange.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               ),
               child: const Row(
                 children: [
@@ -456,7 +457,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
               height: 4,
               decoration: BoxDecoration(
                 color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
               ),
             ),
             const Padding(

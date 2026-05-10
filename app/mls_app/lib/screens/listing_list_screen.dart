@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
 import '../models/listing_filters.dart';
 import '../widgets/status_badge.dart';
@@ -276,7 +277,7 @@ class _ListingListScreenState extends State<ListingListScreen>
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(
           color: Colors.orange.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -392,7 +393,7 @@ class _ListingCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: IntrinsicHeight(
@@ -403,7 +404,7 @@ class _ListingCard extends StatelessWidget {
                 Stack(
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                       child: Base64Image(
                         dataUrl: cover,
                         width: 100,
@@ -420,7 +421,7 @@ class _ListingCard extends StatelessWidget {
                               horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: Colors.black.withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.circular(3),
+                            borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,

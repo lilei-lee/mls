@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
 import '../services/customer_service.dart';
 
@@ -205,7 +206,7 @@ class _CustomerCard extends StatelessWidget {
       elevation: isClosed ? 0 : 1,
       color: isClosed ? Colors.grey.withValues(alpha: 0.08) : null,
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(14),
@@ -245,7 +246,7 @@ class _CustomerCard extends StatelessWidget {
                                 horizontal: 5, vertical: 1),
                             decoration: BoxDecoration(
                               color: Colors.grey.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(3),
+                              borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                             ),
                             child: const Text('已结单',
                                 style: TextStyle(

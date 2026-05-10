@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
 import '../models/listing_filters.dart';
 import '../services/api_client.dart';
@@ -285,7 +286,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
 
   Widget _anonymousBadge() => Container(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-    decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
+    decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
     child: const Text('匿名浏览', style: TextStyle(color: Colors.blue, fontSize: 11)),
   );
 
@@ -364,7 +365,7 @@ class _SharedListingCard extends StatelessWidget {
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(3)),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
       child: Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
     );
   }
@@ -373,7 +374,7 @@ class _SharedListingCard extends StatelessWidget {
     if (_myRequestStatus == 'pending') {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(3)),
+        decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
         child: const Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.hourglass_empty, size: 10, color: Colors.orange), SizedBox(width: 2),
           Text('已申请', style: TextStyle(color: Colors.orange, fontSize: 10, fontWeight: FontWeight.bold)),
@@ -383,7 +384,7 @@ class _SharedListingCard extends StatelessWidget {
     if (_myRequestStatus == 'approved') {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(3)),
+        decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
         child: const Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.check_circle, size: 10, color: Colors.green), SizedBox(width: 2),
           Text('已通过', style: TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
@@ -464,7 +465,7 @@ class _SharedListingCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: InkWell(
         onTap: () => context.push('/listing/${item['listing_id']}'),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: IntrinsicHeight(
@@ -472,13 +473,13 @@ class _SharedListingCard extends StatelessWidget {
               // 封面图
               Stack(children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                   child: Base64Image(dataUrl: cover, width: 110, height: 110, fit: BoxFit.cover),
                 ),
                 if (photoCount > 0)
                   Positioned(right: 4, bottom: 4, child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(3)),
+                    decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       const Icon(Icons.image, size: 10, color: Colors.white), const SizedBox(width: 2),
                       Text('$photoCount', style: const TextStyle(color: Colors.white, fontSize: 10)),
@@ -487,7 +488,7 @@ class _SharedListingCard extends StatelessWidget {
                 if (bonusYuan > 0)
                   Positioned(left: 4, top: 4, child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(color: Colors.orange.shade700, borderRadius: BorderRadius.circular(3)),
+                    decoration: BoxDecoration(color: Colors.orange.shade700, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       const Icon(Icons.local_offer, size: 10, color: Colors.white), const SizedBox(width: 2),
                       Text('奖¥$bonusYuan', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
@@ -502,7 +503,7 @@ class _SharedListingCard extends StatelessWidget {
                     if (district.isNotEmpty) ...[
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                        decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(3)),
+                        decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
                         child: Text(district, style: const TextStyle(color: Colors.blue, fontSize: 10)),
                       ),
                       const SizedBox(width: 4),
@@ -542,7 +543,7 @@ class _SharedListingCard extends StatelessWidget {
                           padding: const EdgeInsets.only(right: 4),
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                            decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(3)),
+                            decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
                             child: Text(t, style: TextStyle(fontSize: 10, color: Colors.blue.shade700)),
                           ),
                         )),

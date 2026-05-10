@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/api_client.dart';
@@ -237,7 +238,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       spacing: 8, runSpacing: 6,
                       children: (item['sale_points'] as List).cast<String>().map((t) => Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(6),
+                        decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                             border: Border.all(color: Colors.red.shade200)),
                         child: Text(t, style: TextStyle(fontSize: 13, color: Colors.red.shade700)),
                       )).toList(),
@@ -273,7 +274,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       return _sectionCard(title: '带看记录', children: [
                         Container(
                           padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(8)),
+                          decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
                           child: const Row(children: [
                             Icon(Icons.people_outline, size: 24, color: Colors.grey),
                             SizedBox(width: 12),
@@ -335,7 +336,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                   _sectionCard(children: [
                     Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(8)),
+                      decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
                       child: Row(children: [
                         const Icon(Icons.lock_outline, size: 24, color: Colors.grey),
                         const SizedBox(width: 12),
@@ -385,7 +386,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       if (isInTransaction)
                         Container(
                           padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(6)),
+                          decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
                           child: const Row(children: [
                             Icon(Icons.info_outline, color: Colors.grey, size: 18), SizedBox(width: 8),
                             Expanded(child: Text('交易状态下不能直接下架,请先回退到「在售」', style: TextStyle(color: Colors.grey, fontSize: 12))),
@@ -491,7 +492,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: active ? Colors.blue.shade50 : Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
         border: active ? Border.all(color: Colors.blue.shade300) : null,
       ),
       child: Text(label, style: TextStyle(fontSize: 12, color: active ? Colors.blue : Colors.grey)),
@@ -521,7 +522,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       child: Card(
         elevation: 1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -567,13 +568,13 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       child: Wrap(spacing: 8, runSpacing: 4, children: [
         ...of.cast<String>().map((f) => Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(4)),
+          decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
           child: Text(f, style: TextStyle(fontSize: 12, color: Colors.blue.shade700)),
         )),
         if (deco != null && deco.isNotEmpty)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(color: Colors.amber.shade50, borderRadius: BorderRadius.circular(4),
+            decoration: BoxDecoration(color: Colors.amber.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 border: Border.all(color: Colors.amber.shade200)),
             child: Text('装修:$deco', style: TextStyle(fontSize: 12, color: Colors.amber.shade800)),
           ),
@@ -587,7 +588,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     if (cf is! Map || cf.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(8)),
+        decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
         child: const Row(children: [
           Icon(Icons.info_outline, size: 16, color: Colors.grey),
           SizedBox(width: 8),
@@ -636,7 +637,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     if (lines.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(8)),
+        decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
         child: const Row(children: [
           Icon(Icons.info_outline, size: 16, color: Colors.grey),
           SizedBox(width: 8),
@@ -649,11 +650,11 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
 
     return InkWell(
       onTap: cid != null ? () => context.push('/community/$cid') : null,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: Colors.blue.shade50.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(8)),
+        decoration: BoxDecoration(color: Colors.blue.shade50.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             const Icon(Icons.apartment, size: 16, color: Colors.blue),
@@ -840,7 +841,7 @@ class _PhotoCarouselState extends State<_PhotoCarousel> {
       ),
       Positioned(right: 12, bottom: 12, child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.55), borderRadius: BorderRadius.circular(12)),
+        decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.55), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
         child: Text('${_currentIndex+1}/${widget.photos.length}', style: const TextStyle(color: Colors.white, fontSize: 12)),
       )),
     ]));
@@ -901,7 +902,7 @@ class _ShowingSummaryCard extends StatelessWidget {
             Expanded(child: Text(summary.baName, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(4)),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
               child: Text(summary.currentStatusLabel, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.bold)),
             ),
           ]),
@@ -919,7 +920,7 @@ class _ShowingSummaryCard extends StatelessWidget {
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(4),
+                  decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                       border: Border.all(color: Colors.green.shade200)),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     const Icon(Icons.phone, size: 14, color: Colors.green),

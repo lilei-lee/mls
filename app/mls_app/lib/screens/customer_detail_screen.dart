@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/customer_service.dart';
@@ -201,7 +202,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                                   horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: Colors.grey.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                               ),
                               child: const Text('已结单',
                                   style: TextStyle(
@@ -239,7 +240,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Colors.blue.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -335,7 +336,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
       padding: const EdgeInsets.symmetric(vertical: 14),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
       ),
       child: Column(
         children: [
@@ -413,7 +414,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         border: Border.all(color: color.withValues(alpha: 0.15)),
       ),
       child: Row(
@@ -449,7 +450,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                     ),
                     child: Text(
                       '备忘:${event['customer_feedback']}',
@@ -562,7 +563,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.grey.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

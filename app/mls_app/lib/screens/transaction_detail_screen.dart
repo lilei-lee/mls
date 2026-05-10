@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
@@ -351,7 +352,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -431,7 +432,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                       const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(3),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                   ),
                   child: Text(roleLabel,
                       style: TextStyle(
@@ -581,7 +582,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.red.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: const Row(
                   children: [
@@ -618,7 +619,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.blue.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
               ),
               child: const Row(
                 children: [
@@ -660,7 +661,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.orange.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
               ),
               child: const Row(
                 children: [
@@ -789,7 +790,7 @@ class _LaConfirmDialogState extends State<_LaConfirmDialog> {
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey.shade400),
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Row(
                   children: [
@@ -1015,7 +1016,7 @@ class _LaUpdateDialogState extends State<_LaUpdateDialog> {
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey.shade400),
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Row(
                   children: [
@@ -1166,7 +1167,7 @@ class _BaUpdateDialogState extends State<_BaUpdateDialog> {
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey.shade400),
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Row(
                   children: [

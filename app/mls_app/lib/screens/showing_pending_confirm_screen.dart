@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
 import '../services/showing_service.dart';
 
@@ -93,7 +94,7 @@ class _ShowingPendingConfirmScreenState
                 return Card(
                   margin: EdgeInsets.zero,
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                     onTap: () async {
                       final result = await context
                           .push<bool>('/showing/${it['showing_id']}/confirm');
@@ -111,7 +112,7 @@ class _ShowingPendingConfirmScreenState
                                     horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
                                   color: Colors.orange.shade100,
-                                  borderRadius: BorderRadius.circular(4),
+                                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                                 ),
                                 child: const Text('待确认',
                                     style: TextStyle(

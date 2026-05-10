@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/showing_service.dart';
@@ -320,7 +321,7 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
       ),
       child: Row(
         children: [
@@ -351,7 +352,7 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
             return GestureDetector(
               onTap: () => _viewPhoto(b64, i, photos.length),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 child: Image.memory(bytes,
                     width: w, height: w, fit: BoxFit.cover),
               ),

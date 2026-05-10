@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
@@ -241,7 +242,7 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
             decoration: BoxDecoration(
               color: (warning != null ? Colors.red : Colors.blue)
                   .withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
             ),
             child: Row(
               children: [
@@ -274,13 +275,13 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
           const SizedBox(height: 10),
           InkWell(
             onTap: _pickDate,
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
             child: Container(
               padding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey.shade400),
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
               ),
               child: Row(
                 children: [
@@ -320,7 +321,7 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.amber.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
             ),
             child: const Row(
               crossAxisAlignment: CrossAxisAlignment.start,

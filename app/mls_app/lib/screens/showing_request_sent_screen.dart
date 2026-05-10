@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import '../models/showing_request.dart';
 import '../services/showing_request_service.dart';
 import 'package:go_router/go_router.dart';
@@ -166,7 +167,7 @@ class _SentRequestCard extends StatelessWidget {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Colors.green.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Row(
                   children: [
@@ -188,7 +189,7 @@ class _SentRequestCard extends StatelessWidget {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Colors.grey.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Row(
                   children: [
@@ -247,7 +248,7 @@ class _StatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
       ),
       child: Text(
         status.label,
