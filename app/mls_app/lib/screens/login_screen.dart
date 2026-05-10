@@ -14,6 +14,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _codeController = TextEditingController();
 
@@ -48,18 +49,20 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  String? _validatePhone(String? v) {
+    if (v == null || v.trim().isEmpty) return '请输入手机号';
+    if (!RegExp(r'^1[3-9]\d{9}$').hasMatch(v.trim())) return '手机号格式不正确';
+    return null;
+  }
+
+  String? _validateCode(String? v) {
+    if (v == null || v.trim().isEmpty) return '请输入验证码';
+    return null;
+  }
+
   Future<void> _sendSmsCode() async {
+    if (!_formKey.currentState!.validate()) return;
     final phone = _phoneController.text.trim();
-
-    if (phone.isEmpty) {
-      _showMessage('请输入手机号');
-      return;
-    }
-    if (!RegExp(r'^1[3-9]\d{9}$').hasMatch(phone)) {
-      _showMessage('手机号格式不正确');
-      return;
-    }
-
     setState(() => _sendingSms = true);
 
     try {
@@ -88,17 +91,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
     final phone = _phoneController.text.trim();
     final code = _codeController.text.trim();
-
-    if (code.isEmpty) {
-      _showMessage('请输入验证码');
-      return;
-    }
-    if (!RegExp(r'^\d{6}$').hasMatch(code)) {
-      _showMessage('验证码应为6位数字');
-      return;
-    }
 
     setState(() => _loggingIn = true);
 
@@ -146,9 +141,11 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(24, 40, 24, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
               const Text(
                 '张家口 MLS',
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
@@ -166,12 +163,13 @@ class _LoginScreenState extends State<LoginScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: TextField(
+                    child: TextFormField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
                       maxLength: 11,
+                      validator: _validatePhone,
                       decoration: const InputDecoration(
-                        labelText: '手机号',
+                        labelText: '手机号 *',
                         prefixIcon: Icon(Icons.phone_android),
                         border: OutlineInputBorder(),
                         counterText: '',
@@ -201,12 +199,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // 验证码 + 登录按钮(只在发送后显示)
               if (_smsSent) ...[
-                TextField(
+                TextFormField(
                   controller: _codeController,
                   keyboardType: TextInputType.number,
                   maxLength: 6,
+                  validator: _validateCode,
                   decoration: const InputDecoration(
-                    labelText: '验证码',
+                    labelText: '验证码 *',
                     hintText: '请输入6位验证码',
                     prefixIcon: Icon(Icons.lock_outline),
                     border: OutlineInputBorder(),
@@ -250,7 +249,8 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ],
           ),
-        ),
+        ),  // Column
+      ),    // Form
       ),
     );
   }

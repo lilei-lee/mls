@@ -4,6 +4,7 @@ import '../screens/customer_list_screen.dart';
 import '../screens/listing_list_screen.dart';
 import '../screens/settlement_pending_screen.dart';
 import '../screens/collaboration_list_screen.dart';
+import '../widgets/network_aware.dart';
 
 /// 应用主 Shell:底部 5 Tab 导航
 /// Day 11 新建
@@ -37,7 +38,7 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
+      body: NetworkAware(child: IndexedStack(
         index: _currentIndex,
         children: const [
           HomeScreen(),
@@ -46,7 +47,7 @@ class _MainShellState extends State<MainShell> {
           CustomerListScreen(),
           SettlementPendingScreen(),
         ],
-      ),
+      )),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
