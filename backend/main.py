@@ -33,6 +33,7 @@ from listings import (
     update_listing,
     offline_listing,
     reactivate_listing,
+    get_showings_summary,
     get_districts,
     mark_listing_deposit_paid,
     mark_listing_transaction_ongoing,
@@ -617,6 +618,15 @@ def sync_listing_physical_api(
     agent: dict = Depends(get_current_agent),
 ):
     return sync_physical_to_dict(listing_id, body, agent["_id"])
+
+
+@app.get("/api/v1/listings/{listing_id}/showings-summary")
+def get_showings_summary_api(
+    listing_id: str,
+    agent: dict = Depends(get_current_agent),
+):
+    """V2.2 #3: LA 查看自己房源的所有带看记录"""
+    return {"success": True, "items": get_showings_summary(listing_id, agent["_id"])}
 
 
 @app.get("/api/v1/listings/{listing_id}")

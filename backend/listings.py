@@ -528,6 +528,127 @@ def get_listing_by_id(listing_id: str, viewer_id=None) -> dict | None:
     return result
 
 
+# ==================== V2.2 #3: LA 视角带看汇总 ====================
+
+_SR_STATUS_LABEL = {
+    "pending": "申请中",
+    "approved": "已通过",
+    "showing_done": "已带看",
+    "transaction_initiated": "已发起成交",
+    "transaction_confirmed": "已成交",
+    "rejected": "已拒绝",
+    "canceled": "已取消",
+}
+
+_PHONE_HIDDEN_STATUSES = {"pending", "rejected", "canceled"}
+
+
+def get_showings_summary(listing_id: str, viewer_id) -> list[dict]:
+    """LA 查看自己房源的所有带看记录。仅 owner 可调用。"""
+    try:
+        oid = ObjectId(listing_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的房源ID")
+
+    doc = listings_collection.find_one({"_id": oid})
+    if not doc:
+        raise HTTPException(status_code=404, detail="房源不存在")
+    if str(doc["owner_agent_id"]) != str(viewer_id):
+        raise HTTPException(status_code=403, detail="Not the owner of this listing")
+
+    # 查该 listing 的所有 showing_requests
+    srs = list(
+        db["showing_requests"]
+        .find({"listing_id": oid})
+        .sort("created_at", -1)
+    )
+
+    if not srs:
+        return []
+
+    # 批量查 showings
+    sr_ids = [sr["_id"] for sr in srs]
+    showings_by_sr = {}
+    for s in db["showings"].find({"showing_request_id": {"$in": sr_ids}}).sort("created_at", -1):
+        showings_by_sr.setdefault(s["showing_request_id"], []).append(s)
+
+    # 批量查 transactions
+    all_showing_ids = [s["_id"] for sl in showings_by_sr.values() for s in sl]
+    tx_by_showing = {}
+    if all_showing_ids:
+        for t in db["transactions"].find({"showing_id": {"$in": all_showing_ids}}):
+            tx_by_showing[t["showing_id"]] = t
+
+    # 批量查 BA agent 信息
+    ba_ids = list(set(sr["buyer_agent_id"] for sr in srs))
+    ba_map = {}
+    for a in db["agents"].find({"_id": {"$in": ba_ids}}):
+        ba_map[a["_id"]] = a
+
+    result = []
+    for sr in srs:
+        showings = showings_by_sr.get(sr["_id"], [])
+        latest_showing = showings[0] if showings else None
+
+        transaction = None
+        for s in showings:
+            t = tx_by_showing.get(s["_id"])
+            if t:
+                transaction = t
+                break
+
+        # 判 current_status
+        req_status = sr.get("status")
+        if req_status in ("rejected", "canceled"):
+            current_status = req_status
+        elif transaction:
+            tx_status = transaction.get("status")
+            if tx_status == "confirmed":
+                current_status = "transaction_confirmed"
+            else:
+                current_status = "transaction_initiated"
+        elif latest_showing and latest_showing.get("status") == "confirmed":
+            current_status = "showing_done"
+        elif req_status in ("approved", "auto_approved"):
+            current_status = "approved"
+        else:
+            current_status = "pending"
+
+        # 计算 latest_event_at
+        times = [sr.get("updated_at") or sr.get("created_at")]
+        if showings:
+            for s in showings:
+                times.append(s.get("updated_at") or s.get("created_at"))
+        if transaction:
+            times.append(transaction.get("updated_at") or transaction.get("created_at"))
+        latest_event = max(t for t in times if t is not None)
+
+        # BA 信息
+        ba = ba_map.get(sr["buyer_agent_id"], {})
+        ba_phone = ba.get("phone") if current_status not in _PHONE_HIDDEN_STATUSES else None
+
+        # 客户需求截断
+        demand = sr.get("requirements", "") or ""
+        if len(demand) > 60:
+            demand = demand[:60]
+
+        result.append({
+            "showing_request_id": str(sr["_id"]),
+            "ba_id": str(sr["buyer_agent_id"]),
+            "ba_name": sr.get("buyer_agent_name", ba.get("name", "")),
+            "ba_phone": ba_phone,
+            "customer_name": f"{sr.get('customer_surname', '')}{'先生' if sr.get('customer_gender') == 'male' else '女士'}",
+            "customer_demand": demand,
+            "created_at": sr["created_at"].isoformat() if sr.get("created_at") else None,
+            "latest_event_at": latest_event.isoformat() if latest_event else None,
+            "current_status": current_status,
+            "current_status_label": _SR_STATUS_LABEL.get(current_status, current_status),
+        })
+
+    result.sort(key=lambda x: x.get("latest_event_at") or "", reverse=True)
+    return result
+
+
 # ==================== 更新 / 下架 / 重新上架 ====================
 
 def update_listing(
