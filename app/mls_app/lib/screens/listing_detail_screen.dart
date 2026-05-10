@@ -274,7 +274,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       return _sectionCard(title: '带看记录', children: [
                         Container(
                           padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+                          decoration: BoxDecoration(color: AppTheme.grey50, borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
                           child: const Row(children: [
                             Icon(Icons.people_outline, size: 24, color: Colors.grey),
                             SizedBox(width: 12),
@@ -336,7 +336,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                   _sectionCard(children: [
                     Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+                      decoration: BoxDecoration(color: AppTheme.grey50, borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
                       child: Row(children: [
                         const Icon(Icons.lock_outline, size: 24, color: Colors.grey),
                         const SizedBox(width: 12),
@@ -386,7 +386,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       if (isInTransaction)
                         Container(
                           padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+                          decoration: BoxDecoration(color: AppTheme.grey100.withValues(alpha: 0.8), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
                           child: const Row(children: [
                             Icon(Icons.info_outline, color: Colors.grey, size: 18), SizedBox(width: 8),
                             Expanded(child: Text('交易状态下不能直接下架,请先回退到「在售」', style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption))),
@@ -457,7 +457,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         Column(children: [
           Container(width: 10, height: 10, decoration: BoxDecoration(
             color: isFirst ? Colors.blue : Colors.grey, shape: BoxShape.circle)),
-          if (!isFirst) Container(width: 1, height: 20, color: Colors.grey.shade300),
+          if (!isFirst) Container(width: 1, height: 20, color: AppTheme.grey400),
         ]),
         const SizedBox(width: 8),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -491,7 +491,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: active ? Colors.blue.shade50 : Colors.grey.shade100,
+        color: active ? Colors.blue.shade50 : AppTheme.grey100,
         borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
         border: active ? Border.all(color: Colors.blue.shade300) : null,
       ),
@@ -588,7 +588,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     if (cf is! Map || cf.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+        decoration: BoxDecoration(color: AppTheme.grey50, borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
         child: const Row(children: [
           Icon(Icons.info_outline, size: 16, color: Colors.grey),
           SizedBox(width: 8),
@@ -637,7 +637,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     if (lines.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+        decoration: BoxDecoration(color: AppTheme.grey50, borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
         child: const Row(children: [
           Icon(Icons.info_outline, size: 16, color: Colors.grey),
           SizedBox(width: 8),
@@ -674,7 +674,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   }
 
   Widget _askingPriceCard(Map<String, dynamic> item) => Card(
-    color: Colors.red.withValues(alpha: 0.05),
+    color: AppTheme.colorError.withValues(alpha: 0.05),
     child: Padding(
       padding: const EdgeInsets.all(16),
       child: Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
@@ -720,7 +720,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   );
 
   Widget _offlineActionsSection() => Column(children: [
-    Card(color: Colors.grey.withValues(alpha: 0.1), child: const Padding(padding: EdgeInsets.all(16), child: Row(children: [
+    Card(color: AppTheme.grey200.withValues(alpha: 0.5), child: const Padding(padding: EdgeInsets.all(16), child: Row(children: [
       Icon(Icons.info_outline, color: Colors.grey, size: 20), SizedBox(width: 10),
       Expanded(child: Text('该房源已下架,在共享库不再展示', style: TextStyle(color: Colors.grey))),
     ]))),
@@ -825,10 +825,10 @@ class _PhotoCarouselState extends State<_PhotoCarousel> {
   @override
   Widget build(BuildContext context) {
     if (widget.photos.isEmpty) {
-      return Container(height: 200, color: Colors.grey.shade200, alignment: Alignment.center,
+      return Container(height: 200, color: AppTheme.grey200, alignment: Alignment.center,
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Icon(Icons.image_not_supported_outlined, color: Colors.grey.shade400, size: 48),
-        const SizedBox(height: 8), Text('暂无照片', style: TextStyle(color: Colors.grey.shade500, fontSize: AppTheme.fontBody)),
+        Icon(Icons.image_not_supported_outlined, color: AppTheme.grey400, size: 48),
+        const SizedBox(height: 8), Text('暂无照片', style: TextStyle(color: AppTheme.grey500, fontSize: AppTheme.fontBody)),
       ]));
     }
     return AspectRatio(aspectRatio: 4/3, child: Stack(children: [

@@ -188,7 +188,7 @@ class _SentRequestCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.1),
+                  color: AppTheme.grey200.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Row(

@@ -297,7 +297,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(vertical: 14),
       child: Text(
         '过去 24 小时没有新动态',
-        style: TextStyle(color: Colors.grey.shade500, fontSize: AppTheme.fontBody),
+        style: TextStyle(color: AppTheme.grey500, fontSize: AppTheme.fontBody),
       ),
     );
   }
@@ -321,7 +321,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             _quickActionTile(
               icon: Icons.add_home_outlined,
-              color: Colors.blue,
+              color: AppTheme.primaryBlue,
               label: '录入房源',
               onTap: () => context.push('/listing/new'),
             ),
@@ -339,7 +339,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             _quickActionTile(
               icon: Icons.assignment_outlined,
-              color: Colors.orange,
+              color: AppTheme.colorPending,
               label: '带看申请',
               onTap: () => context.push('/showing-requests/received'),
             ),
@@ -477,7 +477,7 @@ class _TodoCard extends StatelessWidget {
                         Text(
                           data['subtitle'] as String,
                           style: TextStyle(
-                              fontSize: AppTheme.fontCaption, color: Colors.grey.shade700),
+                              fontSize: AppTheme.fontCaption, color: AppTheme.grey800),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -585,7 +585,7 @@ class _EventRow extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               _relativeTime(),
-              style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey.shade500),
+              style: TextStyle(fontSize: AppTheme.fontCaption, color: AppTheme.grey500),
             ),
           ],
         ),

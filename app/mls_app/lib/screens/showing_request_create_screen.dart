@@ -167,7 +167,7 @@ class _ShowingRequestCreateScreenState
                   const Text(
                     '已选客户档案',
                     style: TextStyle(
-                        color: Colors.green,
+                        color: AppTheme.colorOnSale,
                         fontSize: AppTheme.fontCaption,
                         fontWeight: FontWeight.bold),
                   ),
@@ -321,7 +321,7 @@ class _ShowingRequestCreateScreenState
                 border: const OutlineInputBorder(),
                 filled: identityLocked,
                 fillColor: identityLocked
-                    ? Colors.grey.withValues(alpha: 0.1)
+                    ? AppTheme.grey200.withValues(alpha: 0.5)
                     : null,
               ),
               maxLength: 5,
@@ -456,7 +456,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: AppTheme.grey400,
                 borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
               ),
             ),
@@ -531,7 +531,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
                       return ListTile(
                         leading: CircleAvatar(
                           backgroundColor: gender == 'male'
-                              ? Colors.blue.withValues(alpha: 0.15)
+                              ? AppTheme.colorDepositPaid.withValues(alpha: 0.15)
                               : Colors.pink.withValues(alpha: 0.15),
                           child: Icon(
                             gender == 'male' ? Icons.man : Icons.woman,

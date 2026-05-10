@@ -332,7 +332,7 @@ class _ShowingRequestDetailScreenState
               if (status == ShowingRequestStatus.rejected) ...[
                 _sectionTitle('拒绝理由'),
                 Card(
-                  color: Colors.grey.withValues(alpha: 0.1),
+                  color: AppTheme.grey200.withValues(alpha: 0.5),
                   child: Padding(
                     padding: const EdgeInsets.all(14),
                     child: Column(
@@ -501,7 +501,7 @@ class _ShowingRequestDetailScreenState
     if (showing == null) {
       if (isLA) {
         return Card(
-          color: Colors.grey.withValues(alpha: 0.1),
+          color: AppTheme.grey200.withValues(alpha: 0.5),
           child: const Padding(
             padding: EdgeInsets.all(14),
             child: Row(
@@ -712,7 +712,7 @@ class _ShowingRequestDetailScreenState
     if (tx == null) {
       if (isLA) {
         return Card(
-          color: Colors.grey.withValues(alpha: 0.08),
+          color: AppTheme.grey100.withValues(alpha: 0.8),
           child: const Padding(
             padding: EdgeInsets.all(14),
             child: Row(
@@ -770,7 +770,7 @@ class _ShowingRequestDetailScreenState
     if (tx['status'] == 'cancelled') {
       if (isLA) {
         return Card(
-          color: Colors.grey.withValues(alpha: 0.08),
+          color: AppTheme.grey100.withValues(alpha: 0.8),
           child: const Padding(
             padding: EdgeInsets.all(14),
             child: Row(

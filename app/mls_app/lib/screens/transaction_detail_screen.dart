@@ -384,7 +384,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
           priceYuan: maskBa ? null : doc['ba_deal_price_yuan'] as int?,
           dateStr: maskBa ? null : doc['ba_deal_date'] as String?,
           submittedAt: doc['ba_submitted_at'] as String?,
-          color: Colors.blue,
+          color: AppTheme.primaryBlue,
           masked: maskBa,
           hasSubmitted: baHasSubmitted,
         ),
@@ -469,7 +469,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
               Text(
                 '防伪机制:请您独立填写记忆中的成交价,系统将自动比对。',
                 style: TextStyle(
-                  color: Colors.grey.shade700,
+                  color: AppTheme.grey800,
                   fontSize: AppTheme.fontCaption,
                 ),
               ),
@@ -789,7 +789,7 @@ class _LaConfirmDialogState extends State<_LaConfirmDialog> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade400),
+                  border: Border.all(color: AppTheme.grey400),
                   borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Row(
@@ -1015,7 +1015,7 @@ class _LaUpdateDialogState extends State<_LaUpdateDialog> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade400),
+                  border: Border.all(color: AppTheme.grey400),
                   borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Row(
@@ -1166,7 +1166,7 @@ class _BaUpdateDialogState extends State<_BaUpdateDialog> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade400),
+                  border: Border.all(color: AppTheme.grey400),
                   borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Row(

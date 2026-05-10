@@ -204,7 +204,7 @@ class _CustomerCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       elevation: isClosed ? 0 : 1,
-      color: isClosed ? Colors.grey.withValues(alpha: 0.08) : null,
+      color: isClosed ? AppTheme.grey100.withValues(alpha: 0.8) : null,
       child: InkWell(
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         onTap: onTap,
@@ -262,7 +262,7 @@ class _CustomerCard extends StatelessWidget {
                           fontSize: AppTheme.fontBody,
                           color: isClosed
                               ? Colors.grey
-                              : Colors.grey.shade700,
+                              : AppTheme.grey800,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,

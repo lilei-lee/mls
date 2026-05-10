@@ -346,13 +346,13 @@ class _CollaborationCard extends StatelessWidget {
               Row(
                 children: [
                   Icon(Icons.access_time,
-                      size: 11, color: Colors.grey.shade500),
+                      size: 11, color: AppTheme.grey500),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       lastActionText,
                       style: TextStyle(
-                          color: Colors.grey.shade700, fontSize: AppTheme.fontCaption),
+                          color: AppTheme.grey800, fontSize: AppTheme.fontCaption),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -360,7 +360,7 @@ class _CollaborationCard extends StatelessWidget {
                   Text(
                     _relativeTime(lastActionTime),
                     style: TextStyle(
-                        color: Colors.grey.shade500, fontSize: AppTheme.fontCaption),
+                        color: AppTheme.grey500, fontSize: AppTheme.fontCaption),
                   ),
                 ],
               ),

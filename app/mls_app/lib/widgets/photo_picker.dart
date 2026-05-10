@@ -289,13 +289,13 @@ class _PhotoPickerState extends State<PhotoPicker> {
             height: 90,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-              border: Border.all(color: Colors.grey.shade300),
+              border: Border.all(color: AppTheme.grey400),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(5),
               child: bytes != null
                   ? Image.memory(bytes, fit: BoxFit.cover)
-                  : Container(color: Colors.grey.shade200),
+                  : Container(color: AppTheme.grey200),
             ),
           ),
           if (index == 0)
@@ -306,7 +306,7 @@ class _PhotoPickerState extends State<PhotoPicker> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                 decoration: BoxDecoration(
-                  color: Colors.blue,
+                  color: AppTheme.primaryBlue,
                   borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: const Text(
@@ -333,14 +333,14 @@ class _PhotoPickerState extends State<PhotoPicker> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
           border: Border.all(
-              color: Colors.grey.shade400, style: BorderStyle.solid),
+              color: AppTheme.grey400, style: BorderStyle.solid),
           color: Colors.grey.withValues(alpha: 0.05),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.add_a_photo_outlined,
-                size: 28, color: Colors.grey.shade500),
+                size: 28, color: AppTheme.grey500),
             const SizedBox(height: 4),
             Text(
               '添加照片',

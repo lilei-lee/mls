@@ -115,7 +115,7 @@ class _FilterSheetState extends State<FilterSheet> {
           child: Column(children: [
             Container(
               margin: const EdgeInsets.only(top: 8), width: 40, height: 4,
-              decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+              decoration: BoxDecoration(color: AppTheme.grey400, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),

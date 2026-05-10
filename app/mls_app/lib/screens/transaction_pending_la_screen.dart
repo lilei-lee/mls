@@ -126,7 +126,7 @@ class _TransactionPendingLaScreenState
                                 ),
                                 child: const Text('待独立填价',
                                     style: TextStyle(
-                                        color: Colors.orange,
+                                        color: AppTheme.colorPending,
                                         fontSize: AppTheme.fontCaption,
                                         fontWeight: FontWeight.bold)),
                               ),

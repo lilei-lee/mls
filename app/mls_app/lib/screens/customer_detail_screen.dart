@@ -299,7 +299,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
         Expanded(
           child: _statBox(
             icon: Icons.description_outlined,
-            color: Colors.blue,
+            color: AppTheme.primaryBlue,
             label: '申请',
             count: (stats['requests_count'] ?? 0) as int,
           ),
@@ -308,7 +308,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
         Expanded(
           child: _statBox(
             icon: Icons.camera_alt_outlined,
-            color: Colors.orange,
+            color: AppTheme.colorPending,
             label: '带看',
             count: (stats['showings_count'] ?? 0) as int,
           ),
@@ -317,7 +317,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
         Expanded(
           child: _statBox(
             icon: Icons.gavel_outlined,
-            color: Colors.green,
+            color: AppTheme.colorOnSale,
             label: '成交',
             count: (stats['transactions_count'] ?? 0) as int,
           ),

@@ -195,7 +195,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 child: SizedBox(width: 72, height: 72,
                     child: cover != null && cover.isNotEmpty
                         ? Base64Image(dataUrl: cover, fit: BoxFit.cover)
-                        : Container(color: Colors.grey.shade200, child: const Icon(Icons.image, color: Colors.grey))),
+                        : Container(color: AppTheme.grey200, child: const Icon(Icons.image, color: Colors.grey))),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -266,7 +266,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
         _expTile('周边对比', Icons.compare_arrows_outlined, [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+            decoration: BoxDecoration(color: AppTheme.grey100, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
             child: const Row(children: [
               Icon(Icons.lock_outline, size: 14, color: Colors.grey),
               SizedBox(width: 8),

@@ -275,7 +275,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
             child: Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade400),
+                border: Border.all(color: AppTheme.grey400),
                 borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               ),
               child: Row(
@@ -335,7 +335,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
                           width: 22,
                           height: 22,
                           decoration: const BoxDecoration(
-                            color: Colors.red,
+                            color: AppTheme.colorError,
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(Icons.close,
@@ -354,7 +354,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
                     height: 80,
                     decoration: BoxDecoration(
                       border: Border.all(
-                          color: Colors.grey.shade400,
+                          color: AppTheme.grey400,
                           style: BorderStyle.solid),
                       borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                     ),

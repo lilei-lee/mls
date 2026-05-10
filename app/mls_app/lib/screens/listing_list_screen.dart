@@ -164,7 +164,7 @@ class _ListingListScreenState extends State<ListingListScreen>
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: Colors.orange,
+                      color: AppTheme.colorPending,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -276,7 +276,7 @@ class _ListingListScreenState extends State<ListingListScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(
-          color: Colors.orange.withValues(alpha: 0.15),
+          color: AppTheme.colorPending.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
         ),
         child: Row(
@@ -495,7 +495,7 @@ class _ListingCard extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: AppTheme.fontAppBar,
                               fontWeight: FontWeight.bold,
-                              color: Colors.red,
+                              color: AppTheme.colorError,
                             ),
                           ),
                           const SizedBox(width: 2),

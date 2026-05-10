@@ -374,7 +374,7 @@ class _SharedListingCard extends StatelessWidget {
     if (_myRequestStatus == 'pending') {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+        decoration: BoxDecoration(color: AppTheme.colorPending.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
         child: const Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.hourglass_empty, size: 10, color: Colors.orange), SizedBox(width: 2),
           Text('已申请', style: TextStyle(color: Colors.orange, fontSize: AppTheme.fontSmall, fontWeight: FontWeight.bold)),
@@ -384,7 +384,7 @@ class _SharedListingCard extends StatelessWidget {
     if (_myRequestStatus == 'approved') {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+        decoration: BoxDecoration(color: AppTheme.colorOnSale.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
         child: const Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.check_circle, size: 10, color: Colors.green), SizedBox(width: 2),
           Text('已通过', style: TextStyle(color: Colors.green, fontSize: AppTheme.fontSmall, fontWeight: FontWeight.bold)),
@@ -587,7 +587,7 @@ class _SharedListingCard extends StatelessWidget {
                       ),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: _myRequestStatus == 'pending' ? Colors.orange : _myRequestStatus == 'approved' ? Colors.green : null,
-                        side: BorderSide(color: _myRequestStatus == 'pending' ? Colors.orange : _myRequestStatus == 'approved' ? Colors.green : Colors.grey.shade400),
+                        side: BorderSide(color: _myRequestStatus == 'pending' ? Colors.orange : _myRequestStatus == 'approved' ? Colors.green : AppTheme.grey400),
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         minimumSize: const Size(0, 32),
                       ),

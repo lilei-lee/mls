@@ -280,7 +280,7 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
               padding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade400),
+                border: Border.all(color: AppTheme.grey400),
                 borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
               ),
               child: Row(

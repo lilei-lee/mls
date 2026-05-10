@@ -116,7 +116,7 @@ class _ShowingPendingConfirmScreenState
                                 ),
                                 child: const Text('待确认',
                                     style: TextStyle(
-                                        color: Colors.orange,
+                                        color: AppTheme.colorPending,
                                         fontSize: AppTheme.fontCaption,
                                         fontWeight: FontWeight.bold)),
                               ),

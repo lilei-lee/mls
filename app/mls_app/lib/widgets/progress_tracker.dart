@@ -97,7 +97,7 @@ class ProgressTracker extends StatelessWidget {
   }
 
   Color _dotColor(int idx) {
-    if (idx > stage) return Colors.grey.shade400;
+    if (idx > stage) return AppTheme.grey400;
     if (idx == stage) {
       if (isFailed) return Colors.red;
       if (stageStatus == 'expired') return Colors.grey;
@@ -115,14 +115,14 @@ class ProgressTracker extends StatelessWidget {
     return Container(
       height: 2,
       margin: const EdgeInsets.symmetric(horizontal: 2),
-      color: isCompleted ? Colors.green : Colors.grey.shade300,
+      color: isCompleted ? Colors.green : AppTheme.grey400,
     );
   }
 
   // ===== 标签颜色 =====
 
   Color _labelColor(int idx) {
-    if (idx > stage) return Colors.grey.shade400;
+    if (idx > stage) return AppTheme.grey400;
     if (idx == stage) {
       if (isFailed) return Colors.red;
       if (stageStatus == 'expired') return Colors.grey;

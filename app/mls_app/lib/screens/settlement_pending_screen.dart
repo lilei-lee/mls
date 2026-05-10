@@ -176,7 +176,7 @@ class _SettlementCard extends StatelessWidget {
                   ),
                   const Spacer(),
                   Icon(Icons.chevron_right,
-                      color: Colors.grey.shade400, size: 20),
+                      color: AppTheme.grey400, size: 20),
                 ],
               ),
               const SizedBox(height: 10),

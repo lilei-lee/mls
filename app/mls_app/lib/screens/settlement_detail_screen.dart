@@ -175,7 +175,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
                               style: const TextStyle(
                                 fontSize: AppTheme.fontAppBar,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.orange,
+                                color: AppTheme.colorPending,
                               ),
                             ),
                             const SizedBox(width: 4),
@@ -346,7 +346,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
     required String subtitle,
     bool isLast = false,
   }) {
-    final dotColor = done ? Colors.green : Colors.grey.shade300;
+    final dotColor = done ? Colors.green : AppTheme.grey400;
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -366,7 +366,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
                     width: 2,
                     color: done
                         ? Colors.green.withValues(alpha: 0.3)
-                        : Colors.grey.shade300,
+                        : AppTheme.grey400,
                   ),
                 ),
             ],

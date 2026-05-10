@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 /// 渲染 base64 dataUrl 的图片
 /// 输入格式:'data:image/jpeg;base64,XXX...' 或纯 base64 字符串
@@ -53,11 +54,11 @@ class Base64Image extends StatelessWidget {
         Container(
           width: width,
           height: height,
-          color: Colors.grey.shade200,
+          color: AppTheme.grey200,
           alignment: Alignment.center,
           child: Icon(
             Icons.home_outlined,
-            color: Colors.grey.shade400,
+            color: AppTheme.grey400,
             size: (width != null && width! < 60) ? 20 : 32,
           ),
         );

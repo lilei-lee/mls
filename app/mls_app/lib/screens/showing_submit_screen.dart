@@ -218,7 +218,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade400),
+                border: Border.all(color: AppTheme.grey400),
                 borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
               ),
               child: Row(
@@ -345,7 +345,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
       child: Container(
         width: size, height: size,
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade400),
+          border: Border.all(color: AppTheme.grey400),
           borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
         ),
         child: Column(
