@@ -22,6 +22,8 @@ from const.sale_points import validate_sale_points
 from bson import ObjectId
 from fastapi import HTTPException
 from database import db, client
+from services.listing_filter import batch_fetch_communities_by_name, passes_dict_filters
+from services.listing_enrich import enrich_from_dictionary, enrich_community_from_dict
 
 listings_collection = db["listings"]
 showing_requests_collection = db["showing_requests"]
@@ -454,13 +456,13 @@ def list_shared_listings(
     # ── Step B: 拉辞典社区数据(按名称) ──
     community_by_name = {}
     if needs_dict_filter:
-        community_by_name = _batch_fetch_communities_by_name(docs)
+        community_by_name = batch_fetch_communities_by_name(docs)
 
     # ── Step C: 后端聚合过滤 ──
     if needs_dict_filter:
         filtered_docs = []
         for doc in docs:
-            if not _passes_dict_filters(
+            if not passes_dict_filters(
                 doc, props_map, community_by_name,
                 objective_features, decoration, heating_type,
                 bld_year_min, bld_year_max,
@@ -482,69 +484,6 @@ def list_shared_listings(
     for r in results:
         _enrich_physical_fields(r, props_map)
     return results, total
-
-
-def _batch_fetch_communities_by_name(docs: list) -> dict:
-    """按 community name 从 property_dict 查社区,返 {name: doc}。"""
-    names = list(set(d.get("community", "") for d in docs if d.get("community")))
-    if not names:
-        return {}
-    try:
-        dict_db = client.get_database("property_dict")
-        comms = list(dict_db["communities"].find({"name": {"$in": names}}))
-        return {c["name"]: c for c in comms}
-    except Exception:
-        return {}
-
-
-def _passes_dict_filters(
-    doc: dict,
-    props_map: dict,
-    community_by_name: dict,
-    objective_features: Optional[list[str]],
-    decoration: Optional[str],
-    heating_type: Optional[str],
-    bld_year_min: Optional[int],
-    bld_year_max: Optional[int],
-) -> bool:
-    """判断 listing 是否满足辞典侧筛选条件。"""
-    prop = props_map.get(doc.get("property_code", "")) or {}
-    latest = prop.get("attribute_claims_latest", {}) or {}
-
-    # objective_features AND:listing 的 claim 值必须包含所有请求标签
-    if objective_features:
-        claim_of = latest.get("objective_features")
-        if not isinstance(claim_of, list):
-            return False
-        for tag in objective_features:
-            if tag not in claim_of:
-                return False
-
-    # decoration 单选
-    if decoration:
-        claim_dec = latest.get("decoration")
-        if claim_dec != decoration:
-            return False
-
-    # 社区属性过滤
-    comm = community_by_name.get(doc.get("community", "")) or {}
-
-    if heating_type:
-        if comm.get("heating_type") != heating_type:
-            return False
-
-    if bld_year_min is not None or bld_year_max is not None:
-        year_start = comm.get("bld_year_start")
-        year_end = comm.get("bld_year_end")
-        used_year = year_start or year_end
-        if used_year is None:
-            return False
-        if bld_year_min is not None and used_year < bld_year_min:
-            return False
-        if bld_year_max is not None and used_year > bld_year_max:
-            return False
-
-    return True
 
 
 def count_shared_listings(
@@ -579,9 +518,9 @@ def get_listing_by_id(listing_id: str, viewer_id=None) -> dict | None:
         return None
     result = _format_listing_full(doc)
     # V2.1 #15: 尝试从辞典侧补物理字段,失败时保持 None 占位(graceful degrade)
-    _enrich_from_dictionary(result, doc, viewer_id)
+    enrich_from_dictionary(result, doc, viewer_id)
     # V2.2 #1: 从 property_dict 补社区特征字段
-    _enrich_community_from_dict(result, doc)
+    enrich_community_from_dict(result, doc)
     # V2.2 #1: 权限分层 — 非协作方隐藏 agent_remarks / showing_instructions / LA 手机号
     from utils.collaboration_status import is_collaboration_unlocked
     if not is_collaboration_unlocked(viewer_id, listing_id):
@@ -589,88 +528,6 @@ def get_listing_by_id(listing_id: str, viewer_id=None) -> dict | None:
         result["showing_instructions"] = ""
         result["owner_agent_phone"] = ""
     return result
-
-
-def _enrich_from_dictionary(result: dict, doc: dict, viewer_id=None) -> None:
-    """尝试从辞典 get_property 拿物理字段富化 listing 详情,不抛异常。
-
-    如 viewer_id 与 listing.owner_agent_id 相同(LA 视角),附加 my_last_claim。
-    V2.2 #1: 扩展 objective_features + decoration 富化。
-    """
-    property_code = doc.get("property_code")
-    if not property_code:
-        return
-    try:
-        from dictionary_client import DictionaryClient
-        prop = DictionaryClient().get_property(property_code)
-    except Exception:
-        return
-    # authoritative_attrs 优先
-    auth = prop.get("authoritative_attrs", {}) or {}
-    for field in DICT_PHYSICAL_FIELDS + DICT_OPTIONAL_CLAIM_FIELDS:
-        val = auth.get(field)
-        if val is not None:
-            result[field] = val
-    # attribute_claims 兜底:单条 endpoint 返 list(含 agent_id),
-    # 压缩为 {field: latest_value} 填 authoritative_attrs 缺失的字段
-    claims_list = prop.get("attribute_claims", []) or []
-    if claims_list:
-        claims_list_sorted = sorted(claims_list, key=lambda c: c.get("claimed_at") or "")
-        for field in DICT_PHYSICAL_FIELDS + DICT_OPTIONAL_CLAIM_FIELDS:
-            if result.get(field) is not None:
-                continue
-            for c in reversed(claims_list_sorted):
-                if c.get("field") == field and c.get("value") is not None:
-                    result[field] = c["value"]
-                    break
-
-    # V2.1 #15 段 7.5: LA 视角附加"我上次提交"的物理值
-    if viewer_id and str(viewer_id) == str(doc.get("owner_agent_id", "")):
-        my_claims = [
-            c for c in claims_list
-            if str(c.get("agent_id", "")) == str(viewer_id)
-        ]
-        my_claims_sorted = sorted(
-            my_claims, key=lambda c: c.get("claimed_at") or "", reverse=True
-        )
-        my_last_claim = {field: None for field in DICT_PHYSICAL_FIELDS + DICT_OPTIONAL_CLAIM_FIELDS}
-        for c in my_claims_sorted:
-            field = c.get("field")
-            if field in my_last_claim and my_last_claim[field] is None:
-                my_last_claim[field] = c.get("value")
-        result["my_last_claim"] = my_last_claim
-
-
-def _enrich_community_from_dict(result: dict, doc: dict) -> None:
-    """V2.2 #1: 从 property_dict 按社区名查特征字段,富化到 listing 详情。"""
-    name = doc.get("community")
-    if not name:
-        return
-    try:
-        dict_db = client.get_database("property_dict")
-        comm = dict_db["communities"].find_one({"name": name})
-        if not comm:
-            return
-        result["community_features"] = {
-            "bld_year_start": comm.get("bld_year_start"),
-            "bld_year_end": comm.get("bld_year_end"),
-            "total_buildings": comm.get("total_buildings"),
-            "total_units": comm.get("total_units"),
-            "plot_ratio": comm.get("plot_ratio"),
-            "green_ratio": comm.get("green_ratio"),
-            "property_company": comm.get("property_company"),
-            "property_fee_yuan": comm.get("property_fee_yuan"),
-            "building_types": comm.get("building_types"),
-            "heating_type": comm.get("heating_type"),
-            "primary_school": comm.get("primary_school"),
-            "middle_school": comm.get("middle_school"),
-            "nearest_highway": comm.get("nearest_highway"),
-            "nearest_train_station": comm.get("nearest_train_station"),
-            "parking_total": comm.get("parking_total"),
-            "parking_ratio": comm.get("parking_ratio"),
-        }
-    except Exception:
-        pass
 
 
 # ==================== 更新 / 下架 / 重新上架 ====================

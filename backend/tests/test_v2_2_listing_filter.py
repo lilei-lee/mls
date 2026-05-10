@@ -68,11 +68,11 @@ def test_filter_no_params_returns_all(mock_batch, agent):
 def test_filter_sale_points_single(mock_batch, agent):
     mock_batch.return_value = {}
     la_id = ObjectId()
-    lid1 = _seed_listing(la_id, property_code="SP01", sale_points=["学区房", "近公园"])
-    lid2 = _seed_listing(la_id, property_code="SP02", sale_points=["急售可议"])
+    lid1 = _seed_listing(la_id, property_code="SP01", sale_points=["带露台", "低公摊"])
+    lid2 = _seed_listing(la_id, property_code="SP02", sale_points=["送储物间"])
 
     from listings import list_shared_listings
-    items, total = list_shared_listings(agent["_id"], sale_points=["学区房"])
+    items, total = list_shared_listings(agent["_id"], sale_points=["带露台"])
     assert total == 1
     assert items[0]["listing_id"] == str(lid1)
 
@@ -84,11 +84,11 @@ def test_filter_sale_points_single(mock_batch, agent):
 def test_filter_sale_points_multiple_and(mock_batch, agent):
     mock_batch.return_value = {}
     la_id = ObjectId()
-    lid1 = _seed_listing(la_id, property_code="SPM01", sale_points=["学区房", "近公园", "带阳台"])
-    lid2 = _seed_listing(la_id, property_code="SPM02", sale_points=["学区房"])
+    lid1 = _seed_listing(la_id, property_code="SPM01", sale_points=["带露台", "低公摊", "开放厨房"])
+    lid2 = _seed_listing(la_id, property_code="SPM02", sale_points=["带露台"])
 
     from listings import list_shared_listings
-    items, total = list_shared_listings(agent["_id"], sale_points=["学区房", "近公园"])
+    items, total = list_shared_listings(agent["_id"], sale_points=["带露台", "低公摊"])
     assert total == 1
     assert items[0]["listing_id"] == str(lid1)
 
@@ -100,10 +100,11 @@ def test_filter_sale_points_multiple_and(mock_batch, agent):
 def test_filter_sale_points_no_match(mock_batch, agent):
     mock_batch.return_value = {}
     la_id = ObjectId()
-    lid = _seed_listing(la_id, property_code="SPN01", sale_points=["急售可议"])
+    lid = _seed_listing(la_id, property_code="SPN01", sale_points=["送储物间"])
 
     from listings import list_shared_listings
-    items, total = list_shared_listings(agent["_id"], sale_points=["满五唯一"])
+    # 用种子数据中不存在的标签
+    items, total = list_shared_listings(agent["_id"], sale_points=["带露台"])
     assert total == 0
 
     from database import db
@@ -115,7 +116,7 @@ def test_filter_sale_points_no_match(mock_batch, agent):
 # ═══════════════════════════════════════════
 
 @patch("listings._batch_fetch_props")
-@patch("listings._batch_fetch_communities_by_name")
+@patch("listings.batch_fetch_communities_by_name")
 def test_filter_objective_features(mock_comm, mock_batch, agent):
     mock_batch.return_value = _seed_props_map({
         "OF01": {"objective_features": ["南北通透", "全明格局"]},
@@ -144,7 +145,7 @@ def test_filter_objective_features(mock_comm, mock_batch, agent):
 # ═══════════════════════════════════════════
 
 @patch("listings._batch_fetch_props")
-@patch("listings._batch_fetch_communities_by_name")
+@patch("listings.batch_fetch_communities_by_name")
 def test_filter_decoration(mock_comm, mock_batch, agent):
     mock_batch.return_value = _seed_props_map({
         "DEC01": {"decoration": "精装"},
@@ -169,7 +170,7 @@ def test_filter_decoration(mock_comm, mock_batch, agent):
 # ═══════════════════════════════════════════
 
 @patch("listings._batch_fetch_props")
-@patch("listings._batch_fetch_communities_by_name")
+@patch("listings.batch_fetch_communities_by_name")
 def test_filter_heating_type(mock_comm, mock_batch, agent):
     mock_batch.return_value = {}
     mock_comm.return_value = {
@@ -194,7 +195,7 @@ def test_filter_heating_type(mock_comm, mock_batch, agent):
 # ═══════════════════════════════════════════
 
 @patch("listings._batch_fetch_props")
-@patch("listings._batch_fetch_communities_by_name")
+@patch("listings.batch_fetch_communities_by_name")
 def test_filter_bld_year_range(mock_comm, mock_batch, agent):
     mock_batch.return_value = {}
     mock_comm.return_value = {
@@ -229,7 +230,7 @@ def test_filter_bld_year_range(mock_comm, mock_batch, agent):
 # ═══════════════════════════════════════════
 
 @patch("listings._batch_fetch_props")
-@patch("listings._batch_fetch_communities_by_name")
+@patch("listings.batch_fetch_communities_by_name")
 def test_filter_combined_all_5(mock_comm, mock_batch, agent):
     mock_batch.return_value = _seed_props_map({
         "C01": {"objective_features": ["南北通透", "全明格局"], "decoration": "精装"},
@@ -298,7 +299,7 @@ def test_filter_excludes_self_owned_listings(mock_batch, agent):
 # ═══════════════════════════════════════════
 
 @patch("listings._batch_fetch_props")
-@patch("listings._batch_fetch_communities_by_name")
+@patch("listings.batch_fetch_communities_by_name")
 def test_filter_dict_unavailable_returns_empty(mock_comm, mock_batch, agent):
     """辞典社区无数据 → 按 heating_type/bld_year 筛选返空"""
     mock_batch.return_value = {}
