@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../models/listing_filters.dart';
 import '../services/api_client.dart';
 import '../widgets/base64_image.dart';
 import '../widgets/filter_sheet.dart';
+import '../components/app_empty.dart';
 
 /// 共享房源库 V2.2: 5 行卡片 + 5 类筛选 + 筛选状态指示
 class ListingSharedScreen extends StatefulWidget {
@@ -151,7 +153,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
         onDeleted: () => _removeFilter(dimension),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         visualDensity: VisualDensity.compact,
-        backgroundColor: AppTheme.primary50,
+        backgroundColor: Colors.blue.shade50,
       ),
     );
   }
@@ -176,11 +178,11 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
               )
             : const Text('共享房源库'),
         actions: [
-          IconButton(icon: Icon(_searchMode ? Icons.close : Icons.search), tooltip: _searchMode ? '关闭搜索' : '搜索', onPressed: _toggleSearch),
+          IconButton(icon: Icon(_searchMode ? LucideIcons.x : LucideIcons.search, size: 22), tooltip: _searchMode ? '关闭搜索' : '搜索', onPressed: _toggleSearch),
           Stack(
             alignment: Alignment.center,
             children: [
-              IconButton(icon: const Icon(Icons.tune), tooltip: '筛选', onPressed: _openFilterSheet),
+              IconButton(icon: const Icon(LucideIcons.slidersHorizontal, size: 22), tooltip: '筛选', onPressed: _openFilterSheet),
               if (_filters.isActive)
                 Positioned(
                   right: 8, top: 8,
@@ -286,7 +288,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
 
   Widget _anonymousBadge() => Container(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-    decoration: BoxDecoration(color: AppTheme.primary500.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+    decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
     child: const Text('匿名浏览', style: TextStyle(color: Colors.blue, fontSize: AppTheme.fontCaption)),
   );
 
@@ -309,25 +311,26 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
     String title; String? subtitle;
     if (totallyEmpty) {
       title = isTodayTab ? '今日暂无新房源' : '暂无其他经纪人的共享房源';
-      subtitle = isTodayTab ? '同行还没录入今天的新房源,稍后再来看看' : '当其他经纪人录入房源后,这里会展示';
+      subtitle = isTodayTab ? '同行还没录入今天的新房源' : '当其他经纪人录入房源后,这里会展示';
     } else if (_filters.isActive || _keyword.isNotEmpty) {
       title = '没有符合条件的房源'; subtitle = '试试调整筛选条件或搜索关键字';
-    } else { title = '没有房源'; }
-    return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Icon(isTodayTab ? Icons.new_releases_outlined : Icons.home_outlined, size: 80, color: Colors.grey),
-      const SizedBox(height: 16),
-      Text(title, style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontSectionTitle)),
-      if (subtitle != null) ...[const SizedBox(height: 6), Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody))],
-    ]));
+    } else { title = '没有房源'; subtitle = null; }
+    return AppEmpty(
+      icon: LucideIcons.inbox,
+      title: title,
+      subtitle: subtitle,
+      actionLabel: (_filters.isActive || _keyword.isNotEmpty) ? '重置筛选' : null,
+      onAction: (_filters.isActive || _keyword.isNotEmpty) ? () { setState(() => _filters = ListingFilters.empty); _refresh(); } : null,
+    );
   }
 
-  Widget _buildError(String err) => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-    const Icon(Icons.error_outline, size: 60, color: Colors.red),
-    const SizedBox(height: 16),
-    Text('加载失败:$err', style: const TextStyle(color: Colors.red)),
-    const SizedBox(height: 16),
-    ElevatedButton(onPressed: _refresh, child: const Text('重试')),
-  ]));
+  Widget _buildError(String err) => AppEmpty(
+    icon: LucideIcons.alertTriangle,
+    title: '加载失败',
+    subtitle: err,
+    actionLabel: '重试',
+    onAction: _refresh,
+  );
 }
 
 // ═══════════════════════ V2.2 5 行卡片 ═══════════════════════
@@ -488,7 +491,7 @@ class _SharedListingCard extends StatelessWidget {
                 if (bonusYuan > 0)
                   Positioned(left: 4, top: 4, child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(color: AppTheme.gold600, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+                    decoration: BoxDecoration(color: Colors.orange.shade700, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       const Icon(Icons.local_offer, size: 10, color: Colors.white), const SizedBox(width: 2),
                       Text('奖¥$bonusYuan', style: const TextStyle(color: Colors.white, fontSize: AppTheme.fontSmall, fontWeight: FontWeight.bold)),
@@ -503,7 +506,7 @@ class _SharedListingCard extends StatelessWidget {
                     if (district.isNotEmpty) ...[
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                        decoration: BoxDecoration(color: AppTheme.primary500.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+                        decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
                         child: Text(district, style: const TextStyle(color: Colors.blue, fontSize: AppTheme.fontSmall)),
                       ),
                       const SizedBox(width: 4),
@@ -543,8 +546,8 @@ class _SharedListingCard extends StatelessWidget {
                           padding: const EdgeInsets.only(right: 4),
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                            decoration: BoxDecoration(color: AppTheme.primary50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
-                            child: Text(t, style: TextStyle(fontSize: AppTheme.fontSmall, color: AppTheme.primary600)),
+                            decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+                            child: Text(t, style: TextStyle(fontSize: AppTheme.fontSmall, color: Colors.blue.shade700)),
                           ),
                         )),
                       ]),
