@@ -1,0 +1,431 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2190 900" font-family="-apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif">
+  <defs>
+    <!-- Colors from Design System -->
+    <!-- Primary #1E5EFF, N0 #FFF, N50 #F7F8FA, N100 #EEF0F4, N200 #E2E5EB, N300 #C8CDD6, N500 #8B92A0, N700 #4A5160, N800 #2D333E, N900 #14181F -->
+    <!-- Success #00B578, Warning #FF8B1F, Danger #F5454A, Info #2E7CF6 -->
+    <filter id="shadow1"><feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="#14181F" flood-opacity="0.04"/></filter>
+  </defs>
+
+  <!-- ═══════════════ SCREEN 1: 工作台 (x=10) ═══════════════ -->
+  <g transform="translate(10,28)">
+    <rect width="390" height="844" rx="16" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+
+    <!-- Status Bar -->
+    <rect x="0" y="0" width="390" height="44" fill="#FFF"/>
+    <text x="30" y="28" font-size="12" fill="#14181F" font-weight="600">9:41</text>
+
+    <!-- AppBar -->
+    <rect x="0" y="44" width="390" height="56" fill="#FFF"/>
+    <text x="16" y="78" font-size="20" font-weight="600" fill="#14181F">下午好，张三</text>
+    <!-- Avatar -->
+    <circle cx="358" cy="72" r="16" fill="#EEF0F4" stroke="#E2E5EB" stroke-width="1"/>
+    <text x="358" y="77" text-anchor="middle" font-size="12" fill="#8B92A0">张</text>
+
+    <!-- Subtitle -->
+    <text x="16" y="114" font-size="13" fill="#8B92A0">今天是 5 月 10 日 周日</text>
+
+    <!-- 4 Todo Cards (2x2 grid) -->
+    <!-- Card 1: 待审带看 -->
+    <rect x="16" y="136" width="175" height="88" rx="8" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+    <text x="32" y="162" font-size="14" fill="#4A5160">待审带看</text>
+    <text x="32" y="194" font-size="28" font-weight="600" fill="#FF8B1F">3</text>
+    <text x="72" y="194" font-size="13" fill="#8B92A0">个申请</text>
+
+    <!-- Card 2: 待确认成交 -->
+    <rect x="199" y="136" width="175" height="88" rx="8" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+    <text x="215" y="162" font-size="14" fill="#4A5160">待确认成交</text>
+    <text x="215" y="194" font-size="28" font-weight="600" fill="#2E7CF6">1</text>
+    <text x="245" y="194" font-size="13" fill="#8B92A0">笔交易</text>
+
+    <!-- Card 3: 我的房源 -->
+    <rect x="16" y="232" width="175" height="88" rx="8" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+    <text x="32" y="258" font-size="14" fill="#4A5160">我的房源</text>
+    <text x="32" y="290" font-size="28" font-weight="600" fill="#14181F">12</text>
+    <text x="72" y="290" font-size="13" fill="#8B92A0">套在售</text>
+
+    <!-- Card 4: 本月奖金 -->
+    <rect x="199" y="232" width="175" height="88" rx="8" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+    <text x="215" y="258" font-size="14" fill="#4A5160">本月奖金</text>
+    <text x="215" y="290" font-size="28" font-weight="600" fill="#00B578">¥4,800</text>
+
+    <!-- Section: 今日动态 -->
+    <text x="16" y="356" font-size="16" font-weight="600" fill="#14181F">今日动态</text>
+
+    <!-- Timeline items -->
+    <circle cx="28" cy="386" r="4" fill="#1E5EFF"/>
+    <text x="40" y="382" font-size="10" fill="#8B92A0">10 分钟前</text>
+    <text x="40" y="396" font-size="14" fill="#2D333E">李红申请带看<text font-weight="600">中泰城 1-1-103</text></text>
+
+    <circle cx="28" cy="424" r="4" fill="#E2E5EB"/>
+    <text x="40" y="420" font-size="10" fill="#8B92A0">2 小时前</text>
+    <text x="40" y="434" font-size="14" fill="#2D333E">王芳确认成交<text font-weight="600">北新园 5-3-602</text></text>
+
+    <circle cx="28" cy="462" r="4" fill="#E2E5EB"/>
+    <text x="40" y="458" font-size="10" fill="#8B92A0">上午 9:30</text>
+    <text x="40" y="472" font-size="14" fill="#2D333E">你新挂房源<text font-weight="600">中泰城 2-2-301</text></text>
+
+    <!-- Section: 快捷操作 -->
+    <text x="16" y="504" font-size="16" font-weight="600" fill="#14181F">快捷操作</text>
+
+    <!-- 2x2 Grid -->
+    <rect x="16" y="516" width="175" height="64" rx="8" fill="#F7F8FA"/>
+    <text x="48" y="552" font-size="14" fill="#2D333E">＋ 挂新房源</text>
+
+    <rect x="199" y="516" width="175" height="64" rx="8" fill="#F7F8FA"/>
+    <text x="231" y="552" font-size="14" fill="#2D333E">＋ 添加客户</text>
+
+    <rect x="16" y="588" width="175" height="64" rx="8" fill="#F7F8FA"/>
+    <text x="48" y="624" font-size="14" fill="#2D333E">🔍 共享库</text>
+
+    <rect x="199" y="588" width="175" height="64" rx="8" fill="#F7F8FA"/>
+    <text x="231" y="624" font-size="14" fill="#2D333E">📋 协作记录</text>
+
+    <!-- Bottom Tab Bar -->
+    <rect x="0" y="788" width="390" height="56" fill="#FFF"/>
+    <line x1="0" y1="788" x2="390" y2="788" stroke="#E2E5EB" stroke-width="1"/>
+    <!-- Tab 1 Selected -->
+    <text x="39" y="820" text-anchor="middle" font-size="10" fill="#1E5EFF">工作台</text>
+    <rect x="29" y="794" width="20" height="2" rx="1" fill="#1E5EFF"/>
+    <!-- Tabs 2-5 -->
+    <text x="117" y="820" text-anchor="middle" font-size="10" fill="#8B92A0">房源</text>
+    <text x="195" y="820" text-anchor="middle" font-size="10" fill="#8B92A0">协作</text>
+    <text x="273" y="820" text-anchor="middle" font-size="10" fill="#8B92A0">客户</text>
+    <text x="351" y="820" text-anchor="middle" font-size="10" fill="#8B92A0">奖金</text>
+  </g>
+
+  <!-- ═══════════════ SCREEN 2: 共享库 BA 视角 (x=440) ═══════════════ -->
+  <g transform="translate(440,28)">
+    <rect width="390" height="844" rx="16" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+
+    <!-- Status Bar -->
+    <rect x="0" y="0" width="390" height="44" fill="#FFF"/>
+    <text x="30" y="28" font-size="12" fill="#14181F" font-weight="600">9:41</text>
+
+    <!-- AppBar -->
+    <rect x="0" y="44" width="390" height="56" fill="#FFF"/>
+    <text x="16" y="78" font-size="20" font-weight="600" fill="#14181F">共享房源库</text>
+    <!-- Search icon -->
+    <text x="374" y="78" font-size="16" fill="#4A5160">🔍</text>
+
+    <!-- Search Input -->
+    <rect x="16" y="108" width="358" height="44" rx="8" fill="#EEF0F4"/>
+    <text x="40" y="136" font-size="14" fill="#8B92A0">小区/位置/户型</text>
+
+    <!-- Filter Chips -->
+    <rect x="16" y="164" width="56" height="28" rx="4" fill="#EEF0F4"/>
+    <text x="28" y="183" font-size="12" fill="#4A5160">区域 ▾</text>
+
+    <rect x="78" y="164" width="56" height="28" rx="4" fill="#EEF0F4"/>
+    <text x="90" y="183" font-size="12" fill="#4A5160">价格 ▾</text>
+
+    <rect x="140" y="164" width="56" height="28" rx="4" fill="#EEF0F4"/>
+    <text x="152" y="183" font-size="12" fill="#4A5160">房型 ▾</text>
+
+    <rect x="202" y="164" width="56" height="28" rx="4" fill="#EEF0F4"/>
+    <text x="214" y="183" font-size="12" fill="#4A5160">更多 ▾</text>
+
+    <rect x="264" y="164" width="56" height="28" rx="4" fill="#EBF1FF" stroke="#1E5EFF" stroke-width="1"/>
+    <text x="276" y="183" font-size="12" fill="#1E5EFF">排序 ▾</text>
+
+    <!-- Active Filter Chips -->
+    <rect x="16" y="200" width="68" height="24" rx="4" fill="#EBF1FF"/>
+    <text x="24" y="216" font-size="11" fill="#1E5EFF">桥东区  ✕</text>
+    <rect x="90" y="200" width="80" height="24" rx="4" fill="#EBF1FF"/>
+    <text x="98" y="216" font-size="11" fill="#1E5EFF">60-100 万  ✕</text>
+
+    <!-- Listing Card 1 -->
+    <rect x="16" y="236" width="358" height="120" rx="8" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+    <rect x="28" y="248" width="96" height="96" rx="4" fill="#EEF0F4"/>
+    <text x="76" y="300" text-anchor="middle" font-size="11" fill="#8B92A0">📷</text>
+    <text x="136" y="270" font-size="15" font-weight="600" fill="#14181F">中泰城</text>
+    <text x="136" y="290" font-size="13" fill="#4A5160">3室1厅 · 121㎡</text>
+    <text x="136" y="314" font-size="22" font-weight="600" fill="#1E5EFF">¥105.7</text>
+    <text x="196" y="314" font-size="12" fill="#1E5EFF">万</text>
+    <text x="220" y="314" font-size="11" fill="#8B92A0">8478 元/㎡</text>
+    <text x="136" y="334" font-size="11" fill="#8B92A0">桥东区 · 2 天前</text>
+    <!-- Tags -->
+    <rect x="136" y="344" width="40" height="18" rx="4" fill="#EEF0F4"/>
+    <text x="144" y="357" font-size="10" fill="#4A5160">朝南</text>
+    <rect x="180" y="344" width="40" height="18" rx="4" fill="#EEF0F4"/>
+    <text x="188" y="357" font-size="10" fill="#4A5160">精装</text>
+
+    <!-- Listing Card 2 -->
+    <rect x="16" y="364" width="358" height="120" rx="8" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+    <rect x="28" y="376" width="96" height="96" rx="4" fill="#EEF0F4"/>
+    <text x="76" y="428" text-anchor="middle" font-size="11" fill="#8B92A0">📷</text>
+    <text x="136" y="398" font-size="15" font-weight="600" fill="#14181F">北新园</text>
+    <text x="136" y="418" font-size="13" fill="#4A5160">2室1卫 · 88㎡</text>
+    <text x="136" y="442" font-size="22" font-weight="600" fill="#1E5EFF">¥75</text>
+    <text x="172" y="442" font-size="12" fill="#1E5EFF">万</text>
+    <text x="196" y="442" font-size="11" fill="#8B92A0">8523 元/㎡</text>
+    <text x="136" y="462" font-size="11" fill="#8B92A0">桥西区 · 5 天前</text>
+    <rect x="136" y="472" width="40" height="18" rx="4" fill="#EEF0F4"/>
+    <text x="144" y="485" font-size="10" fill="#4A5160">简装</text>
+
+    <!-- Empty State (3rd card area) -->
+    <rect x="16" y="492" width="358" height="120" rx="8" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+    <text x="195" y="546" text-anchor="middle" font-size="24" fill="#C8CDD6">📭</text>
+    <text x="195" y="568" text-anchor="middle" font-size="14" fill="#4A5160">暂无符合条件的房源</text>
+    <text x="195" y="586" text-anchor="middle" font-size="13" fill="#8B92A0">试试调整筛选条件</text>
+    <rect x="135" y="594" width="120" height="36" rx="8" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+    <text x="195" y="617" text-anchor="middle" font-size="13" fill="#4A5160">重置筛选</text>
+
+    <!-- Bottom Tab Bar -->
+    <rect x="0" y="788" width="390" height="56" fill="#FFF"/>
+    <line x1="0" y1="788" x2="390" y2="788" stroke="#E2E5EB" stroke-width="1"/>
+    <text x="39" y="820" text-anchor="middle" font-size="10" fill="#8B92A0">工作台</text>
+    <text x="117" y="820" text-anchor="middle" font-size="10" fill="#1E5EFF">房源</text>
+    <rect x="107" y="794" width="20" height="2" rx="1" fill="#1E5EFF"/>
+    <text x="195" y="820" text-anchor="middle" font-size="10" fill="#8B92A0">协作</text>
+    <text x="273" y="820" text-anchor="middle" font-size="10" fill="#8B92A0">客户</text>
+    <text x="351" y="820" text-anchor="middle" font-size="10" fill="#8B92A0">奖金</text>
+  </g>
+
+  <!-- ═══════════════ SCREEN 3: 详情页 BA 视角 (x=870) ═══════════════ -->
+  <g transform="translate(870,28)">
+    <rect width="390" height="844" rx="16" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+
+    <!-- Status Bar -->
+    <rect x="0" y="0" width="390" height="44" fill="#FFF"/>
+    <text x="30" y="28" font-size="12" fill="#14181F" font-weight="600">9:41</text>
+
+    <!-- AppBar -->
+    <rect x="0" y="44" width="390" height="56" fill="#FFF"/>
+    <text x="30" y="78" font-size="14" fill="#4A5160">←</text>
+    <text x="52" y="78" font-size="20" font-weight="600" fill="#14181F">中泰城</text>
+
+    <!-- Subtitle (masked) -->
+    <text x="16" y="116" font-size="13" fill="#8B92A0">桥东区</text>
+
+    <!-- Photo area -->
+    <rect x="0" y="128" width="390" height="260" fill="#EEF0F4"/>
+    <text x="195" y="268" text-anchor="middle" font-size="14" fill="#8B92A0">📷 照片轮播 1/3</text>
+    <!-- Dot indicators -->
+    <circle cx="183" cy="380" r="4" fill="#1E5EFF"/>
+    <circle cx="195" cy="380" r="4" fill="#C8CDD6"/>
+    <circle cx="207" cy="380" r="4" fill="#C8CDD6"/>
+
+    <!-- Price card -->
+    <rect x="16" y="400" width="358" height="80" rx="8" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+    <text x="32" y="432" font-size="28" font-weight="600" fill="#1E5EFF">¥105.7</text>
+    <text x="128" y="432" font-size="14" font-weight="600" fill="#1E5EFF">万</text>
+    <text x="32" y="460" font-size="13" fill="#8B92A0">8478 元/㎡</text>
+    <!-- 3-col stats -->
+    <text x="180" y="432" font-size="16" font-weight="600" fill="#14181F">3室1厅</text>
+    <text x="180" y="452" font-size="11" fill="#8B92A0">户型</text>
+    <text x="260" y="432" font-size="16" font-weight="600" fill="#14181F">121㎡</text>
+    <text x="260" y="452" font-size="11" fill="#8B92A0">建筑面积</text>
+    <text x="320" y="432" font-size="16" font-weight="600" fill="#14181F">朝南</text>
+    <text x="320" y="452" font-size="11" fill="#8B92A0">朝向</text>
+
+    <!-- Section: 概览 -->
+    <text x="16" y="508" font-size="16" font-weight="600" fill="#14181F">概览</text>
+    <rect x="16" y="516" width="358" height="170" rx="8" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+    <!-- 楼栋 -->
+    <text x="32" y="538" font-size="12" font-weight="600" fill="#8B92A0">楼栋</text>
+    <text x="80" y="538" font-size="13" fill="#2D333E">朝向 朝南 · 楼层 5/12 层 · 结构 平层</text>
+    <!-- 房源 -->
+    <text x="32" y="566" font-size="12" font-weight="600" fill="#8B92A0">房源</text>
+    <text x="80" y="566" font-size="13" fill="#2D333E">户型 3室1厅 · 面积 121㎡ · 装修 精装</text>
+    <!-- 费用 -->
+    <text x="32" y="594" font-size="12" font-weight="600" fill="#8B92A0">费用</text>
+    <text x="80" y="594" font-size="13" fill="#2D333E">总价 105.7 万 · 单价 8478 元/㎡</text>
+    <!-- 小区 -->
+    <text x="32" y="622" font-size="12" font-weight="600" fill="#8B92A0">小区</text>
+    <text x="80" y="622" font-size="13" fill="#2D333E">中泰城 · 2010-2024 建 · 物业费 2.5 元/㎡</text>
+    <text x="340" y="622" font-size="12" fill="#1E5EFF">→</text>
+    <line x1="32" y1="552" x2="342" y2="552" stroke="#EEF0F4" stroke-width="1"/>
+    <line x1="32" y1="580" x2="342" y2="580" stroke="#EEF0F4" stroke-width="1"/>
+    <line x1="32" y1="608" x2="342" y2="608" stroke="#EEF0F4" stroke-width="1"/>
+
+    <!-- Sale Points -->
+    <text x="16" y="714" font-size="16" font-weight="600" fill="#14181F">卖点标签</text>
+    <rect x="16" y="720" width="60" height="24" rx="4" fill="#EEF0F4"/>
+    <text x="24" y="736" font-size="11" fill="#4A5160">朝南采光</text>
+    <rect x="80" y="720" width="60" height="24" rx="4" fill="#EEF0F4"/>
+    <text x="88" y="736" font-size="11" fill="#4A5160">满五唯一</text>
+    <rect x="144" y="720" width="60" height="24" rx="4" fill="#EEF0F4"/>
+    <text x="152" y="736" font-size="11" fill="#4A5160">看房方便</text>
+    <rect x="208" y="720" width="52" height="24" rx="4" fill="#EEF0F4"/>
+    <text x="216" y="736" font-size="11" fill="#4A5160">学区房</text>
+
+    <!-- Lock placeholder (⑥ section) -->
+    <rect x="16" y="756" width="358" height="64" rx="8" fill="#F7F8FA"/>
+    <text x="195" y="786" text-anchor="middle" font-size="16" fill="#C8CDD6">🔒</text>
+    <text x="195" y="806" text-anchor="middle" font-size="13" fill="#8B92A0">申请通过后展示 · 同行私话 / 看房安排 / 经纪人电话</text>
+
+    <!-- Bottom fixed bar -->
+    <rect x="0" y="788" width="390" height="56" fill="#FFF"/>
+    <line x1="0" y1="788" x2="390" y2="788" stroke="#E2E5EB" stroke-width="1"/>
+    <rect x="16" y="798" width="175" height="36" rx="8" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+    <text x="104" y="821" text-anchor="middle" font-size="13" fill="#4A5160">📞 咨询</text>
+    <rect x="199" y="798" width="175" height="36" rx="8" fill="#1E5EFF"/>
+    <text x="287" y="821" text-anchor="middle" font-size="13" fill="#FFF">申请带看</text>
+  </g>
+
+  <!-- ═══════════════ SCREEN 4: 详情页 LA 视角 (x=1300) ═══════════════ -->
+  <g transform="translate(1300,28)">
+    <rect width="390" height="844" rx="16" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+
+    <!-- Status Bar -->
+    <rect x="0" y="0" width="390" height="44" fill="#FFF"/>
+    <text x="30" y="28" font-size="12" fill="#14181F" font-weight="600">9:41</text>
+
+    <!-- AppBar (full address) -->
+    <rect x="0" y="44" width="390" height="56" fill="#FFF"/>
+    <text x="30" y="78" font-size="14" fill="#4A5160">←</text>
+    <text x="52" y="78" font-size="20" font-weight="600" fill="#14181F">中泰城 1-1-501</text>
+    <!-- Status badge -->
+    <rect x="260" y="60" width="48" height="22" rx="4" fill="#00B578" opacity="0.15"/>
+    <text x="270" y="76" font-size="11" font-weight="600" fill="#00B578">在售</text>
+
+    <!-- Full subtitle -->
+    <text x="16" y="116" font-size="11" fill="#8B92A0" font-family="monospace">桥东区 · 一户一码:ac940c341a09b12c</text>
+
+    <!-- Photo (same) -->
+    <rect x="0" y="128" width="390" height="220" fill="#EEF0F4"/>
+    <text x="195" y="248" text-anchor="middle" font-size="14" fill="#8B92A0">📷 照片轮播 1/3</text>
+
+    <!-- Price card (same) -->
+    <rect x="16" y="360" width="358" height="70" rx="8" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+    <text x="32" y="392" font-size="28" font-weight="600" fill="#1E5EFF">¥105.7</text>
+    <text x="128" y="392" font-size="14" font-weight="600" fill="#1E5EFF">万</text>
+    <text x="32" y="416" font-size="13" fill="#8B92A0">8478 元/㎡</text>
+    <text x="180" y="392" font-size="16" font-weight="600" fill="#14181F">3室1厅</text>
+    <text x="260" y="392" font-size="16" font-weight="600" fill="#14181F">121㎡</text>
+    <text x="320" y="392" font-size="16" font-weight="600" fill="#14181F">朝南</text>
+
+    <!-- Section ⑤: 协作信息 (LA full) -->
+    <text x="16" y="458" font-size="16" font-weight="600" fill="#14181F">协作信息</text>
+    <rect x="16" y="466" width="358" height="90" rx="8" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+    <text x="32" y="488" font-size="13" fill="#8B92A0">挂牌经纪人</text>
+    <text x="120" y="488" font-size="14" fill="#2D333E">张三</text>
+    <rect x="160" y="476" width="56" height="20" rx="4" fill="#2E7CF6" opacity="0.15"/>
+    <text x="166" y="491" font-size="10" font-weight="600" fill="#2E7CF6">实名认证</text>
+    <text x="32" y="512" font-size="13" fill="#8B92A0">合作奖金</text>
+    <text x="120" y="512" font-size="14" fill="#2D333E">¥1,000</text>
+    <text x="32" y="536" font-size="13" fill="#8B92A0">联系电话</text>
+    <text x="120" y="536" font-size="14" fill="#2D333E">139****5678</text>
+    <text x="300" y="536" font-size="12" fill="#1E5EFF">📞 拨号</text>
+
+    <!-- Section ⑦: 带看记录 -->
+    <text x="16" y="584" font-size="16" font-weight="600" fill="#14181F">带看记录</text>
+    <text x="100" y="584" font-size="13" fill="#8B92A0">共 1 条</text>
+    <rect x="16" y="592" width="358" height="82" rx="8" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+    <text x="32" y="614" font-size="14" font-weight="600" fill="#2D333E">李红</text>
+    <rect x="64" y="602" width="56" height="20" rx="4" fill="#2E7CF6" opacity="0.15"/>
+    <text x="70" y="617" font-size="10" font-weight="600" fill="#2E7CF6">已通过</text>
+    <text x="32" y="636" font-size="13" fill="#4A5160">客户:王先生 · 3 口之家</text>
+    <text x="32" y="654" font-size="13" fill="#4A5160">需求:三室,预算 100-120 万...</text>
+    <text x="32" y="672" font-size="11" fill="#8B92A0">申请于 2 天前</text>
+    <text x="300" y="672" font-size="12" fill="#1E5EFF">📞 拨号</text>
+
+    <!-- Bottom action bar (3 buttons for LA) -->
+    <rect x="0" y="788" width="390" height="56" fill="#FFF"/>
+    <line x1="0" y1="788" x2="390" y2="788" stroke="#E2E5EB" stroke-width="1"/>
+    <rect x="16" y="798" width="110" height="36" rx="8" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+    <text x="71" y="821" text-anchor="middle" font-size="12" fill="#4A5160">编辑</text>
+    <rect x="136" y="798" width="110" height="36" rx="8" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+    <text x="191" y="821" text-anchor="middle" font-size="12" fill="#4A5160">变更状态</text>
+    <rect x="256" y="798" width="118" height="36" rx="8" fill="#FFF" stroke="#F5454A" stroke-width="1"/>
+    <text x="315" y="821" text-anchor="middle" font-size="12" fill="#F5454A">下架</text>
+  </g>
+
+  <!-- ═══════════════ SCREEN 5: 小区主页 (x=1740) ═══════════════ -->
+  <g transform="translate(1740,28)">
+    <rect width="390" height="844" rx="16" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+
+    <!-- Status Bar -->
+    <rect x="0" y="0" width="390" height="44" fill="#FFF"/>
+    <text x="30" y="28" font-size="12" fill="#14181F" font-weight="600">9:41</text>
+
+    <!-- AppBar -->
+    <rect x="0" y="44" width="390" height="56" fill="#FFF"/>
+    <text x="30" y="78" font-size="14" fill="#4A5160">←</text>
+    <text x="52" y="78" font-size="20" font-weight="600" fill="#14181F">中泰城</text>
+
+    <!-- Header stats card -->
+    <rect x="16" y="112" width="358" height="140" rx="8" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+    <text x="32" y="140" font-size="20" font-weight="600" fill="#14181F">中泰城</text>
+    <text x="32" y="160" font-size="13" fill="#8B92A0">桥东区</text>
+
+    <!-- 2-col stats -->
+    <text x="32" y="196" font-size="24" font-weight="600" fill="#14181F">9,293</text>
+    <text x="32" y="214" font-size="11" fill="#8B92A0">均价(在售) 元/㎡</text>
+    <text x="200" y="196" font-size="24" font-weight="600" fill="#8B92A0">--</text>
+    <text x="200" y="214" font-size="11" fill="#8B92A0">均价(成交)</text>
+
+    <!-- 3-col small stats -->
+    <text x="32" y="244" font-size="14" font-weight="600" fill="#14181F">33</text>
+    <text x="32" y="258" font-size="11" fill="#8B92A0">在售</text>
+    <text x="100" y="244" font-size="14" font-weight="600" fill="#14181F">5</text>
+    <text x="100" y="258" font-size="11" fill="#8B92A0">本月新增</text>
+    <text x="170" y="244" font-size="14" font-weight="600" fill="#14181F">2010</text>
+    <text x="170" y="258" font-size="11" fill="#8B92A0">建成</text>
+
+    <!-- Tab Bar -->
+    <rect x="0" y="264" width="390" height="44" fill="#FFF"/>
+    <line x1="0" y1="308" x2="390" y2="308" stroke="#E2E5EB" stroke-width="1"/>
+    <text x="78" y="290" text-anchor="middle" font-size="14" font-weight="600" fill="#1E5EFF">在售房源 33</text>
+    <rect x="44" y="304" width="68" height="2" rx="1" fill="#1E5EFF"/>
+    <text x="195" y="290" text-anchor="middle" font-size="14" fill="#8B92A0">成交记录</text>
+    <text x="312" y="290" text-anchor="middle" font-size="14" fill="#8B92A0">小区档案</text>
+
+    <!-- Room filter chips -->
+    <rect x="16" y="322" width="58" height="28" rx="4" fill="#EBF1FF" stroke="#1E5EFF" stroke-width="1"/>
+    <text x="28" y="341" font-size="12" fill="#1E5EFF">全部 33</text>
+    <rect x="80" y="322" width="48" height="28" rx="4" fill="#EEF0F4"/>
+    <text x="90" y="341" font-size="12" fill="#4A5160">二室 7</text>
+    <rect x="134" y="322" width="52" height="28" rx="4" fill="#EEF0F4"/>
+    <text x="144" y="341" font-size="12" fill="#4A5160">三室 18</text>
+    <rect x="192" y="322" width="48" height="28" rx="4" fill="#EEF0F4"/>
+    <text x="202" y="341" font-size="12" fill="#4A5160">四室 8</text>
+
+    <!-- Listing Card 1 -->
+    <rect x="16" y="362" width="358" height="88" rx="8" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+    <rect x="28" y="374" width="72" height="64" rx="4" fill="#EEF0F4"/>
+    <text x="64" y="410" text-anchor="middle" font-size="11" fill="#8B92A0">📷</text>
+    <text x="112" y="394" font-size="14" font-weight="600" fill="#14181F">1-1-501 | 3室1厅</text>
+    <text x="112" y="414" font-size="12" fill="#8B92A0">121㎡ · 5/12层</text>
+    <text x="320" y="414" font-size="18" font-weight="600" fill="#1E5EFF">¥105.7</text>
+    <text x="376" y="414" font-size="11" fill="#1E5EFF">万</text>
+
+    <!-- Listing Card 2 -->
+    <rect x="16" y="458" width="358" height="88" rx="8" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+    <rect x="28" y="470" width="72" height="64" rx="4" fill="#EEF0F4"/>
+    <text x="64" y="506" text-anchor="middle" font-size="11" fill="#8B92A0">📷</text>
+    <text x="112" y="490" font-size="14" font-weight="600" fill="#14181F">1-1-102 | 2室1卫</text>
+    <text x="112" y="510" font-size="12" fill="#8B92A0">88㎡ · 12/18层</text>
+    <text x="320" y="510" font-size="18" font-weight="600" fill="#1E5EFF">¥75</text>
+    <text x="351" y="510" font-size="11" fill="#1E5EFF">万</text>
+
+    <!-- Listing Card 3 -->
+    <rect x="16" y="554" width="358" height="88" rx="8" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+    <rect x="28" y="566" width="72" height="64" rx="4" fill="#EEF0F4"/>
+    <text x="64" y="602" text-anchor="middle" font-size="11" fill="#8B92A0">📷</text>
+    <text x="112" y="586" font-size="14" font-weight="600" fill="#14181F">1-2-201 | 4室2卫</text>
+    <text x="112" y="606" font-size="12" fill="#8B92A0">140㎡ · 2/18层</text>
+    <text x="320" y="606" font-size="18" font-weight="600" fill="#1E5EFF">¥110</text>
+    <text x="363" y="606" font-size="11" fill="#1E5EFF">万</text>
+
+    <!-- View All button -->
+    <rect x="100" y="660" width="190" height="36" rx="8" fill="#FFF" stroke="#E2E5EB" stroke-width="1"/>
+    <text x="195" y="683" text-anchor="middle" font-size="13" fill="#4A5160">查看全部 33 套</text>
+
+    <!-- Bottom Tab Bar -->
+    <rect x="0" y="788" width="390" height="56" fill="#FFF"/>
+    <line x1="0" y1="788" x2="390" y2="788" stroke="#E2E5EB" stroke-width="1"/>
+    <text x="39" y="820" text-anchor="middle" font-size="10" fill="#8B92A0">工作台</text>
+    <text x="117" y="820" text-anchor="middle" font-size="10" fill="#1E5EFF">房源</text>
+    <text x="195" y="820" text-anchor="middle" font-size="10" fill="#8B92A0">协作</text>
+    <text x="273" y="820" text-anchor="middle" font-size="10" fill="#8B92A0">客户</text>
+    <text x="351" y="820" text-anchor="middle" font-size="10" fill="#8B92A0">奖金</text>
+  </g>
+
+  <!-- ═══════════════ Labels ═══════════════ -->
+  <text x="195" y="16" text-anchor="middle" font-size="12" font-weight="600" fill="#8B92A0">图 1 · 工作台</text>
+  <text x="625" y="16" text-anchor="middle" font-size="12" font-weight="600" fill="#8B92A0">图 2 · 共享库 BA 视角</text>
+  <text x="1055" y="16" text-anchor="middle" font-size="12" font-weight="600" fill="#8B92A0">图 3 · 详情页 BA 视角</text>
+  <text x="1485" y="16" text-anchor="middle" font-size="12" font-weight="600" fill="#8B92A0">图 4 · 详情页 LA 视角</text>
+  <text x="1925" y="16" text-anchor="middle" font-size="12" font-weight="600" fill="#8B92A0">图 5 · 小区主页</text>
+</svg>

@@ -1,0 +1,577 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2290 920" font-family="-apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif">
+  <defs>
+    <!-- ═══ Gradients ═══ -->
+    <linearGradient id="gradPrimary" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2E5BFF"/>
+      <stop offset="100%" stop-color="#5478FF"/>
+    </linearGradient>
+    <linearGradient id="gradGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F5A623"/>
+      <stop offset="100%" stop-color="#FFB949"/>
+    </linearGradient>
+    <linearGradient id="gradSurface" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F8FAFC"/>
+    </linearGradient>
+    <linearGradient id="gradPhoto" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B6BFF"/>
+      <stop offset="50%" stop-color="#4F8AFF"/>
+      <stop offset="100%" stop-color="#06B6D4"/>
+    </linearGradient>
+    <linearGradient id="gradSkeleton" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#EEF1F5"/>
+      <stop offset="50%" stop-color="#F8FAFC"/>
+      <stop offset="100%" stop-color="#EEF1F5"/>
+    </linearGradient>
+
+    <!-- ═══ Shadows ═══ -->
+    <filter id="shadowHero" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#2E5BFF" flood-opacity="0.12"/>
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0F1F66" flood-opacity="0.06"/>
+    </filter>
+    <filter id="shadowGold">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#F5A623" flood-opacity="0.16"/>
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#E0941A" flood-opacity="0.08"/>
+    </filter>
+    <filter id="shadowCard" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#0B1220" flood-opacity="0.04"/>
+      <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#0B1220" flood-opacity="0.04"/>
+    </filter>
+    <filter id="shadowBtn">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#2E5BFF" flood-opacity="0.20"/>
+    </filter>
+
+    <!-- ═══ Lucide-style Icons (simplified path outlines) ═══ -->
+    <!-- Lucide Building 24 -->
+    <g id="iconBuilding"><rect x="4" y="3" width="16" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="9" y1="8" x2="9" y2="8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="15" y1="8" x2="15" y2="8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="9" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="15" y1="12" x2="15" y2="12" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="9" y1="16" x2="9" y2="16" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="15" y1="16" x2="15" y2="16" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></g>
+
+    <!-- Lucide Plus 24 -->
+    <g id="iconPlus"><line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></g>
+
+    <!-- Lucide Search 24 -->
+    <g id="iconSearch"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.5"/><line x1="17" y1="17" x2="21" y2="21" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></g>
+
+    <!-- Lucide Phone 20 -->
+    <g id="iconPhone"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" transform="scale(0.75)"/></g>
+
+    <!-- Lucide Heart 24 -->
+    <g id="iconHeart"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" transform="scale(0.75)"/></g>
+
+    <!-- Lucide Eye 24 -->
+    <g id="iconEye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" transform="scale(0.75)"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2.5" transform="scale(0.75)"/></g>
+
+    <!-- Lucide Lock 24 -->
+    <g id="iconLock"><rect x="3" y="11" width="18" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M7 11V7a5 5 0 0 1 10 0v4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="currentColor"/></g>
+
+    <!-- Lucide ChevronRight 24 -->
+    <g id="iconChevronRight"><polyline points="9,18 15,12 9,6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></g>
+
+    <!-- Lucide TrendingUp 24 -->
+    <g id="iconTrendingUp"><polyline points="23,6 13.5,15.5 8.5,10.5 1,18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" transform="scale(0.75)"/><polyline points="17,6 23,6 23,12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" transform="scale(0.75)"/></g>
+
+    <!-- Lucide Bell 24 -->
+    <g id="iconBell"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></g>
+
+    <!-- Lucide UserCheck 24 -->
+    <g id="iconUserCheck"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="16,11 18,13 22,9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>
+
+    <!-- Lucide CircleCheck 24 -->
+    <g id="iconCircleCheck"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="m9 12 2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>
+
+    <!-- Lucide UserPlus 24 -->
+    <g id="iconUserPlus"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"/><line x1="19" y1="8" x2="19" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="16" y1="11" x2="22" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></g>
+
+    <!-- Lucide Briefcase 24 -->
+    <g id="iconBriefcase"><rect x="2" y="7" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></g>
+
+    <!-- Lucide Building2 24 -->
+    <g id="iconBuilding2"><path d="M2 21h20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M2 21V7l10-4 10 4v14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="9" y1="14" x2="9" y2="14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="15" y1="14" x2="15" y2="14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></g>
+
+    <!-- Lucide MapPin 24 -->
+    <g id="iconMapPin"><circle cx="12" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2a8 8 0 0 0-8 8c0 5.4 8 12 8 12s8-6.6 8-12a8 8 0 0 0-8-8z" fill="none" stroke="currentColor" stroke-width="2"/></g>
+  </defs>
+
+  <!-- ══════════════════════════════════════════════════════
+       SCREEN 1: 工作台 (x=10)
+       ══════════════════════════════════════════════════════ -->
+  <g transform="translate(10,30)">
+    <rect width="390" height="844" rx="24" fill="#F8FAFC" stroke="#E2E7EE" stroke-width="1.5"/>
+
+    <!-- Status Bar -->
+    <rect x="0" y="0" width="390" height="44" fill="transparent"/>
+    <text x="32" y="28" font-size="13" fill="#0B1220" font-weight="700" font-family="SF Pro Display, system-ui">9:41</text>
+
+    <!-- ═══ Hero Section (Gradient Primary) ═══ -->
+    <rect x="0" y="0" width="390" height="220" rx="24" fill="url(#gradPrimary)"/>
+    <rect x="0" y="198" width="390" height="24" fill="#F8FAFC"/>
+
+    <!-- AppBar area (transparent on hero) -->
+    <text x="32" y="78" font-size="22" font-weight="700" fill="#FFFFFF">下午好，张三</text>
+
+    <!-- Avatar Pill -->
+    <rect x="322" y="60" width="44" height="44" rx="22" fill="rgba(255,255,255,0.2)"/>
+    <text x="344" y="88" text-anchor="middle" font-size="16" font-weight="700" fill="#FFFFFF">张</text>
+
+    <!-- Bell icon + badge -->
+    <g transform="translate(288,68)" color="#FFFFFF"><use href="#iconBell"/></g>
+    <circle cx="308" cy="66" r="8" fill="#EF4444"/>
+    <text x="308" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">3</text>
+
+    <!-- Subtitle line -->
+    <text x="32" y="110" font-size="14" fill="rgba(255,255,255,0.7)">今日有 3 个待办，本月已成交 2 单</text>
+
+    <!-- ═══ Gold Card (奖金卡, floating on hero) ═══ -->
+    <rect x="20" y="145" width="350" height="104" rx="16" fill="url(#gradGold)" filter="url(#shadowGold)"/>
+    <text x="44" y="178" font-size="13" fill="rgba(255,255,255,0.7)" font-weight="500">本月奖金</text>
+    <text x="44" y="220" font-size="32" font-weight="700" fill="#FFFFFF" font-family="SF Pro Display, system-ui">¥4,800.00</text>
+    <text x="262" y="178" font-size="11" fill="rgba(255,255,255,0.75)">查看明细 →</text>
+    <text x="44" y="237" font-size="11" fill="rgba(255,255,255,0.65)">较上月 +¥1,200（↑33%）</text>
+
+    <!-- ═══ 3 Stat Cards (1×3 row) ═══ -->
+    <!-- Card 1: 待审带看 -->
+    <rect x="16" y="270" width="114" height="96" rx="12" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <g transform="translate(28,286)" color="#F59E0B"><use href="#iconUserCheck"/></g>
+    <text x="28" y="324" font-size="11" fill="#6B7280">待审带看</text>
+    <text x="28" y="350" font-size="24" font-weight="700" fill="#F59E0B" font-family="SF Pro Display, system-ui">3</text>
+    <text x="50" y="350" font-size="12" fill="#6B7280">个申请</text>
+
+    <!-- Card 2: 待确认成交 -->
+    <rect x="138" y="270" width="114" height="96" rx="12" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <g transform="translate(150,286)" color="#3B82F6"><use href="#iconCircleCheck"/></g>
+    <text x="150" y="324" font-size="11" fill="#6B7280">待确认成交</text>
+    <text x="150" y="350" font-size="24" font-weight="700" fill="#3B82F6" font-family="SF Pro Display, system-ui">1</text>
+    <text x="172" y="350" font-size="12" fill="#6B7280">笔交易</text>
+
+    <!-- Card 3: 我的房源 -->
+    <rect x="260" y="270" width="114" height="96" rx="12" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <g transform="translate(272,286)" color="#2E5BFF"><use href="#iconBuilding"/></g>
+    <text x="272" y="324" font-size="11" fill="#6B7280">我的房源</text>
+    <text x="272" y="350" font-size="24" font-weight="700" fill="#0B1220" font-family="SF Pro Display, system-ui">12</text>
+    <text x="298" y="350" font-size="12" fill="#6B7280">套在售</text>
+
+    <!-- ═══ Section: 今日动态 ═══ -->
+    <text x="20" y="404" font-size="17" font-weight="600" fill="#0B1220">今日动态</text>
+    <text x="337" y="404" font-size="13" font-weight="500" fill="#2E5BFF">全部 →</text>
+
+    <!-- Timeline Item 1 (blue) -->
+    <rect x="16" y="420" width="358" height="64" rx="12" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <rect x="16" y="420" width="4" height="64" rx="2" fill="#2E5BFF"/>
+    <text x="36" y="445" font-size="11" fill="#6B7280">10 分钟前</text>
+    <text x="36" y="464" font-size="14" fill="#1F2937">李红申请带看 <tspan font-weight="700">中泰城 1-1-103</tspan></text>
+
+    <!-- Timeline Item 2 (green) -->
+    <rect x="16" y="492" width="358" height="64" rx="12" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <rect x="16" y="492" width="4" height="64" rx="2" fill="#10B981"/>
+    <text x="36" y="517" font-size="11" fill="#6B7280">2 小时前</text>
+    <text x="36" y="536" font-size="14" fill="#1F2937">王芳确认成交 <tspan font-weight="700">北新园 5-3-602</tspan></text>
+
+    <!-- Timeline Item 3 (grey) -->
+    <rect x="16" y="564" width="358" height="64" rx="12" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <rect x="16" y="564" width="4" height="64" rx="2" fill="#CDD3DC"/>
+    <text x="36" y="589" font-size="11" fill="#6B7280">上午 9:30</text>
+    <text x="36" y="608" font-size="14" fill="#1F2937">你新挂房源 <tspan font-weight="700">中泰城 2-2-301</tspan></text>
+
+    <!-- ═══ Section: 快捷操作 ═══ -->
+    <text x="20" y="658" font-size="17" font-weight="600" fill="#0B1220">快捷操作</text>
+
+    <!-- 2x2 Grid -->
+    <rect x="16" y="672" width="175" height="76" rx="12" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <rect x="36" y="692" width="36" height="36" rx="18" fill="#E6EDFF"/>
+    <g transform="translate(44,700)" color="#2E5BFF"><use href="#iconPlus"/></g>
+    <text x="84" y="718" font-size="14" font-weight="600" fill="#1F2937">挂新房源</text>
+
+    <rect x="199" y="672" width="175" height="76" rx="12" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <rect x="219" y="692" width="36" height="36" rx="18" fill="#FFF9E6"/>
+    <g transform="translate(227,700)" color="#F5A623"><use href="#iconUserPlus"/></g>
+    <text x="267" y="718" font-size="14" font-weight="600" fill="#1F2937">添加客户</text>
+
+    <rect x="16" y="756" width="175" height="76" rx="12" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <rect x="36" y="776" width="36" height="36" rx="18" fill="#E0F4F4"/>
+    <g transform="translate(44,784)" color="#06B6D4"><use href="#iconSearch"/></g>
+    <text x="84" y="802" font-size="14" font-weight="600" fill="#1F2937">共享库</text>
+
+    <rect x="199" y="756" width="175" height="76" rx="12" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <rect x="219" y="776" width="36" height="36" rx="18" fill="#F0E8FF"/>
+    <g transform="translate(227,784)" color="#8B5CF6"><use href="#iconBriefcase"/></g>
+    <text x="267" y="802" font-size="14" font-weight="600" fill="#1F2937">协作记录</text>
+
+    <!-- Bottom Tab Bar -->
+    <rect x="0" y="788" width="390" height="56" rx="24" fill="#FFFFFF"/>
+    <line x1="0" y1="788" x2="390" y2="788" stroke="#E2E7EE" stroke-width="1"/>
+    <text x="39" y="822" text-anchor="middle" font-size="11" font-weight="700" fill="#2E5BFF">工作台</text>
+    <rect x="24" y="790" width="30" height="2" rx="1" fill="#2E5BFF"/>
+    <text x="117" y="822" text-anchor="middle" font-size="11" fill="#6B7280">房源</text>
+    <text x="195" y="822" text-anchor="middle" font-size="11" fill="#6B7280">协作</text>
+    <text x="273" y="822" text-anchor="middle" font-size="11" fill="#6B7280">客户</text>
+    <text x="351" y="822" text-anchor="middle" font-size="11" fill="#6B7280">奖金</text>
+  </g>
+
+  <!-- ══════════════════════════════════════════════════════
+       SCREEN 2: 共享库列表 (x=460)
+       ══════════════════════════════════════════════════════ -->
+  <g transform="translate(460,30)">
+    <rect width="390" height="844" rx="24" fill="#F8FAFC" stroke="#E2E7EE" stroke-width="1.5"/>
+
+    <!-- Status Bar -->
+    <rect x="0" y="0" width="390" height="44" fill="transparent"/>
+    <text x="32" y="28" font-size="13" fill="#0B1220" font-weight="700" font-family="SF Pro Display, system-ui">9:41</text>
+
+    <!-- AppBar -->
+    <rect x="0" y="44" width="390" height="56" fill="#FFFFFF"/>
+    <text x="32" y="78" font-size="22" font-weight="700" fill="#0B1220">共享房源库</text>
+    <g transform="translate(345,66)" color="#6B7280"><use href="#iconSearch"/></g>
+
+    <!-- Search Input Pill -->
+    <rect x="16" y="108" width="358" height="44" rx="22" fill="#EEF1F5"/>
+    <g transform="translate(36,122)" color="#6B7280"><use href="#iconSearch"/></g>
+    <text x="48" y="136" font-size="14" fill="#A8B0BD">小区/位置/户型</text>
+
+    <!-- Filter Chips -->
+    <rect x="16" y="164" width="64" height="30" rx="6" fill="#EEF1F5"/>
+    <text x="28" y="184" font-size="12" fill="#374151">区域 ▾</text>
+
+    <rect x="86" y="164" width="64" height="30" rx="6" fill="#EEF1F5"/>
+    <text x="98" y="184" font-size="12" fill="#374151">价格 ▾</text>
+
+    <rect x="156" y="164" width="64" height="30" rx="6" fill="#EEF1F5"/>
+    <text x="168" y="184" font-size="12" fill="#374151">房型 ▾</text>
+
+    <rect x="226" y="164" width="64" height="30" rx="6" fill="#EEF1F5"/>
+    <text x="238" y="184" font-size="12" fill="#374151">更多 ▾</text>
+
+    <rect x="296" y="164" width="64" height="30" rx="6" fill="#E6EDFF" stroke="#2E5BFF" stroke-width="1.5"/>
+    <text x="308" y="184" font-size="12" fill="#2E5BFF" font-weight="600">排序 ▾</text>
+
+    <!-- Active Filter Pills -->
+    <rect x="16" y="202" width="80" height="26" rx="13" fill="#E6EDFF"/>
+    <text x="26" y="220" font-size="11" fill="#2E5BFF" font-weight="500">桥东区  ✕</text>
+    <rect x="102" y="202" width="88" height="26" rx="13" fill="#E6EDFF"/>
+    <text x="112" y="220" font-size="11" fill="#2E5BFF" font-weight="500">60-100 万  ✕</text>
+
+    <!-- Listing Card 1 -->
+    <rect x="16" y="240" width="358" height="134" rx="12" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <rect x="28" y="254" width="96" height="96" rx="8" fill="url(#gradPhoto)" opacity="0.3"/>
+    <rect x="28" y="254" width="96" height="96" rx="8" fill="url(#gradPhoto)"/>
+    <g transform="translate(64,290)" color="rgba(255,255,255,0.6)"><use href="#iconBuilding"/></g>
+
+    <text x="136" y="278" font-size="16" font-weight="700" fill="#0B1220">中泰城</text>
+    <text x="136" y="298" font-size="13" fill="#374151">3室1厅 · 121㎡</text>
+
+    <text x="136" y="328" font-size="24" font-weight="700" fill="#2E5BFF" font-family="SF Pro Display, system-ui">¥105.7</text>
+    <text x="200" y="328" font-size="13" font-weight="700" fill="#2E5BFF">万</text>
+    <text x="224" y="328" font-size="11" fill="#6B7280">8,478 元/㎡</text>
+
+    <!-- Chips -->
+    <rect x="136" y="344" width="40" height="22" rx="6" fill="#EEF1F5"/>
+    <text x="143" y="359" font-size="10" fill="#374151">朝南</text>
+    <rect x="180" y="344" width="40" height="22" rx="6" fill="#EEF1F5"/>
+    <text x="187" y="359" font-size="10" fill="#374151">精装</text>
+    <text x="228" y="359" font-size="11" fill="#6B7280">桥东区 · 2 天前</text>
+
+    <!-- Heart icon -->
+    <g transform="translate(344,366)" color="#CDD3DC"><use href="#iconHeart"/></g>
+
+    <!-- Listing Card 2 -->
+    <rect x="16" y="382" width="358" height="134" rx="12" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <rect x="28" y="396" width="96" height="96" rx="8" fill="url(#gradPhoto)" opacity="0.5"/>
+    <g transform="translate(64,432)" color="rgba(255,255,255,0.6)"><use href="#iconBuilding"/></g>
+
+    <text x="136" y="420" font-size="16" font-weight="700" fill="#0B1220">北新园</text>
+    <text x="136" y="440" font-size="13" fill="#374151">2室1卫 · 88㎡</text>
+
+    <text x="136" y="470" font-size="24" font-weight="700" fill="#2E5BFF" font-family="SF Pro Display, system-ui">¥75</text>
+    <text x="176" y="470" font-size="13" font-weight="700" fill="#2E5BFF">万</text>
+    <text x="200" y="470" font-size="11" fill="#6B7280">8,523 元/㎡</text>
+
+    <rect x="136" y="486" width="40" height="22" rx="6" fill="#EEF1F5"/>
+    <text x="143" y="501" font-size="10" fill="#374151">简装</text>
+    <text x="184" y="501" font-size="11" fill="#6B7280">桥西区 · 5 天前</text>
+    <g transform="translate(344,508)" color="#CDD3DC"><use href="#iconHeart"/></g>
+
+    <!-- Half card peeking (scroll hint) -->
+    <rect x="16" y="524" width="358" height="134" rx="12" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <rect x="28" y="538" width="96" height="96" rx="8" fill="url(#gradPhoto)" opacity="0.4"/>
+    <g transform="translate(64,574)" color="rgba(255,255,255,0.6)"><use href="#iconBuilding"/></g>
+    <text x="136" y="562" font-size="16" font-weight="700" fill="#0B1220">阳光城</text>
+    <text x="136" y="582" font-size="13" fill="#374151">4室2卫 · 160㎡</text>
+    <text x="136" y="612" font-size="24" font-weight="700" fill="#2E5BFF" font-family="SF Pro Display, system-ui">¥148</text>
+    <text x="180" y="612" font-size="13" font-weight="700" fill="#2E5BFF">万</text>
+
+    <!-- Bottom Tab Bar -->
+    <rect x="0" y="788" width="390" height="56" rx="24" fill="#FFFFFF"/>
+    <line x1="0" y1="788" x2="390" y2="788" stroke="#E2E7EE" stroke-width="1"/>
+    <text x="39" y="822" text-anchor="middle" font-size="11" fill="#6B7280">工作台</text>
+    <text x="117" y="822" text-anchor="middle" font-size="11" font-weight="700" fill="#2E5BFF">房源</text>
+    <rect x="102" y="790" width="30" height="2" rx="1" fill="#2E5BFF"/>
+    <text x="195" y="822" text-anchor="middle" font-size="11" fill="#6B7280">协作</text>
+    <text x="273" y="822" text-anchor="middle" font-size="11" fill="#6B7280">客户</text>
+    <text x="351" y="822" text-anchor="middle" font-size="11" fill="#6B7280">奖金</text>
+  </g>
+
+  <!-- ══════════════════════════════════════════════════════
+       SCREEN 3: 房源详情 BA 视角 (x=910)
+       ══════════════════════════════════════════════════════ -->
+  <g transform="translate(910,30)">
+    <rect width="390" height="844" rx="24" fill="#F8FAFC" stroke="#E2E7EE" stroke-width="1.5"/>
+
+    <!-- Transparent AppBar over photo -->
+    <text x="32" y="70" font-size="14" font-weight="700" fill="#FFFFFF">←</text>
+    <text x="54" y="70" font-size="22" font-weight="700" fill="#FFFFFF">中泰城</text>
+    <g transform="translate(300,58)" color="#FFFFFF"><use href="#iconHeart"/></g>
+    <g transform="translate(340,58)" color="#FFFFFF"><use href="#iconSearch"/></g>
+
+    <!-- Photo Area (gradient placeholder) -->
+    <rect x="0" y="0" width="390" height="280" rx="0" fill="url(#gradPhoto)"/>
+    <g transform="translate(175,120)" color="rgba(255,255,255,0.25)"><use href="#iconBuilding2"/></g>
+    <!-- Dot indicators -->
+    <circle cx="180" cy="266" r="4" fill="#FFFFFF"/>
+    <circle cx="195" cy="266" r="4" fill="rgba(255,255,255,0.4)"/>
+    <circle cx="210" cy="266" r="4" fill="rgba(255,255,255,0.4)"/>
+
+    <!-- Price Hero Card (floating over photo) -->
+    <rect x="20" y="256" width="350" height="100" rx="16" fill="#FFFFFF" filter="url(#shadowHero)"/>
+    <text x="36" y="282" font-size="17" font-weight="700" fill="#0B1220">中泰城</text>
+    <text x="36" y="302" font-size="12" fill="#6B7280">桥东区</text>
+
+    <text x="36" y="340" font-size="32" font-weight="700" fill="#2E5BFF" font-family="SF Pro Display, system-ui">¥105.7</text>
+    <text x="128" y="340" font-size="13" font-weight="700" fill="#2E5BFF">万</text>
+    <g transform="translate(156,332)" color="#10B981"><use href="#iconTrendingUp"/></g>
+    <text x="174" y="342" font-size="11" fill="#6B7280">8,478 元/㎡</text>
+
+    <!-- 3-col divider -->
+    <text x="36" y="366" font-size="12" fill="#6B7280">户型</text>
+    <text x="36" y="380" font-size="14" font-weight="600" fill="#0B1220">3室1厅</text>
+    <line x1="110" y1="362" x2="110" y2="386" stroke="#E2E7EE" stroke-width="1"/>
+    <text x="124" y="366" font-size="12" fill="#6B7280">建筑面积</text>
+    <text x="124" y="380" font-size="14" font-weight="600" fill="#0B1220">121㎡</text>
+    <line x1="210" y1="362" x2="210" y2="386" stroke="#E2E7EE" stroke-width="1"/>
+    <text x="224" y="366" font-size="12" fill="#6B7280">朝向</text>
+    <text x="224" y="380" font-size="14" font-weight="600" fill="#0B1220">朝南</text>
+
+    <!-- ═══ Section: 概览 ═══ -->
+    <text x="20" y="414" font-size="17" font-weight="600" fill="#0B1220">概览</text>
+    <rect x="16" y="424" width="358" height="184" rx="12" fill="#FFFFFF" filter="url(#shadowCard)"/>
+
+    <!-- 楼栋 -->
+    <text x="32" y="450" font-size="11" font-weight="600" fill="#6B7280" letter-spacing="1">楼栋</text>
+    <text x="100" y="450" font-size="13" fill="#1F2937">朝向 朝南  ·  楼层 5/12 层  ·  结构 平层</text>
+    <line x1="32" y1="462" x2="342" y2="462" stroke="#EEF1F5" stroke-width="1"/>
+
+    <!-- 房源 -->
+    <text x="32" y="484" font-size="11" font-weight="600" fill="#6B7280" letter-spacing="1">房源</text>
+    <text x="100" y="484" font-size="13" fill="#1F2937">户型 3室1厅  ·  面积 121㎡  ·  装修 精装</text>
+    <line x1="32" y1="496" x2="342" y2="496" stroke="#EEF1F5" stroke-width="1"/>
+
+    <!-- 费用 -->
+    <text x="32" y="518" font-size="11" font-weight="600" fill="#6B7280" letter-spacing="1">费用</text>
+    <text x="100" y="518" font-size="13" fill="#1F2937">总价 105.7 万  ·  单价 8,478 元/㎡  ·  合作奖金 ¥1,000</text>
+    <line x1="32" y1="530" x2="342" y2="530" stroke="#EEF1F5" stroke-width="1"/>
+
+    <!-- 小区 -->
+    <text x="32" y="552" font-size="11" font-weight="600" fill="#6B7280" letter-spacing="1">小区</text>
+    <text x="100" y="552" font-size="13" fill="#1F2937">中泰城  ·  2010-2024 建  ·  物业费 2.5 元/㎡</text>
+    <g transform="translate(340,544)" color="#2E5BFF"><use href="#iconChevronRight"/></g>
+
+    <!-- ═══ Section: 卖点标签 ═══ -->
+    <text x="20" y="632" font-size="17" font-weight="600" fill="#0B1220">卖点标签</text>
+    <rect x="16" y="642" width="62" height="28" rx="6" fill="#F8FAFC"/>
+    <text x="24" y="661" font-size="12" fill="#374151">朝南采光</text>
+    <rect x="82" y="642" width="62" height="28" rx="6" fill="#F8FAFC"/>
+    <text x="90" y="661" font-size="12" fill="#374151">满五唯一</text>
+    <rect x="148" y="642" width="62" height="28" rx="6" fill="#F8FAFC"/>
+    <text x="156" y="661" font-size="12" fill="#374151">看房方便</text>
+    <rect x="214" y="642" width="52" height="28" rx="6" fill="#F8FAFC"/>
+    <text x="222" y="661" font-size="12" fill="#374151">学区房</text>
+
+    <!-- ═══ Lock Placeholder (⑥) ═══ -->
+    <rect x="16" y="686" width="358" height="84" rx="12" fill="#F8FAFC" stroke="#EEF1F5" stroke-width="0.5"/>
+    <g transform="translate(175,702)" color="#A8B0BD"><use href="#iconLock"/></g>
+    <text x="195" y="730" text-anchor="middle" font-size="14" font-weight="600" fill="#374151">申请通过后展示</text>
+    <text x="195" y="750" text-anchor="middle" font-size="12" fill="#6B7280">同行私话 / 看房安排 / 经纪人电话</text>
+
+    <!-- Bottom Fixed Bar -->
+    <rect x="0" y="788" width="390" height="56" rx="24" fill="#FFFFFF"/>
+    <line x1="0" y1="788" x2="390" y2="788" stroke="#E2E7EE" stroke-width="1"/>
+    <rect x="16" y="798" width="175" height="40" rx="12" fill="#FFFFFF" stroke="#E2E7EE" stroke-width="1.5"/>
+    <g transform="translate(46,810)" color="#6B7280"><use href="#iconPhone"/></g>
+    <text x="82" y="824" font-size="14" font-weight="600" fill="#374151">咨询</text>
+
+    <rect x="199" y="796" width="175" height="44" rx="12" fill="url(#gradPrimary)" filter="url(#shadowBtn)"/>
+    <text x="287" y="824" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">申请带看</text>
+  </g>
+
+  <!-- ══════════════════════════════════════════════════════
+       SCREEN 4: 房源详情 LA 视角 (x=1360)
+       ══════════════════════════════════════════════════════ -->
+  <g transform="translate(1360,30)">
+    <rect width="390" height="844" rx="24" fill="#F8FAFC" stroke="#E2E7EE" stroke-width="1.5"/>
+
+    <!-- AppBar -->
+    <rect x="0" y="44" width="390" height="56" fill="#FFFFFF"/>
+    <text x="32" y="78" font-size="14" font-weight="700" fill="#374151">←</text>
+    <text x="54" y="78" font-size="22" font-weight="700" fill="#0B1220">中泰城 1-1-501</text>
+    <!-- Status Badge: 在售 -->
+    <rect x="280" y="62" width="52" height="24" rx="6" fill="#10B981" opacity="0.12"/>
+    <text x="290" y="79" font-size="11" font-weight="700" fill="#10B981">在售</text>
+
+    <!-- Full subtitle -->
+    <text x="32" y="116" font-size="11" fill="#6B7280" font-family="monospace">桥东区 · 一户一码:ac940c341a09b12c</text>
+
+    <!-- Photo -->
+    <rect x="12" y="130" width="366" height="220" rx="16" fill="url(#gradPhoto)"/>
+    <g transform="translate(175,220)" color="rgba(255,255,255,0.3)"><use href="#iconBuilding2"/></g>
+    <circle cx="180" cy="338" r="4" fill="#FFFFFF"/>
+    <circle cx="195" cy="338" r="4" fill="rgba(255,255,255,0.4)"/>
+    <circle cx="210" cy="338" r="4" fill="rgba(255,255,255,0.4)"/>
+
+    <!-- Price Card -->
+    <rect x="16" y="362" width="358" height="70" rx="16" fill="#FFFFFF" filter="url(#shadowHero)"/>
+    <text x="32" y="392" font-size="32" font-weight="700" fill="#2E5BFF" font-family="SF Pro Display, system-ui">¥105.7</text>
+    <text x="124" y="392" font-size="13" font-weight="700" fill="#2E5BFF">万</text>
+    <text x="152" y="392" font-size="11" fill="#6B7280">8,478 元/㎡</text>
+    <text x="220" y="392" font-size="16" font-weight="600" fill="#0B1220">3室1厅</text>
+    <text x="280" y="392" font-size="16" font-weight="600" fill="#0B1220">121㎡</text>
+    <text x="320" y="392" font-size="16" font-weight="600" fill="#0B1220">朝南</text>
+
+    <!-- Section ⑤: 协作信息 -->
+    <text x="20" y="458" font-size="17" font-weight="600" fill="#0B1220">协作信息</text>
+    <rect x="16" y="468" width="358" height="104" rx="12" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <!-- Avatar -->
+    <circle cx="52" cy="498" r="20" fill="#FFE4B5"/>
+    <text x="52" y="504" text-anchor="middle" font-size="14" font-weight="700" fill="#F5A623">张</text>
+    <text x="84" y="498" font-size="15" font-weight="600" fill="#0B1220">张三</text>
+    <rect x="124" y="486" width="60" height="22" rx="6" fill="#3B82F6" opacity="0.12"/>
+    <text x="130" y="502" font-size="10" font-weight="700" fill="#3B82F6">实名认证</text>
+    <text x="36" y="526" font-size="12" fill="#6B7280">合作奖金</text>
+    <text x="110" y="526" font-size="15" font-weight="700" fill="#F5A623" font-family="SF Pro Display, system-ui">¥1,000</text>
+    <text x="36" y="550" font-size="12" fill="#6B7280">联系电话</text>
+    <text x="110" y="550" font-size="14" fill="#1F2937">139****5678</text>
+    <rect x="270" y="538" width="64" height="24" rx="12" fill="#FFFFFF" stroke="#E2E7EE" stroke-width="1"/>
+    <g transform="translate(280,544)" color="#2E5BFF"><use href="#iconPhone"/></g>
+    <text x="300" y="556" font-size="10" fill="#2E5BFF">拨号</text>
+
+    <!-- Section ⑦: 带看记录 -->
+    <text x="20" y="594" font-size="17" font-weight="600" fill="#0B1220">带看记录 <tspan font-size="13" fill="#6B7280" font-weight="400">共 1 条</tspan></text>
+    <rect x="16" y="604" width="358" height="90" rx="12" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <rect x="16" y="604" width="4" height="90" rx="2" fill="#2E5BFF"/>
+    <circle cx="52" cy="628" r="14" fill="#E6EDFF"/>
+    <text x="52" y="633" text-anchor="middle" font-size="11" font-weight="700" fill="#2E5BFF">李</text>
+    <text x="76" y="630" font-size="14" font-weight="600" fill="#1F2937">李红</text>
+    <rect x="108" y="620" width="56" height="20" rx="6" fill="#3B82F6" opacity="0.12"/>
+    <text x="114" y="634" font-size="10" font-weight="700" fill="#3B82F6">已通过</text>
+    <text x="36" y="656" font-size="13" fill="#1F2937">客户:王先生 · 3 口之家</text>
+    <text x="36" y="674" font-size="12" fill="#6B7280">需求:三室,预算 100-120 万...</text>
+    <text x="36" y="694" font-size="11" fill="#6B7280">申请于 2 天前</text>
+    <rect x="290" y="674" width="64" height="24" rx="12" fill="#E6EDFF"/>
+    <text x="300" y="692" font-size="11" font-weight="600" fill="#2E5BFF">📞 拨号</text>
+
+    <!-- Bottom Action Bar (3 buttons) -->
+    <rect x="0" y="788" width="390" height="56" rx="24" fill="#FFFFFF"/>
+    <line x1="0" y1="788" x2="390" y2="788" stroke="#E2E7EE" stroke-width="1"/>
+    <rect x="16" y="798" width="110" height="40" rx="12" fill="#FFFFFF" stroke="#E2E7EE" stroke-width="1.5"/>
+    <text x="71" y="824" text-anchor="middle" font-size="13" fill="#374151">编辑</text>
+    <rect x="136" y="798" width="110" height="40" rx="12" fill="#FFFFFF" stroke="#E2E7EE" stroke-width="1.5"/>
+    <text x="191" y="824" text-anchor="middle" font-size="13" fill="#374151">变更状态</text>
+    <rect x="256" y="798" width="118" height="40" rx="12" fill="#FFFFFF" stroke="#EF4444" stroke-width="1.5"/>
+    <text x="315" y="824" text-anchor="middle" font-size="13" fill="#EF4444">下架</text>
+  </g>
+
+  <!-- ══════════════════════════════════════════════════════
+       SCREEN 5: 小区主页 (x=1810)
+       ══════════════════════════════════════════════════════ -->
+  <g transform="translate(1810,30)">
+    <rect width="390" height="844" rx="24" fill="#F8FAFC" stroke="#E2E7EE" stroke-width="1.5"/>
+
+    <!-- AppBar -->
+    <rect x="0" y="44" width="390" height="56" fill="#FFFFFF"/>
+    <text x="32" y="78" font-size="14" font-weight="700" fill="#374151">←</text>
+    <text x="54" y="78" font-size="22" font-weight="700" fill="#0B1220">中泰城</text>
+
+    <!-- ═══ Hero Card (soft gradient) ═══ -->
+    <rect x="16" y="112" width="358" height="172" rx="16" fill="url(#gradSurface)" filter="url(#shadowCard)"/>
+    <text x="36" y="142" font-size="22" font-weight="700" fill="#0B1220">中泰城</text>
+    <g transform="translate(320,116)" color="#2E5BFF"><use href="#iconBuilding2"/></g>
+    <text x="36" y="166" font-size="13" fill="#6B7280">桥东区 · 桥东区中心</text>
+
+    <!-- 2-col big numbers -->
+    <text x="36" y="210" font-size="28" font-weight="700" fill="#2E5BFF" font-family="SF Pro Display, system-ui">9,293</text>
+    <text x="36" y="228" font-size="11" fill="#6B7280">在售均价 元/㎡</text>
+    <line x1="190" y1="194" x2="190" y2="234" stroke="#EEF1F5" stroke-width="1"/>
+    <text x="210" y="210" font-size="28" font-weight="700" fill="#A8B0BD" font-family="SF Pro Display, system-ui">--</text>
+    <text x="210" y="228" font-size="11" fill="#6B7280">成交均价</text>
+
+    <!-- 3-col small stats -->
+    <text x="36" y="268" font-size="18" font-weight="700" fill="#0B1220" font-family="SF Pro Display, system-ui">33</text>
+    <text x="36" y="280" font-size="10" fill="#6B7280">在售</text>
+    <text x="100" y="268" font-size="18" font-weight="700" fill="#10B981" font-family="SF Pro Display, system-ui">+5</text>
+    <text x="100" y="280" font-size="10" fill="#6B7280">本月</text>
+    <text x="164" y="268" font-size="18" font-weight="700" fill="#374151" font-family="SF Pro Display, system-ui">2010</text>
+    <text x="164" y="280" font-size="10" fill="#6B7280">建成</text>
+
+    <!-- ═══ Tab Bar ═══ -->
+    <rect x="0" y="296" width="390" height="44" fill="#FFFFFF"/>
+    <text x="78" y="322" text-anchor="middle" font-size="14" font-weight="700" fill="#2E5BFF">在售房源 33</text>
+    <rect x="44" y="336" width="68" height="2" rx="1" fill="#2E5BFF"/>
+    <text x="195" y="322" text-anchor="middle" font-size="14" fill="#6B7280">成交记录</text>
+    <text x="312" y="322" text-anchor="middle" font-size="14" fill="#6B7280">小区档案</text>
+
+    <!-- ═══ Room Filter Chips ═══ -->
+    <rect x="16" y="354" width="64" height="30" rx="6" fill="#E6EDFF" stroke="#2E5BFF" stroke-width="1"/>
+    <text x="28" y="374" font-size="12" font-weight="600" fill="#2E5BFF">全部 33</text>
+    <rect x="86" y="354" width="60" height="30" rx="6" fill="#EEF1F5"/>
+    <text x="98" y="374" font-size="12" fill="#374151">二室 7</text>
+    <rect x="152" y="354" width="60" height="30" rx="6" fill="#EEF1F5"/>
+    <text x="164" y="374" font-size="12" fill="#374151">三室 18</text>
+    <rect x="218" y="354" width="56" height="30" rx="6" fill="#EEF1F5"/>
+    <text x="230" y="374" font-size="12" fill="#374151">四室 8</text>
+
+    <!-- ═══ Listing Mini Cards ═══ -->
+    <!-- Card 1 -->
+    <rect x="16" y="396" width="358" height="84" rx="12" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <rect x="28" y="408" width="72" height="64" rx="8" fill="url(#gradPhoto)" opacity="0.4"/>
+    <g transform="translate(52,432)" color="rgba(255,255,255,0.5)"><use href="#iconBuilding"/></g>
+    <text x="112" y="430" font-size="14" font-weight="600" fill="#0B1220">1-1-501 | 3室1厅</text>
+    <text x="112" y="450" font-size="12" fill="#6B7280">121㎡ · 5/12层</text>
+    <text x="310" y="450" font-size="18" font-weight="700" fill="#2E5BFF" font-family="SF Pro Display, system-ui">¥105.7</text>
+    <text x="364" y="450" font-size="11" font-weight="600" fill="#2E5BFF">万</text>
+
+    <!-- Card 2 -->
+    <rect x="16" y="486" width="358" height="84" rx="12" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <rect x="28" y="498" width="72" height="64" rx="8" fill="url(#gradPhoto)" opacity="0.5"/>
+    <g transform="translate(52,522)" color="rgba(255,255,255,0.5)"><use href="#iconBuilding"/></g>
+    <text x="112" y="520" font-size="14" font-weight="600" fill="#0B1220">1-1-102 | 2室1卫</text>
+    <text x="112" y="540" font-size="12" fill="#6B7280">88㎡ · 12/18层</text>
+    <text x="310" y="540" font-size="18" font-weight="700" fill="#2E5BFF" font-family="SF Pro Display, system-ui">¥75</text>
+    <text x="349" y="540" font-size="11" font-weight="600" fill="#2E5BFF">万</text>
+
+    <!-- Card 3 -->
+    <rect x="16" y="576" width="358" height="84" rx="12" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <rect x="28" y="588" width="72" height="64" rx="8" fill="url(#gradPhoto)" opacity="0.4"/>
+    <g transform="translate(52,612)" color="rgba(255,255,255,0.5)"><use href="#iconBuilding"/></g>
+    <text x="112" y="610" font-size="14" font-weight="600" fill="#0B1220">1-2-201 | 4室2卫</text>
+    <text x="112" y="630" font-size="12" fill="#6B7280">140㎡ · 2/18层</text>
+    <text x="310" y="630" font-size="18" font-weight="700" fill="#2E5BFF" font-family="SF Pro Display, system-ui">¥110</text>
+    <text x="363" y="630" font-size="11" font-weight="600" fill="#2E5BFF">万</text>
+
+    <!-- View All Button -->
+    <rect x="100" y="680" width="190" height="40" rx="12" fill="#FFFFFF" stroke="#E2E7EE" stroke-width="1.5"/>
+    <text x="195" y="706" text-anchor="middle" font-size="13" fill="#374151">查看全部 33 套</text>
+
+    <!-- Bottom Tab Bar -->
+    <rect x="0" y="788" width="390" height="56" rx="24" fill="#FFFFFF"/>
+    <line x1="0" y1="788" x2="390" y2="788" stroke="#E2E7EE" stroke-width="1"/>
+    <text x="39" y="822" text-anchor="middle" font-size="11" fill="#6B7280">工作台</text>
+    <text x="117" y="822" text-anchor="middle" font-size="11" font-weight="700" fill="#2E5BFF">房源</text>
+    <rect x="102" y="790" width="30" height="2" rx="1" fill="#2E5BFF"/>
+    <text x="195" y="822" text-anchor="middle" font-size="11" fill="#6B7280">协作</text>
+    <text x="273" y="822" text-anchor="middle" font-size="11" fill="#6B7280">客户</text>
+    <text x="351" y="822" text-anchor="middle" font-size="11" fill="#6B7280">奖金</text>
+  </g>
+
+  <!-- ═══ Screen Labels ═══ -->
+  <text x="195" y="18" text-anchor="middle" font-size="12" font-weight="600" fill="#6B7280">图 1 · 工作台</text>
+  <text x="645" y="18" text-anchor="middle" font-size="12" font-weight="600" fill="#6B7280">图 2 · 共享库 BA 视角</text>
+  <text x="1095" y="18" text-anchor="middle" font-size="12" font-weight="600" fill="#6B7280">图 3 · 详情页 BA 视角</text>
+  <text x="1545" y="18" text-anchor="middle" font-size="12" font-weight="600" fill="#6B7280">图 4 · 详情页 LA 视角</text>
+  <text x="1995" y="18" text-anchor="middle" font-size="12" font-weight="600" fill="#6B7280">图 5 · 小区主页</text>
+</svg>
