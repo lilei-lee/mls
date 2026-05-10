@@ -30,10 +30,10 @@ showing_requests_collection = db["showing_requests"]
 
 MAX_PHOTOS = 6
 
-# V2.1 #15: 辞典侧 6 物理字段名,与 property-dictionary/models/property.py attribute_claims dict 严格对齐
-DICT_PHYSICAL_FIELDS = ("area_sqm", "floor", "total_floor", "rooms", "halls", "bathrooms")
-# V2.2 #1: 辞典可选 claim 字段(objective_features + decoration)
-DICT_OPTIONAL_CLAIM_FIELDS = ("objective_features", "decoration")
+# V2.2 #2: 删 halls, 物理字段 6→5
+DICT_PHYSICAL_FIELDS = ("area_sqm", "floor", "total_floor", "rooms", "bathrooms")
+# V2.2 #2: 辞典可选 claim 字段(objective_features + decoration + house_structure)
+DICT_OPTIONAL_CLAIM_FIELDS = ("objective_features", "decoration", "house_structure")
 
 
 # ==================== 张家口行政区字典 ====================
@@ -127,11 +127,12 @@ class PostListingRequest(CreateListingRequest):
     floor: int = Field(..., ge=-5, le=200, description="楼层(调辞典 claim,不持久化到 listing)")
     total_floor: int = Field(..., ge=1, le=200, description="总楼层(调辞典 claim,不持久化到 listing)")
     rooms: int = Field(..., ge=0, le=20, description="室(调辞典 claim,不持久化到 listing)")
-    halls: int = Field(..., ge=0, le=10, description="厅(调辞典 claim,不持久化到 listing)")
     bathrooms: int = Field(..., ge=0, le=10, description="卫(调辞典 claim,不持久化到 listing)")
-    # V2.2 #1: 辞典可选 claim(与物理 6 字段同流程 always-accept)
+    # V2.2 #1: 辞典可选 claim(与物理字段同流程 always-accept)
     objective_features: Optional[List[str]] = Field(None, description="客观特征(调辞典 claim,可选)")
     decoration: Optional[str] = Field(None, description="装修情况(调辞典 claim,可选)")
+    # V2.2 #2: 户型结构(调辞典 claim,可选)
+    house_structure: Optional[str] = Field(None, description="户型结构(平层/复式/Loft/跃层/错层/跃复一体)")
 
 
 def _extract_physical_attrs(req) -> dict:
@@ -173,11 +174,9 @@ class RollbackStatusBody(BaseModel):
 
 # ==================== 业务函数 ====================
 
-def _layout_text(rooms: int, halls: int, bathrooms: int) -> str:
-    """V2.1 #15: 物理字段迁移到辞典后,layout 由 claim 引擎反推。
-    CAUTION: caller 必须从 property attribute_claims_latest 拿到 rooms/halls/bathrooms 再调此函数。
-    """
-    return f"{rooms}室{halls}厅{bathrooms}卫"
+def _layout_text(rooms: int, bathrooms: int) -> str:
+    """V2.2 #2: 删 halls, layout 仅 rooms + bathrooms。"""
+    return f"{rooms}室{bathrooms}卫"
 
 
 def create_listing(req, physical_attrs: dict, agent: dict) -> dict:
@@ -272,7 +271,6 @@ def create_listing(req, physical_attrs: dict, agent: dict) -> dict:
     # ── 2. 派生 layout ──
     layout = _layout_text(
         physical_attrs.get("rooms", 0),
-        physical_attrs.get("halls", 0),
         physical_attrs.get("bathrooms", 0),
     )
 
@@ -771,11 +769,12 @@ class SyncPhysicalBody(BaseModel):
     floor: Optional[int] = Field(None, description="所在楼层")
     total_floor: Optional[int] = Field(None, description="总楼层")
     rooms: Optional[int] = Field(None, description="室")
-    halls: Optional[int] = Field(None, description="厅")
     bathrooms: Optional[int] = Field(None, description="卫")
-    # V2.2 #1: 客观字段同步(辞典 always-accept,无 force/no-force 二选)
+    # V2.2 #1: 客观字段同步(辞典 always-accept)
     objective_features: Optional[list[str]] = Field(None, description="客观特征(辞典 claim,可选)")
     decoration: Optional[str] = Field(None, description="装修情况(辞典 claim,可选)")
+    # V2.2 #2: 户型结构
+    house_structure: Optional[str] = Field(None, description="户型结构(平层/复式/Loft/跃层/错层/跃复一体)")
     force: bool = Field(False, description="True=冲突仍接受,写 discrepancy 工单")
 
 

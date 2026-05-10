@@ -14,7 +14,7 @@ def agent():
 
 @pytest.fixture
 def physical():
-    return {"area_sqm": 100.0, "floor": 5, "total_floor": 18, "rooms": 3, "halls": 1, "bathrooms": 1}
+    return {"area_sqm": 100.0, "floor": 5, "total_floor": 18, "rooms": 3, "bathrooms": 1}
 
 
 class FakeReqV2:

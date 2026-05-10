@@ -67,7 +67,7 @@ def listing_id(tokens):
         "community": "smoke测试小区",
         "building": "1", "unit": "1", "room_no": f"9999{SUFFIX}",
         "layout": "2室1厅1卫", "area_sqm": 90.0, "price_wan": 80,
-        "rooms": 2, "halls": 1, "bathrooms": 1,
+        "rooms": 2, "bathrooms": 1,
         "floor": 5, "total_floor": 18, "orientation": "南",
         "bonus_yuan": 3000,
     }, token=tokens["zhangsan"]["token"])

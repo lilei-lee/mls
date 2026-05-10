@@ -18,7 +18,7 @@ def agent():
 
 @pytest.fixture
 def physical():
-    return {"area_sqm": 100.0, "floor": 5, "total_floor": 18, "rooms": 3, "halls": 1, "bathrooms": 1}
+    return {"area_sqm": 100.0, "floor": 5, "total_floor": 18, "rooms": 3, "bathrooms": 1}
 
 
 class FakeReq:
@@ -52,7 +52,7 @@ def test_extract_physical_attrs():
     attrs = _extract_physical_attrs(req)
     assert attrs["area_sqm"] == 105.5
     assert attrs["rooms"] == 3
-    assert len(attrs) == 6
+    assert len(attrs) == 5  # V2.2 #2: 删 halls
 
 
 @patch("dictionary_client.DictionaryClient")
@@ -73,7 +73,7 @@ def test_create_listing_happy(mock_client_class, agent, physical):
     from database import db
     doc = db["listings"].find_one({"_id": ObjectId(result["listing_id"])})
     assert doc["property_code"] == "CODE12345678"
-    assert doc["layout"] == "3室1厅1卫"
+    assert doc["layout"] == "3室1卫"  # V2.2 #2: 删 halls
     # cleanup
     db["listings"].delete_one({"_id": ObjectId(result["listing_id"])})
 
@@ -109,7 +109,6 @@ def test_get_listing_enriched(mock_client_class, agent, physical):
     mock_client2.get_property.return_value = {
         "authoritative_attrs": {"area_sqm": 105.0, "rooms": 3},
         "attribute_claims": [
-            {"field": "halls", "value": 1, "agent_id": "a1", "listing_id": "l1", "claimed_at": "2026-05-01T00:00:00"},
             {"field": "bathrooms", "value": 1, "agent_id": "a1", "listing_id": "l1", "claimed_at": "2026-05-01T00:00:00"},
         ],
     }
@@ -118,7 +117,7 @@ def test_get_listing_enriched(mock_client_class, agent, physical):
     detail = get_listing_by_id(lid)
     assert detail["area_sqm"] == 105.0  # from authoritative
     assert detail["rooms"] == 3
-    assert detail["halls"] == 1  # from claims_latest
+    assert detail["bathrooms"] == 1  # from claims_latest
 
     from database import db
     db["listings"].delete_one({"_id": ObjectId(lid)})
@@ -240,7 +239,6 @@ def test_get_listing_my_last_claim_la_view(mock_client_class, agent, physical):
     assert mc["area_sqm"] == 105   # latest wins
     assert mc["floor"] == 8
     assert mc["rooms"] is None      # no claim
-    assert mc["halls"] is None
     assert mc["bathrooms"] is None
     assert mc["total_floor"] is None
 

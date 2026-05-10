@@ -24,7 +24,7 @@ def test_create_showing_request_snapshot_enriched(mock_client_class):
         "community": "测试小区", "building": "1", "unit": "1", "room_no": str(ObjectId())[-6:],
         "district": "桥东区", "property_code": "SNAPTEST123",
         "area_sqm": None, "floor": None, "total_floor": None,
-        "rooms": None, "halls": None, "bathrooms": None,
+        "rooms": None, "bathrooms": None,
         "layout": "", "orientation": "南", "price_wan": 80.0,
         "owner_agent_id": ObjectId(), "owner_agent_name": "LA", "owner_agent_phone": "138",
         "status": "on_sale", "photo_count": 0, "photos": [],

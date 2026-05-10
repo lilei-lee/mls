@@ -2,8 +2,8 @@
 from database import db, client
 
 # 从 listings 模块导入的常量(避免循环 import)
-DICT_PHYSICAL_FIELDS = ("area_sqm", "floor", "total_floor", "rooms", "halls", "bathrooms")
-DICT_OPTIONAL_CLAIM_FIELDS = ("objective_features", "decoration")
+DICT_PHYSICAL_FIELDS = ("area_sqm", "floor", "total_floor", "rooms", "bathrooms")
+DICT_OPTIONAL_CLAIM_FIELDS = ("objective_features", "decoration", "house_structure")
 
 
 def enrich_from_dictionary(result: dict, doc: dict, viewer_id=None) -> None:
