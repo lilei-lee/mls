@@ -212,6 +212,11 @@ def delete_qna(thread_id: str, agent = Depends(_get_agent())):  # noqa: F821
     return {"success": True, "message": "已删除"}
 
 
+def _count_ba_pending_questions(ba_id) -> int:
+    """公共:BA 待回答提问数(单一数据源)"""
+    return db["qna_threads"].count_documents({"asker_id": str(ba_id), "status": "pending"})
+
+
 # ═══════════════════ API 5: 我的提问 ═══════════════════
 
 @qna_router.get("/qna/my")
@@ -260,9 +265,4 @@ def list_my_qna(agent = Depends(_get_agent())):  # noqa: F821
 
 @qna_router.get("/qna/my/pending-count")
 def my_pending_count(agent = Depends(_get_agent())):  # noqa: F821
-    """轻量:当前用户 pending 提问数"""
-    count = db["qna_threads"].count_documents({
-        "asker_id": str(agent["_id"]),
-        "status": "pending",
-    })
-    return {"success": True, "data": {"count": count}}
+    return {"success": True, "data": {"count": _count_ba_pending_questions(agent["_id"])}}

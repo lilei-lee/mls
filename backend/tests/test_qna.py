@@ -193,3 +193,17 @@ def test_my_qna_deleted_not_included(listing, ba_agent):
     items = list_my_qna(agent=ba_agent)["data"]["items"]  # type: ignore
     tids = [i["thread_id"] for i in items]
     assert r["data"]["thread_id"] not in tids
+
+
+def test_pending_count_consistency(listing, ba_agent):
+    """两个接口(pending-count / dashboard)返回相同 pending 数"""
+    from qna import ask_qna, my_pending_count, _count_ba_pending_questions, AskQnaBody
+    for i in range(2):
+        ask_qna(str(listing), AskQnaBody(question=f"一致性{i}"), ba_agent)
+
+    # 方式 1: HTTP 接口
+    r1 = my_pending_count(agent=ba_agent)  # type: ignore
+    # 方式 2: 公共函数
+    r2 = _count_ba_pending_questions(ba_agent["_id"])
+    assert r1["data"]["count"] == 2
+    assert r2 == 2

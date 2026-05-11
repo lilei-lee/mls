@@ -1295,9 +1295,8 @@ def api_dashboard_todos(
         })
 
     # --- 7. 等待 LA 回答(BA) ---
-    my_pending = db["qna_threads"].count_documents({
-        "asker_id": str(agent_id), "status": "pending",
-    })
+    from qna import _count_ba_pending_questions
+    my_pending = _count_ba_pending_questions(agent_id)
     if my_pending > 0:
         todos.append({
             "type": "question_pending",
