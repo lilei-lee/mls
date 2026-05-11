@@ -253,6 +253,9 @@ class _HomeScreenState extends State<HomeScreen> {
       'edit' => LucideIcons.pencil,
       'user_check' => LucideIcons.userCheck,
       'circle_check' => LucideIcons.checkCircle,
+      'handshake' => LucideIcons.handshake,
+      'hourglass_empty' => LucideIcons.hourglass,
+      'help_circle' => LucideIcons.helpCircle,
       _ => LucideIcons.bell,
     };
     final route = todo['action_route'] as String?;
