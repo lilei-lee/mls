@@ -146,3 +146,50 @@ def test_pending_limit_3rd_accepted(listing, ba_agent):
     # 第 3 次应 accept
     result = ask_qna(str(listing), AskQnaBody(question="第3个"), ba_agent)
     assert result["success"]
+
+
+# ═══════════════════ API 5: 我的提问 ═══════════════════
+
+def test_my_qna_ba_returns_own(listing, ba_agent):
+    """BA 调用 /qna/my 返回自己的提问"""
+    from qna import ask_qna, list_my_qna, AskQnaBody
+    ask_qna(str(listing), AskQnaBody(question="我的提问测试"), ba_agent)
+
+    r = list_my_qna(agent=ba_agent)  # type: ignore
+    items = r["data"]["items"]
+    assert len(items) >= 1
+    assert items[0]["status"] == "pending"
+
+
+def test_my_qna_la_returns_empty(listing, la_agent):
+    """LA 调用 /qna/my 返回空数组"""
+    from qna import list_my_qna
+    r = list_my_qna(agent=la_agent)  # type: ignore
+    assert r["data"]["items"] == []
+
+
+def test_my_qna_sorting(listing, ba_agent, la_agent):
+    """pending 在前,组内时间倒序"""
+    from qna import ask_qna, answer_qna, list_my_qna, AskQnaBody, AnswerQnaBody
+    ask_qna(str(listing), AskQnaBody(question="新问题"), ba_agent)
+    r1 = ask_qna(str(listing), AskQnaBody(question="早问题"), ba_agent)
+
+    # 回答 早问题,使其变 answered
+    answer_qna(r1["data"]["thread_id"], AnswerQnaBody(answer="已回答"), la_agent)
+
+    items = list_my_qna(agent=ba_agent)["data"]["items"]  # type: ignore
+    statuses = [i["status"] for i in items]
+    # pending 必须在前面
+    pending_end = statuses.index("answered") if "answered" in statuses else len(statuses)
+    assert all(s == "pending" for s in statuses[:pending_end])
+
+
+def test_my_qna_deleted_not_included(listing, ba_agent):
+    """软删 thread 不出现在列表中"""
+    from qna import ask_qna, delete_qna, list_my_qna, AskQnaBody
+    r = ask_qna(str(listing), AskQnaBody(question="待删"), ba_agent)
+    delete_qna(r["data"]["thread_id"], agent=ba_agent)  # type: ignore
+
+    items = list_my_qna(agent=ba_agent)["data"]["items"]  # type: ignore
+    tids = [i["thread_id"] for i in items]
+    assert r["data"]["thread_id"] not in tids

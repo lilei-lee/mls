@@ -7,6 +7,7 @@ import '../services/dashboard_service.dart';
 import '../components/app_card.dart';
 import '../components/app_section.dart';
 import '../components/app_avatar.dart';
+import '../services/qna_service.dart';
 
 /// 工作台 v2.0 — Gradient Hero(140) + 3 统计 + 动态 + 快捷操作
 class HomeScreen extends StatefulWidget {
@@ -22,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late Future<_DashboardAllData> _future;
   String _myName = '';
   int _unreadCount = 0;
+  int _pendingQnaCount = 0;
 
   @override
   void initState() {
@@ -41,6 +43,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final results = await Future.wait([todosF, eventsF]);
     final todosData = results[0];
     if (mounted) setState(() => _unreadCount = 3); // mock
+    // V2.5: 我的提问 pending 数
+    try { final c = await QnaService.instance.getMyPendingCount(); if (mounted) setState(() => _pendingQnaCount = c); } catch (_) {}
     return _DashboardAllData(
       todoItems: (todosData['todos'] as List).cast<Map<String, dynamic>>(),
       todoTotal: (todosData['total'] as num?)?.toInt() ?? 0,
@@ -67,6 +71,9 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           ListTile(leading: const Icon(Icons.person_outline), title: Text(_myName), enabled: false),
           const Divider(height: 1),
+          ListTile(leading: const Icon(LucideIcons.helpCircle), title: const Text('我的提问'),
+              trailing: _pendingQnaCount > 0 ? Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1), decoration: BoxDecoration(color: AppTheme.warning.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4)), child: Text('$_pendingQnaCount', style: AppTheme.caption.copyWith(fontSize: 10, color: AppTheme.warning, fontWeight: FontWeight.w600))) : null,
+              onTap: () { Navigator.pop(ctx); context.push('/my-questions'); }),
           ListTile(leading: const Icon(Icons.logout, color: Colors.red), title: const Text('退出登录', style: TextStyle(color: Colors.red)),
               onTap: () { Navigator.pop(ctx); _confirmLogout(context); }),
         ]),

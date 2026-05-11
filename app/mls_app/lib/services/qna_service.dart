@@ -37,6 +37,17 @@ class QnaService {
     }
   }
 
+  Future<List<QnaThread>> getMyQuestions() async {
+    final resp = await _dio.get('/qna/my');
+    final items = (resp.data['data']['items'] as List).cast<Map<String, dynamic>>();
+    return items.map((e) => QnaThread.fromJson(e)).toList();
+  }
+
+  Future<int> getMyPendingCount() async {
+    final resp = await _dio.get('/qna/my/pending-count');
+    return (resp.data['data']['count'] as num).toInt();
+  }
+
   Future<void> delete(String threadId) async {
     try {
       await _dio.delete('/qna/$threadId');

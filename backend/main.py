@@ -1294,6 +1294,21 @@ def api_dashboard_todos(
             "created_at": q["question_at"].isoformat() if q.get("question_at") else None,
         })
 
+    # --- 7. 等待 LA 回答(BA) ---
+    my_pending = db["qna_threads"].count_documents({
+        "asker_id": str(agent_id), "status": "pending",
+    })
+    if my_pending > 0:
+        todos.append({
+            "type": "question_pending",
+            "priority": "normal",
+            "icon": "help_circle",
+            "title": f"等待 LA 回答你的提问 (共 {my_pending} 条)",
+            "subtitle": "已提的问题 LA 回复后这里会更新",
+            "action_route": "/my-questions",
+            "created_at": None,
+        })
+
     return {
         "success": True,
         "data": {

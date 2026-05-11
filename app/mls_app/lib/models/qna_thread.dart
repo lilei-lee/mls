@@ -1,4 +1,18 @@
 /// Q&A 问答线程模型
+class ListingInfo {
+  final String listingId;
+  final String title;
+  final String? coverPhoto;
+  final String communityName;
+  ListingInfo({required this.listingId, required this.title, this.coverPhoto, this.communityName = ''});
+  factory ListingInfo.fromJson(Map<String, dynamic> json) => ListingInfo(
+    listingId: json['listing_id'] ?? '',
+    title: json['title'] ?? '',
+    coverPhoto: json['cover_photo'],
+    communityName: json['community_name'] ?? '',
+  );
+}
+
 class QnaThread {
   final String threadId;
   final String question;
@@ -11,6 +25,7 @@ class QnaThread {
   final String? answererName;
   final bool answererSelf;
   final bool canDelete;
+  final ListingInfo? listingInfo;
 
   QnaThread({
     required this.threadId,
@@ -24,6 +39,7 @@ class QnaThread {
     this.answererName,
     required this.answererSelf,
     required this.canDelete,
+    this.listingInfo,
   });
 
   factory QnaThread.fromJson(Map<String, dynamic> json) {
@@ -39,6 +55,7 @@ class QnaThread {
       answererName: json['answerer_name'],
       answererSelf: json['answerer_self'] == true,
       canDelete: json['can_delete'] == true,
+      listingInfo: json['listing_info'] != null ? ListingInfo.fromJson(json['listing_info'] as Map<String, dynamic>) : null,
     );
   }
 

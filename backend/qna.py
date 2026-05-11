@@ -210,3 +210,59 @@ def delete_qna(thread_id: str, agent = Depends(_get_agent())):  # noqa: F821
         {"$set": {"status": "deleted", "updated_at": datetime.now()}}
     )
     return {"success": True, "message": "已删除"}
+
+
+# ═══════════════════ API 5: 我的提问 ═══════════════════
+
+@qna_router.get("/qna/my")
+def list_my_qna(agent = Depends(_get_agent())):  # noqa: F821
+    """BA 视角:返回自己所有提问(LA 调返回空)"""
+    threads = list(
+        db["qna_threads"].find({
+            "asker_id": str(agent["_id"]),
+            "status": {"$ne": "deleted"},
+        }).sort("question_at", -1)
+    )
+    # 批量补 listing_info
+    listing_ids = list(set(t["listing_id"] for t in threads if t.get("listing_id")))
+    listings = {}
+    if listing_ids:
+        for l in db["listings"].find({"_id": {"$in": [ObjectId(lid) for lid in listing_ids]}}):
+            listings[str(l["_id"])] = l
+
+    items = []
+    for t in threads:
+        li = listings.get(t.get("listing_id", ""), {})
+        items.append({
+            "thread_id": t["thread_id"],
+            "listing_id": t.get("listing_id"),
+            "question": t["question"],
+            "question_at": t["question_at"].isoformat() if t.get("question_at") else None,
+            "status": t["status"],
+            "answer": t.get("answer"),
+            "answered_at": t["answered_at"].isoformat() if t.get("answered_at") else None,
+            "answerer_name": t.get("answerer_name"),
+            "listing_info": {
+                "listing_id": t.get("listing_id"),
+                "title": f'{li.get("community","")} {li.get("building","")}-{li.get("unit","")}-{li.get("room_no","")}',
+                "cover_photo": li.get("cover_thumbnail"),
+                "community_name": li.get("community", ""),
+            } if li else None,
+        })
+
+    # 排序:pending 在前,answered 在后,组内 question_at 倒序
+    pending = [i for i in items if i["status"] == "pending"]
+    answered = [i for i in items if i["status"] == "answered"]
+    sorted_items = pending + answered
+
+    return {"success": True, "data": {"items": sorted_items, "total": len(sorted_items)}}
+
+
+@qna_router.get("/qna/my/pending-count")
+def my_pending_count(agent = Depends(_get_agent())):  # noqa: F821
+    """轻量:当前用户 pending 提问数"""
+    count = db["qna_threads"].count_documents({
+        "asker_id": str(agent["_id"]),
+        "status": "pending",
+    })
+    return {"success": True, "data": {"count": count}}

@@ -12,6 +12,7 @@ import '../screens/listing_list_screen.dart';
 import '../screens/listing_shared_screen.dart';
 import '../screens/community_detail_screen.dart';
 import '../screens/qna_list_screen.dart';
+import '../screens/my_questions_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/register_screen.dart';
 import '../screens/showing_request_create_screen.dart';
@@ -107,6 +108,10 @@ final GoRouter appRouter = GoRouter(
         listingId: state.pathParameters['id']!,
         highlightId: state.uri.queryParameters['highlight'],
       ),
+    ),
+    GoRoute(
+      path: '/my-questions',
+      builder: (context, state) => const MyQuestionsScreen(),
     ),
     GoRoute(
       path: '/showing-request/new',
