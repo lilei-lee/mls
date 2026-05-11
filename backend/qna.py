@@ -80,7 +80,7 @@ def list_qna(
             "thread_id": t["thread_id"],
             "question": t["question"],
             "question_at": t["question_at"].isoformat() if t.get("question_at") else None,
-            "asker_name": t["asker_name"] if is_owner else t.get("asker_anonymous_name", ""),
+            "asker_name": t["asker_name"] if (is_owner or str(t.get("asker_id", "")) == str(agent["_id"])) else t.get("asker_anonymous_name", ""),
             "asker_id_self": str(t.get("asker_id", "")) == str(agent["_id"]),
             "status": t["status"],
             "answer": t.get("answer"),

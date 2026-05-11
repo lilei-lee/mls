@@ -87,17 +87,62 @@ def test_ba_pending_limit(listing, ba_agent):
 
 
 def test_anonymous_name_in_list(listing, la_agent, ba_agent):
-    """BA 视角列表 asker_name 显"李*",LA 视角显"李红" """
+    """BA 自看全名'李红', LA 看全名'李红', 其他 BA 看脱敏'李*' """
     from qna import ask_qna, list_qna, AskQnaBody
     ask_qna(str(listing), AskQnaBody(question="采光好吗?"), ba_agent)
 
-    # BA 视角
-    r_ba = list_qna(str(listing), agent=ba_agent)  # type: ignore
-    items_ba = r_ba["data"]["items"]
-    assert len(items_ba) >= 1
-    assert items_ba[0]["asker_name"] == "李*"
+    # BA 自己看 → 全名
+    r_self = list_qna(str(listing), agent=ba_agent)
+    assert r_self["data"]["items"][0]["asker_name"] == "李红"
 
-    # LA 视角
-    r_la = list_qna(str(listing), agent=la_agent)  # type: ignore
-    items_la = r_la["data"]["items"]
-    assert items_la[0]["asker_name"] == "李红"
+    # LA 视角 → 全名
+    r_la = list_qna(str(listing), agent=la_agent)
+    assert r_la["data"]["items"][0]["asker_name"] == "李红"
+
+    # 其他 BA 视角 → 脱敏
+    ba2 = {"_id": str(ObjectId()), "name": "王芳", "phone": "13300000000"}
+    r_ba2 = list_qna(str(listing), agent=ba2)
+    assert r_ba2["data"]["items"][0]["asker_name"] == "李*"
+
+
+def test_ba2_sees_anonymized_name(listing, la_agent, ba_agent):
+    """BA1 提问,BA2 查看 → asker_name='李*' """
+    from qna import ask_qna, list_qna, AskQnaBody
+    ask_qna(str(listing), AskQnaBody(question="能看房吗?"), ba_agent)
+
+    ba2 = {"_id": str(ObjectId()), "name": "王芳", "phone": "13300000000"}
+    r = list_qna(str(listing), agent=ba2)  # type: ignore
+    assert r["data"]["items"][0]["asker_name"] == "李*"
+
+
+def test_asker_sees_own_full_name(listing, la_agent, ba_agent):
+    """BA1 提问后自己看 → asker_name='李红'(全名,不脱敏自己)"""
+    from qna import ask_qna, list_qna, AskQnaBody
+    ask_qna(str(listing), AskQnaBody(question="户型怎么样?"), ba_agent)
+
+    r = list_qna(str(listing), agent=ba_agent)  # type: ignore
+    assert r["data"]["items"][0]["asker_name"] == "李红"
+
+
+def test_pending_limit_boundary(listing, ba_agent):
+    """3 次成功,第 4 次 400"""
+    from qna import ask_qna, AskQnaBody
+    from fastapi import HTTPException
+    for i in range(3):
+        ask_qna(str(listing), AskQnaBody(question=f"边界问题{i}"), ba_agent)
+
+    # 第 4 次应 reject
+    with pytest.raises(HTTPException) as exc:
+        ask_qna(str(listing), AskQnaBody(question="第4个问题"), ba_agent)
+    assert exc.value.status_code == 400
+
+
+def test_pending_limit_3rd_accepted(listing, ba_agent):
+    """第 3 次 accept(边界),总数 3"""
+    from qna import ask_qna, AskQnaBody
+    for i in range(2):
+        ask_qna(str(listing), AskQnaBody(question=f"前{i}"), ba_agent)
+
+    # 第 3 次应 accept
+    result = ask_qna(str(listing), AskQnaBody(question="第3个"), ba_agent)
+    assert result["success"]
