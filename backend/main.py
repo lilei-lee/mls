@@ -1308,6 +1308,31 @@ def api_dashboard_todos(
             "created_at": None,
         })
 
+    # --- 8. 待确认成交(LA) + 等待 LA 确认(BA) Day 37 ---
+    from transactions import _count_la_pending_transactions, _count_ba_waiting_transactions
+    la_pending = _count_la_pending_transactions(agent_id)
+    if la_pending > 0:
+        todos.append({
+            "type": "transaction_pending_confirm",
+            "priority": "high",
+            "icon": "handshake",
+            "title": f"待你确认成交 ({la_pending} 笔)",
+            "subtitle": "BA 已提交成交信息,请独立填写你掌握的成交价与日期",
+            "action_route": "/transactions/pending-la",
+            "created_at": None,
+        })
+    ba_waiting = _count_ba_waiting_transactions(agent_id)
+    if ba_waiting > 0:
+        todos.append({
+            "type": "transaction_waiting_la",
+            "priority": "medium",
+            "icon": "hourglass_empty",
+            "title": f"等待 LA 确认成交 ({ba_waiting} 笔)",
+            "subtitle": "你已提交成交信息,等待房源归属人独立填价确认",
+            "action_route": "/transactions/pending-la",
+            "created_at": None,
+        })
+
     return {
         "success": True,
         "data": {

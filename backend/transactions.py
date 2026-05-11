@@ -663,6 +663,20 @@ def count_pending_for_la(la_agent_id: ObjectId) -> int:
     })
 
 
+# ═══ Day 37: 公共计数函数(单一数据源) ═══
+
+def _count_la_pending_transactions(la_id) -> int:
+    """公共:LA 待确认成交数"""
+    oid = _to_oid(str(la_id), "")
+    return transactions_collection.count_documents({"la_agent_id": oid, "status": "pending_la_confirm"})
+
+
+def _count_ba_waiting_transactions(ba_id) -> int:
+    """公共:BA 等待 LA 确认的成交数"""
+    oid = _to_oid(str(ba_id), "")
+    return transactions_collection.count_documents({"ba_agent_id": oid, "status": "pending_la_confirm"})
+
+
 def has_active_transaction(listing_id: ObjectId) -> bool:
     """listing 是否有"活跃中"的 transaction(pending_la_confirm)
     用于 listing 回退状态时的保护检查
