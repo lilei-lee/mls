@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../theme/app_theme.dart';
 import '../theme/mls_colors.dart';
 import '../theme/mls_typography.dart';
 import '../widgets/mls/mls_avatar.dart';
 import '../widgets/mls/mls_card.dart';
 import '../widgets/mls/mls_section_header.dart';
+import '../theme/mls_radius.dart';
 import '../services/dashboard_service.dart';
-import '../components/app_card.dart';
-import '../components/app_section.dart';
 import '../services/qna_service.dart';
 
 /// 工作台 v2.0 — Gradient Hero(140) + 3 统计 + 动态 + 快捷操作
@@ -217,7 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: EdgeInsets.zero,
       child: IntrinsicHeight(
         child: Row(children: [
-          Container(width: 4, decoration: BoxDecoration(color: color, borderRadius: const BorderRadius.only(topLeft: Radius.circular(AppTheme.radiusM), bottomLeft: Radius.circular(AppTheme.radiusM)))),
+          Container(width: 4, decoration: BoxDecoration(color: color, borderRadius: const BorderRadius.only(topLeft: Radius.circular(MlsRadius.xl), bottomLeft: Radius.circular(MlsRadius.xl)))),
           Expanded(child: Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 16, 12),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
