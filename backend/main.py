@@ -845,22 +845,28 @@ def initiate_transaction_api(
     return {"success": True, **result}
 
 
-@app.get("/api/v1/transactions/pending-la")
-def list_pending_la_api(
+@app.get("/api/v1/transactions/pending")
+def list_pending_tx_api(
     skip: int = 0,
     limit: int = 50,
+    filter: str | None = Query(None, description="la(默认)=LA视角待确认 / ba=BA视角等待LA"),
     agent: dict = Depends(get_current_agent),
 ):
-    """LA 待我确认的成交列表"""
+    """成交待办列表:filter=la→LA确认, filter=ba→BA等待"""
+    if filter == "ba":
+        from transactions import get_waiting_la_listings
+        total, docs = get_waiting_la_listings(agent["_id"], skip=skip, limit=limit)
+        return {"success": True, "total": total, "items": [_format_transaction_lite(d) for d in docs]}
     items, total = list_pending_for_la(agent["_id"], skip=skip, limit=limit)
     return {"success": True, "total": total, "items": items}
 
 
-@app.get("/api/v1/transactions/pending-la-count")
-def pending_la_count_api(agent: dict = Depends(get_current_agent)):
-    """工作台角标"""
-    count = count_pending_for_la(agent["_id"])
-    return {"success": True, "count": count}
+@app.get("/api/v1/transactions/pending-count")
+def pending_tx_count_api(filter: str | None = Query(None), agent: dict = Depends(get_current_agent)):
+    from transactions import _count_la_pending_transactions, _count_ba_waiting_transactions
+    if filter == "ba":
+        return {"success": True, "count": _count_ba_waiting_transactions(agent["_id"])}
+    return {"success": True, "count": _count_la_pending_transactions(agent["_id"])}
 
 
 @app.get("/api/v1/transactions/by-showing/{showing_id}")
@@ -1318,7 +1324,7 @@ def api_dashboard_todos(
             "icon": "handshake",
             "title": f"待你确认成交 ({la_pending} 笔)",
             "subtitle": "BA 已提交成交信息,请独立填写你掌握的成交价与日期",
-            "action_route": "/transactions/pending-la",
+            "action_route": "/transactions/pending?filter=la",
             "created_at": None,
         })
     ba_waiting = _count_ba_waiting_transactions(agent_id)
@@ -1329,7 +1335,7 @@ def api_dashboard_todos(
             "icon": "hourglass_empty",
             "title": f"等待 LA 确认成交 ({ba_waiting} 笔)",
             "subtitle": "你已提交成交信息,等待房源归属人独立填价确认",
-            "action_route": "/transactions/pending-la",
+            "action_route": "/transactions/pending?filter=ba",
             "created_at": None,
         })
 

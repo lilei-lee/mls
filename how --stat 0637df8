@@ -1,0 +1,38 @@
+[33mcommit 5b31d82980a1a29992193e38ec2d560b3984f195[m
+Author: lei <lljj0000@163.com>
+Date:   Fri May 8 07:27:42 2026 +0800
+
+    feat(V2.1 #15): 楼盘辞典段 6 - 数据清空脚本
+    
+    段 6 是辞典侧的最后一段。提供一个安全可控的 reset 脚本,用于:
+    - 测试期上线前清除遗留数据
+    - 真上线前清除测试期产生的所有数据
+    - 任何阶段需要重置辞典到初始状态时
+    
+    新增内容:
+    
+    1. scripts/reset_to_v2_1.py
+       - 二次确认机制:必须输入字符串 'RESET CONFIRM' 才执行
+       - 不接受 -y / 环境变量等自动跳过(防止误触)
+       - 流程:
+         [1/4] Drop 6 业务集合(cities/districts/communities/properties/
+                property_discrepancies/audit_logs)
+         [2/4] 重建所有索引(drop 后索引也丢了)
+         [3/4] 重新预填张家口 1 city + 17 districts
+         [4/4] 状态校验(每集合 count 与预期对比)
+       - 全程 print 进度日志
+       - 校验失败时 exit 1,运维可立即发现
+    
+    2. 验证
+       - 拒绝路径:输入非'RESET CONFIRM' → 不动数据,直接退出
+       - 执行路径:6 集合全清 + 21 索引重建 + 18 文档预填 + 6 校验全过
+       - 服务仍正常 / single-test 74/74 仍 pass
+    
+    V2.1 启动策略:全数据清空(C 选项,只保留 cities + districts schema)
+        → 测试期 → 测试完再清 → 真上线
+    本脚本是这个策略的执行工具。
+    
+    Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
+
+ .../backend/scripts/reset_to_v2_1.py               | 113 [32m+++++++++++++++++++++[m
+ 1 file changed, 113 insertions(+)

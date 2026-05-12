@@ -61,7 +61,7 @@ def start_scheduler():
     )
 
     _scheduler.start()
-    print("✓ 定时任务调度器已启动(每天 03:00 扫过期申请)")
+    print("[OK] 定时任务调度器已启动(每天 03:00 扫过期申请)")
 
 
 def stop_scheduler():

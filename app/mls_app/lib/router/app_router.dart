@@ -24,7 +24,7 @@ import '../screens/showing_confirm_screen.dart';
 import '../screens/showing_pending_confirm_screen.dart';
 import '../screens/transaction_initiate_screen.dart';
 import '../screens/transaction_detail_screen.dart';
-import '../screens/transaction_pending_la_screen.dart';
+import '../screens/transaction_pending_screen.dart';
 import '../screens/splash_screen.dart';
 import '../screens/settlement_pending_screen.dart';
 import '../screens/settlement_detail_screen.dart';
@@ -171,8 +171,10 @@ final GoRouter appRouter = GoRouter(
     ),
     // 模块五:成交确认
     GoRoute(
-      path: '/transactions/pending-la',
-      builder: (context, state) => const TransactionPendingLaScreen(),
+      path: '/transactions/pending',
+      builder: (context, state) => TransactionPendingScreen(
+        filter: state.uri.queryParameters['filter'] ?? 'la',
+      ),
     ),
     GoRoute(
       path: '/transaction/initiate',

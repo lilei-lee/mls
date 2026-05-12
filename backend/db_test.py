@@ -13,8 +13,8 @@ client = MongoClient("mongodb://localhost:27017")
 db = client["mls"]                     # 数据库
 agents_collection = db["agents"]       # 经纪人集合
 
-print(f"✓ 已连接到 MongoDB: {client.address}")
-print(f"✓ 数据库: mls,集合: agents")
+print(f"[OK] 已连接到 MongoDB: {client.address}")
+print(f"[OK] 数据库: mls,集合: agents")
 print(f"  当前 agents 集合里有 {agents_collection.count_documents({})} 条数据")
 
 # ==================== 插入第一个经纪人 ====================
@@ -42,7 +42,7 @@ if existing:
     print(f"   现有数据 _id: {existing['_id']}")
 else:
     result = agents_collection.insert_one(first_agent)
-    print(f"\n✓ 成功插入经纪人!")
+    print(f"\n[OK] 成功插入经纪人!")
     print(f"   _id: {result.inserted_id}")
     print(f"   姓名: {first_agent['name']}")
     print(f"   手机: {first_agent['phone']}")

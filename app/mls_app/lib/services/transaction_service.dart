@@ -109,15 +109,21 @@ class TransactionService {
     return Map<String, dynamic>.from(resp.data['data']);
   }
 
-  /// LA 待确认列表
-  Future<Map<String, dynamic>> listPendingLa() async {
-    final resp = await _dio.get('/transactions/pending-la');
+  /// 成交待办列表
+  Future<Map<String, dynamic>> listPending() async {
+    final resp = await _dio.get('/transactions/pending');
+    return Map<String, dynamic>.from(resp.data);
+  }
+
+  /// BA 等待 LA 确认列表
+  Future<Map<String, dynamic>> listPendingBa() async {
+    final resp = await _dio.get('/transactions/pending', queryParameters: {'filter': 'ba'});
     return Map<String, dynamic>.from(resp.data);
   }
 
   /// 工作台角标
-  Future<int> pendingLaCount() async {
-    final resp = await _dio.get('/transactions/pending-la-count');
+  Future<int> pendingCount() async {
+    final resp = await _dio.get('/transactions/pending-count');
     return resp.data['count'] as int;
   }
 }

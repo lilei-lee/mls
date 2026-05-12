@@ -354,12 +354,12 @@ class TestShowings:
 
 class TestTransactions:
     def test_pending_la(self, tokens):
-        r = _get("/api/v1/transactions/pending-la",
+        r = _get("/api/v1/transactions/pending",
                  token=tokens["zhangsan"]["token"])
         assert r.status_code == 200
 
     def test_pending_la_count(self, tokens):
-        r = _get("/api/v1/transactions/pending-la-count",
+        r = _get("/api/v1/transactions/pending-count",
                  token=tokens["zhangsan"]["token"])
         assert r.status_code == 200
 
