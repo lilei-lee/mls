@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/transaction_service.dart';
+import '../widgets/mls/mls_encrypted_panel.dart';
 
 class TransactionDetailScreen extends StatefulWidget {
   final String transactionId;
@@ -419,6 +420,18 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
     required bool masked,
     required bool hasSubmitted,
   }) {
+    // 4C.3: 反作弊基石视觉化身. masked + 已提交 -> MlsEncryptedPanel
+    if (masked && hasSubmitted) {
+      return MlsEncryptedPanel(
+        submitterName: agentName,
+        submitterRole: roleLabel == '买方经纪人' ? 'BA' : 'LA',
+        visibleFields: const {},
+        maskedFields: const [
+          MlsEncryptedField(label: '成交价', maskLength: 6),
+          MlsEncryptedField(label: '成交日期', maskLength: 8),
+        ],
+      );
+    }
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(14),
