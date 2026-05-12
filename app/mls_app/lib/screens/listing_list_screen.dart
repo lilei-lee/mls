@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import 'package:go_router/go_router.dart';
 import '../models/listing_filters.dart';
 import '../widgets/status_badge.dart';
@@ -193,6 +194,8 @@ class _ListingListScreenState extends State<ListingListScreen>
         ],
         bottom: TabBar(
           controller: _tabController,
+          labelColor: MlsColors.primary,
+          unselectedLabelColor: MlsColors.textSecondary,
           tabs: const [
             Tab(text: '全部'),
             Tab(text: '在售'),
