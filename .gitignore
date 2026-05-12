@@ -47,6 +47,18 @@ Thumbs.db
 _*.json
 
 # ===== 数据库备份导出文件（已在 MongoDB 中保留集合备份） =====
-*_backup_*.json 
-# hello_mate40 ������������Ŀ,������ MLS,�Ӳ����(Day 19 push GitHub ǰ����) 
-app/hello_mate40/ 
+*_backup_*.json
+# hello_mate40 ������������Ŀ,������ MLS,�Ӳ����(Day 19 push GitHub ǰ����)
+app/hello_mate40/
+
+# ===== Day 37: 误添加的二进制和可执行 =====
+/main
+**/uvicorn
+**/uvicorn.exe
+
+# 误输入的命令名当文件名
+how --*
+git --*
+
+# IDE
+.vscode/ 
