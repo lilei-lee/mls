@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
+import '../theme/mls_typography.dart';
 import '../services/dashboard_service.dart';
 import '../components/app_card.dart';
 import '../components/app_section.dart';
@@ -72,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ListTile(leading: const Icon(Icons.person_outline), title: Text(_myName), enabled: false),
           const Divider(height: 1),
           ListTile(leading: const Icon(LucideIcons.helpCircle), title: const Text('我的提问'),
-              trailing: _pendingQnaCount > 0 ? Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1), decoration: BoxDecoration(color: AppTheme.warning.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4)), child: Text('$_pendingQnaCount', style: AppTheme.caption.copyWith(fontSize: 10, color: AppTheme.warning, fontWeight: FontWeight.w600))) : null,
+              trailing: _pendingQnaCount > 0 ? Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1), decoration: BoxDecoration(color: MlsColors.warningBg, borderRadius: BorderRadius.circular(4)), child: Text('$_pendingQnaCount', style: TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 10, color: MlsColors.warning, fontWeight: MlsTypography.semibold))) : null,
               onTap: () { Navigator.pop(ctx); context.push('/my-questions'); }),
           ListTile(leading: const Icon(Icons.logout, color: Colors.red), title: const Text('退出登录', style: TextStyle(color: Colors.red)),
               onTap: () { Navigator.pop(ctx); _confirmLogout(context); }),
@@ -112,9 +114,9 @@ class _HomeScreenState extends State<HomeScreen> {
               SliverAppBar(
                 expandedHeight: 100,
                 pinned: true,
-                backgroundColor: AppTheme.n0,
+                backgroundColor: MlsColors.bgCardPrimary,
                 flexibleSpace: FlexibleSpaceBar(background: Container(
-                  decoration: const BoxDecoration(gradient: AppTheme.gradientPrimary),
+                  decoration: const BoxDecoration(gradient: MlsColors.heroBlue),
                   child: SafeArea(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
@@ -127,21 +129,21 @@ class _HomeScreenState extends State<HomeScreen> {
                         Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
                           const Spacer(),
                           Text('${_greeting()}，${_myName.isNotEmpty ? _myName : '用户'}',
-                              style: AppTheme.titleM.copyWith(color: AppTheme.n0, fontSize: 15)),
+                              style: TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 15, fontWeight: MlsTypography.semibold, color: Colors.white)),
                           Text('工作台 · ${_todayLabel()}',
-                              style: AppTheme.caption.copyWith(color: AppTheme.n0.withValues(alpha: 0.65), fontSize: 11)),
+                              style: TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 11, color: Colors.white.withOpacity(0.65))),
                           const Spacer(),
                         ]),
                         const Spacer(),
                         Stack(clipBehavior: Clip.none, children: [
-                          const Icon(LucideIcons.bell, size: 22, color: AppTheme.n0),
+                          const Icon(LucideIcons.bell, size: 22, color: Colors.white),
                           if (_unreadCount > 0)
                             Positioned(right: -6, top: -4, child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                              decoration: const BoxDecoration(color: AppTheme.danger, shape: BoxShape.circle),
+                              decoration: const BoxDecoration(color: MlsColors.danger, shape: BoxShape.circle),
                               constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                               alignment: Alignment.center,
-                              child: Text('${_unreadCount > 99 ? '99+' : _unreadCount}', style: AppTheme.caption.copyWith(color: AppTheme.n0, fontSize: 9, fontWeight: FontWeight.w700)),
+                              child: Text('${_unreadCount > 99 ? '99+' : _unreadCount}', style: TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 9, fontWeight: MlsTypography.bold, color: Colors.white)),
                             )),
                         ]),
                       ]),
@@ -159,9 +161,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ? data.todoItems.take(5).map((todo) => _buildTodoCard(todo, context)).toList()
                       : [AppCard.flat(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           child: Row(children: [
-                            const Icon(LucideIcons.checkCircle, size: 18, color: AppTheme.success),
+                            const Icon(LucideIcons.checkCircle, size: 18, color: MlsColors.success),
                             const SizedBox(width: 8),
-                            Text('待办都处理完了 · 保持节奏', style: AppTheme.bodyM.copyWith(color: AppTheme.n700)),
+                            Text('待办都处理完了 · 保持节奏', style: MlsTypography.body1.copyWith(color: MlsColors.textPrimary)),
                           ]))],
                 ),
               ),
@@ -173,9 +175,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: data.events.isEmpty
                       ? [AppCard.flat(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           child: Row(children: [
-                            const Icon(LucideIcons.inbox, size: 18, color: AppTheme.n300),
+                            const Icon(LucideIcons.inbox, size: 18, color: MlsColors.textTertiary),
                             const SizedBox(width: 8),
-                            Text('暂无新动态', style: AppTheme.bodyM.copyWith(color: AppTheme.n500)),
+                            Text('暂无新动态', style: MlsTypography.body1.copyWith(color: MlsColors.textTertiary)),
                           ]))]
                       : data.events.take(3).map((e) => _buildTimelineCard(e)).toList(),
                 ),
@@ -217,9 +219,9 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(child: Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 16, 12),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(e['time_ago']?.toString() ?? '', style: AppTheme.caption),
+              Text(e['time_ago']?.toString() ?? '', style: MlsTypography.caption1),
               const SizedBox(height: 4),
-              Text(e['action_text']?.toString() ?? '', style: AppTheme.bodyM),
+              Text(e['action_text']?.toString() ?? '', style: MlsTypography.body1),
             ]),
           )),
         ]),
@@ -232,18 +234,18 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.all(14),
       onTap: () => context.push(route),
       child: Row(children: [
-        Container(width: 36, height: 36, decoration: const BoxDecoration(color: AppTheme.primary50, shape: BoxShape.circle),
-            child: Icon(icon, size: 20, color: AppTheme.primary500)),
+        Container(width: 36, height: 36, decoration: const BoxDecoration(color: MlsColors.primaryBg, shape: BoxShape.circle),
+            child: Icon(icon, size: 20, color: MlsColors.primary)),
         const SizedBox(width: 12),
-        Text(label, style: AppTheme.titleS.copyWith(fontSize: 14)),
+        Text(label, style: TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 14, fontWeight: MlsTypography.semibold, color: MlsColors.textPrimary)),
       ]),
     );
   }
 
   Widget _buildTodoCard(Map<String, dynamic> todo, BuildContext context) {
     final color = switch (todo['priority']) {
-      'high' => AppTheme.warning,
-      _ => AppTheme.primary500,
+      'high' => MlsColors.warning,
+      _ => MlsColors.primary,
     };
     final icon = switch (todo['icon']) {
       'person_add' => LucideIcons.userPlus,
@@ -270,30 +272,30 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(width: 12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            Expanded(child: Text(todo['title']?.toString() ?? '', style: AppTheme.titleS.copyWith(fontSize: 14), maxLines: 2, overflow: TextOverflow.ellipsis)),
+            Expanded(child: Text(todo['title']?.toString() ?? '', style: TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 14, fontWeight: MlsTypography.semibold, color: MlsColors.textPrimary), maxLines: 2, overflow: TextOverflow.ellipsis)),
             if (badge != null) ...[const SizedBox(width: 6), badge],
           ]),
           if (todo['subtitle'] != null && (todo['subtitle'] as String).isNotEmpty) ...[
             const SizedBox(height: 4),
-            Text(todo['subtitle'] as String, style: AppTheme.bodyS.copyWith(fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text(todo['subtitle'] as String, style: MlsTypography.body2, maxLines: 1, overflow: TextOverflow.ellipsis),
           ],
         ])),
-        if (route != null) const Icon(LucideIcons.chevronRight, size: 18, color: AppTheme.n300),
+        if (route != null) const Icon(LucideIcons.chevronRight, size: 18, color: MlsColors.textTertiary),
       ]),
     );
   }
 
   Widget? _todoBadge(String? type) => switch (type) {
-    'transaction_pending_confirm' => _pill('7天内', AppTheme.warning),
-    'transaction_waiting_la' => _pill('进行中', AppTheme.info),
-    'answer_pending' => _pill('待回复', AppTheme.primary500),
+    'transaction_pending_confirm' => _pill('7天内', MlsColors.warning),
+    'transaction_waiting_la' => _pill('进行中', MlsColors.primary),
+    'answer_pending' => _pill('待回复', MlsColors.primary),
     _ => null,
   };
 
   Widget _pill(String label, Color color) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
     decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4)),
-    child: Text(label, style: AppTheme.caption.copyWith(fontSize: 10, color: color, fontWeight: FontWeight.w600)),
+    child: Text(label, style: TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 10, color: color, fontWeight: MlsTypography.semibold)),
   );
 
   String _todayLabel() {
@@ -304,9 +306,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Color _eventColor(String? type) {
     switch (type) {
-      case 'showing_request': return AppTheme.primary500;
-      case 'transaction': return AppTheme.success;
-      default: return AppTheme.n200;
+      case 'showing_request': return MlsColors.primary;
+      case 'transaction': return MlsColors.success;
+      default: return MlsColors.borderStrong;
     }
   }
 }
