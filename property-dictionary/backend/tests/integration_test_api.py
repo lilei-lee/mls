@@ -1,3 +1,8 @@
+# 此文件不是 pytest 单测,是手动跑的集成测试脚本
+# 运行方式:
+#   1. 先启动辞典 backend: uvicorn main:app --port 8001
+#   2. 在另一个终端跑: python tests/integration_test_api.py
+# 不要用 pytest 跑,会 collect error
 """Integration test: start uvicorn, hit all 10 endpoints, verify"""
 import sys, os, json, time, subprocess, signal
 
