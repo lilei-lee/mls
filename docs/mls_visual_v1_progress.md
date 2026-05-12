@@ -6,7 +6,8 @@
 | 批次 1 token 层 | bc9907b | 6 个 mls_*.dart token + main.dart 切换 | ✅ 5 Tab 全过 |
 | 批次 2 基础组件 | a8cedd9 | MlsCard / MlsAvatar / MlsStatusBadge / MlsPrimaryButton / MlsSectionHeader / MlsSegmentedControl | ✅ 6/6 预览页全过 |
 | 批次 3 专用组件 | 508974f (主体), 280208a (修补) | MlsHeroToday / MlsMetricCell / MlsProgressRing / MlsProgressStepper / MlsEncryptedPanel / MlsMoneyInput | ✅ 7/7 全过, 含 pulse 呼吸 + 扫描线动画 + 千分位 + 万元换算 |
-| 批次 4 页面落地 | (待) | home_screen / dashboard / transaction_confirm 三页重做 | - |
+| 批次 4 页面落地 | (进行中) | home_screen / dashboard / transaction_confirm 三页重做 | - |
+|  └ 4A.2.b home_screen token 迁移 | b449fcc | home_screen.dart 30 处 AppTheme.xxx → MlsColors/MlsTypography 单点替换 (颜色 + 字号 + icon，组件结构 AppCard/AppSection/AppAvatar 暂未动，留给 4A.2.c) | ✅ 真机过 |
 
 ## 已知遗留
 - AppTheme 旧 token 系统仍在使用，主要影响 home_screen.dart 的 SliverAppBar Header（蓝渐变 + 白字）。计划在批次 4 重做 home_screen 时移除 AppTheme 引用，迁移到 MlsColors
