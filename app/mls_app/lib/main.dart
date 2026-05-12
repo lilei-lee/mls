@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'theme/mls_theme.dart';
 import 'router/app_router.dart';
 
 void main() {
@@ -14,10 +15,12 @@ class MlsApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'MLS 经纪人',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
+      // 回滚用：原内联 theme
+      // theme: ThemeData(
+      //   colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+      //   useMaterial3: true,
+      // ),
+      theme: MlsTheme.light,
       // 本地化:日期/时间选择器、字体等 UI 元素支持中文
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
