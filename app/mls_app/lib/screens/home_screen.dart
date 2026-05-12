@@ -7,6 +7,7 @@ import '../theme/mls_typography.dart';
 import '../widgets/mls/mls_avatar.dart';
 import '../widgets/mls/mls_card.dart';
 import '../widgets/mls/mls_section_header.dart';
+import '../widgets/mls/mls_status_badge.dart';
 import '../theme/mls_radius.dart';
 import '../services/dashboard_service.dart';
 import '../services/qna_service.dart';
@@ -286,17 +287,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget? _todoBadge(String? type) => switch (type) {
-    'transaction_pending_confirm' => _pill('7天内', MlsColors.warning),
-    'transaction_waiting_la' => _pill('进行中', MlsColors.primary),
-    'answer_pending' => _pill('待回复', MlsColors.primary),
+    'transaction_pending_confirm' => const MlsStatusBadge(text: '7天内', variant: MlsBadgeVariant.warning),
+    'transaction_waiting_la' => const MlsStatusBadge(text: '进行中', variant: MlsBadgeVariant.info),
+    'answer_pending' => const MlsStatusBadge(text: '待回复', variant: MlsBadgeVariant.info),
     _ => null,
   };
-
-  Widget _pill(String label, Color color) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-    decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4)),
-    child: Text(label, style: TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 10, color: color, fontWeight: MlsTypography.semibold)),
-  );
 
   String _todayLabel() {
     final now = DateTime.now();
