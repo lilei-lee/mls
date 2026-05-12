@@ -79,6 +79,7 @@ class _SettlementPendingScreenState extends State<SettlementPendingScreen> {
           );
         },
       ),
+      floatingActionButton: const SizedBox.shrink(),
     );
   }
 

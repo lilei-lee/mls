@@ -81,6 +81,7 @@ class _CollaborationListScreenState extends State<CollaborationListScreen>
           _buildList(_sellerFuture, role: 'seller'),
         ],
       ),
+      floatingActionButton: const SizedBox.shrink(),
     );
   }
 
