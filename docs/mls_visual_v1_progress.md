@@ -4,7 +4,7 @@
 | 批次 | commit | 内容 | 真机验证 |
 |---|---|---|---|
 | 批次 1 token 层 | bc9907b | 6 个 mls_*.dart token + main.dart 切换 | ✅ 5 Tab 全过 |
-| 批次 2 基础组件 | (待) | MlsCard / MlsAvatar / MlsStatusBadge / MlsPrimaryButton / MlsSectionHeader / MlsSegmentedControl | - |
+| 批次 2 基础组件 | a8cedd9 | MlsCard / MlsAvatar / MlsStatusBadge / MlsPrimaryButton / MlsSectionHeader / MlsSegmentedControl | ✅ 6/6 预览页全过 |
 | 批次 3 专用组件 | (待) | MlsHeroToday / MlsMetricCell / MlsProgressRing / MlsProgressStepper / MlsEncryptedPanel / MlsMoneyInput | - |
 | 批次 4 页面落地 | (待) | home_screen / dashboard / transaction_confirm 三页重做 | - |
 
