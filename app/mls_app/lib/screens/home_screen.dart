@@ -7,6 +7,7 @@ import '../theme/mls_colors.dart';
 import '../theme/mls_typography.dart';
 import '../widgets/mls/mls_avatar.dart';
 import '../widgets/mls/mls_card.dart';
+import '../widgets/mls/mls_section_header.dart';
 import '../services/dashboard_service.dart';
 import '../components/app_card.dart';
 import '../components/app_section.dart';
@@ -155,7 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // ═══ 待办列表 ═══
               SliverToBoxAdapter(
-                child: AppSection(
+                child: _wrapSection(
                   title: '待办',
                   actionLabel: data.todoTotal > 0 ? '全部 →' : null,
                   children: data.todoTotal > 0
@@ -171,7 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // ═══ 今日动态 ═══
               SliverToBoxAdapter(
-                child: AppSection(
+                child: _wrapSection(
                   title: '今日动态', actionLabel: '全部 →',
                   children: data.events.isEmpty
                       ? [MlsCard(variant: MlsCardVariant.flat, padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -186,7 +187,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // ═══ 快捷操作 ═══
               SliverToBoxAdapter(
-                child: AppSection(
+                child: _wrapSection(
                   title: '快捷操作',
                   children: [
                     Row(children: [
@@ -212,7 +213,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildTimelineCard(Map<String, dynamic> e) {
     final color = _eventColor(e['type'] as String?);
-    return AppCard.base(
+    return MlsCard(
       padding: EdgeInsets.zero,
       child: IntrinsicHeight(
         child: Row(children: [
@@ -231,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildQuickAction(IconData icon, String label, String route) {
-    return AppCard.base(
+    return MlsCard(
       padding: const EdgeInsets.all(14),
       onTap: () => context.push(route),
       child: Row(children: [
@@ -264,7 +265,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final route = todo['action_route'] as String?;
     final badge = _todoBadge(todo['type'] as String?);
 
-    return AppCard.base(
+    return MlsCard(
       padding: const EdgeInsets.all(14),
       onTap: route != null ? () => context.push(route) : null,
       child: Row(children: [
@@ -311,6 +312,38 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'transaction': return MlsColors.success;
       default: return MlsColors.borderStrong;
     }
+  }
+  // ═══ Section 容器 helper (4A.2.c.3) ═══
+  // 等价于旧 AppSection: 标题栏 + children 列表 + 底部 24 间距
+  Widget _wrapSection({
+    required String title,
+    String? actionLabel,
+    required List<Widget> children,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: MlsSectionHeader(
+            title: title,
+            trailing: actionLabel != null
+                ? Text(actionLabel, style: TextStyle(
+                    fontFamilyFallback: MlsTypography.sansFallback,
+                    fontSize: 12,
+                    fontWeight: MlsTypography.semibold,
+                    color: MlsColors.primary,
+                  ))
+                : null,
+          ),
+        ),
+        const SizedBox(height: 12),
+        for (final child in children) ...[
+          Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: child),
+          const SizedBox(height: 12),
+        ],
+      ]),
+    );
   }
 }
 
