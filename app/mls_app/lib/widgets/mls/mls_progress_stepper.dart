@@ -189,7 +189,6 @@ class MlsProgressStepper extends StatelessWidget {
   Widget _buildConnector(int leftNodeIndex) {
     final isAllDone = leftNodeIndex + 1 < currentIndex;
     final isToCurrent = leftNodeIndex + 1 == currentIndex;
-    final isFuture = leftNodeIndex >= currentIndex;
 
     Color color;
     bool dashed;
@@ -220,26 +219,18 @@ class MlsProgressStepper extends StatelessWidget {
 /// 一条水平虚线 (CustomPaint)
 class _DashedLine extends StatelessWidget {
   final Color color;
-  final double strokeWidth;
-  final double dashLength;
-  final double gapLength;
 
-  const _DashedLine({
-    required this.color,
-    this.strokeWidth = 1.5,
-    this.dashLength = 4,
-    this.gapLength = 3,
-  });
+  const _DashedLine({required this.color});
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      size: Size(double.infinity, strokeWidth),
+      size: const Size(double.infinity, 1.5),
       painter: _DashedLinePainter(
         color: color,
-        strokeWidth: strokeWidth,
-        dashLength: dashLength,
-        gapLength: gapLength,
+        strokeWidth: 1.5,
+        dashLength: 4,
+        gapLength: 3,
       ),
     );
   }

@@ -127,7 +127,7 @@ class _MlsMoneyInputState extends State<MlsMoneyInput> {
       return;
     }
     final wan = yuan / 10000.0;
-    final formatted = wan >= 100
+    final formatted = wan >= 10000
         ? wan.toStringAsFixed(0)
         : wan.toStringAsFixed(1);
     setState(() {
@@ -233,6 +233,8 @@ class _MlsMoneyInputState extends State<MlsMoneyInput> {
                       decoration: InputDecoration(
                         isCollapsed: true,
                         border: InputBorder.none,
+                        filled: false,
+                        fillColor: Colors.transparent,
                         hintText: widget.placeholder ?? '例 1,236,000',
                         hintStyle: TextStyle(
                           fontFamily: MlsTypography.monoFamily,
