@@ -253,12 +253,13 @@ class _HomeScreenState extends State<HomeScreen> {
       'edit' => LucideIcons.pencil,
       'user_check' => LucideIcons.userCheck,
       'circle_check' => LucideIcons.checkCircle,
-      'handshake' => LucideIcons.handshake,
+      'handshake' => Icons.handshake_outlined,
       'hourglass_empty' => LucideIcons.hourglass,
       'help_circle' => LucideIcons.helpCircle,
       _ => LucideIcons.bell,
     };
     final route = todo['action_route'] as String?;
+    final badge = _todoBadge(todo['type'] as String?);
 
     return AppCard.base(
       padding: const EdgeInsets.all(14),
@@ -268,7 +269,10 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Icon(icon, size: 20, color: color)),
         const SizedBox(width: 12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(todo['title']?.toString() ?? '', style: AppTheme.titleS.copyWith(fontSize: 14), maxLines: 2, overflow: TextOverflow.ellipsis),
+          Row(children: [
+            Expanded(child: Text(todo['title']?.toString() ?? '', style: AppTheme.titleS.copyWith(fontSize: 14), maxLines: 2, overflow: TextOverflow.ellipsis)),
+            if (badge != null) ...[const SizedBox(width: 6), badge],
+          ]),
           if (todo['subtitle'] != null && (todo['subtitle'] as String).isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(todo['subtitle'] as String, style: AppTheme.bodyS.copyWith(fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -278,6 +282,19 @@ class _HomeScreenState extends State<HomeScreen> {
       ]),
     );
   }
+
+  Widget? _todoBadge(String? type) => switch (type) {
+    'transaction_pending_confirm' => _pill('7天内', AppTheme.warning),
+    'transaction_waiting_la' => _pill('进行中', AppTheme.info),
+    'answer_pending' => _pill('待回复', AppTheme.primary500),
+    _ => null,
+  };
+
+  Widget _pill(String label, Color color) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+    decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4)),
+    child: Text(label, style: AppTheme.caption.copyWith(fontSize: 10, color: color, fontWeight: FontWeight.w600)),
+  );
 
   String _todayLabel() {
     final now = DateTime.now();
