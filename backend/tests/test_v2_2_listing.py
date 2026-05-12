@@ -142,7 +142,7 @@ def test_listing_sale_points_validation_invalid():
     with pytest.raises(pydantic.ValidationError):
         PostListingRequest(
             district="桥东区", community="测试", building="1", unit="1", room_no="101",
-            area_sqm=100, floor=5, total_floor=18, rooms=3, halls=1, bathrooms=2,
+            area_sqm=100, floor=5, total_floor=18, rooms=3, bathrooms=2,
             orientation="南", price_wan=90,
             sale_points=["ThisTagIsWayTooLongFor12Chars"],
         )
@@ -160,7 +160,7 @@ def test_listing_sale_points_max_25():
     with pytest.raises(pydantic.ValidationError):
         PostListingRequest(
             district="桥东区", community="测试", building="1", unit="1", room_no="101",
-            area_sqm=100, floor=5, total_floor=18, rooms=3, halls=1, bathrooms=2,
+            area_sqm=100, floor=5, total_floor=18, rooms=3, bathrooms=2,
             orientation="南", price_wan=90,
             sale_points=tags,
         )

@@ -46,7 +46,7 @@ class FakeReq:
 def test_extract_physical_attrs():
     req = PostListingRequest(
         district="桥东区", community="测试", building="1", unit="1", room_no="101",
-        area_sqm=105.5, floor=6, total_floor=20, rooms=3, halls=2, bathrooms=2,
+        area_sqm=105.5, floor=6, total_floor=20, rooms=3, bathrooms=2,
         orientation="南", price_wan=90,
     )
     attrs = _extract_physical_attrs(req)

@@ -56,9 +56,9 @@ def test_submit_single_claim(fresh_property, fake_agent_listing):
 def test_submit_multi_field(fresh_property, fake_agent_listing):
     agent_id, listing_id = fake_agent_listing
     result = submit_claims(fresh_property["property_code"], agent_id, listing_id,
-        {"area_sqm": 100, "floor": 5, "total_floor": 18, "rooms": 3, "halls": 1, "bathrooms": 2})
-    assert result["total_claims_after"] == 6
-    assert len(result["claims_added"]) == 6
+        {"area_sqm": 100, "floor": 5, "total_floor": 18, "rooms": 3, "bathrooms": 2})
+    assert result["total_claims_after"] == 5
+    assert len(result["claims_added"]) == 5
 
 def test_claim_accumulates_across_submissions(fresh_property, fake_agent_listing):
     agent_id, listing_id = fake_agent_listing
