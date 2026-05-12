@@ -48,6 +48,7 @@ _*.json
 
 # ===== 数据库备份导出文件（已在 MongoDB 中保留集合备份） =====
 *_backup_*.json
+property-dictionary/backend/halls_backup/
 # hello_mate40 ������������Ŀ,������ MLS,�Ӳ����(Day 19 push GitHub ǰ����)
 app/hello_mate40/
 
