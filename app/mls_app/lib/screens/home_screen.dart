@@ -5,10 +5,11 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../theme/app_theme.dart';
 import '../theme/mls_colors.dart';
 import '../theme/mls_typography.dart';
+import '../widgets/mls/mls_avatar.dart';
+import '../widgets/mls/mls_card.dart';
 import '../services/dashboard_service.dart';
 import '../components/app_card.dart';
 import '../components/app_section.dart';
-import '../components/app_avatar.dart';
 import '../services/qna_service.dart';
 
 /// 工作台 v2.0 — Gradient Hero(140) + 3 统计 + 动态 + 快捷操作
@@ -123,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Row(children: [
                         GestureDetector(
                           onTap: () => _showMyMenu(context),
-                          child: AppAvatar(name: _myName, size: 32, onDark: true),
+                          child: MlsAvatar(name: _myName, size: 32),
                         ),
                         const SizedBox(width: 10),
                         Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -159,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   actionLabel: data.todoTotal > 0 ? '全部 →' : null,
                   children: data.todoTotal > 0
                       ? data.todoItems.take(5).map((todo) => _buildTodoCard(todo, context)).toList()
-                      : [AppCard.flat(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      : [MlsCard(variant: MlsCardVariant.flat, padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           child: Row(children: [
                             const Icon(LucideIcons.checkCircle, size: 18, color: MlsColors.success),
                             const SizedBox(width: 8),
@@ -173,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: AppSection(
                   title: '今日动态', actionLabel: '全部 →',
                   children: data.events.isEmpty
-                      ? [AppCard.flat(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      ? [MlsCard(variant: MlsCardVariant.flat, padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           child: Row(children: [
                             const Icon(LucideIcons.inbox, size: 18, color: MlsColors.textTertiary),
                             const SizedBox(width: 8),
