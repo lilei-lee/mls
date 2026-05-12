@@ -64,7 +64,7 @@ def ensure_showing_indexes():
 # ==================== 业务函数 ====================
 
 # V2.1 #15: 辞典侧 6 物理字段,与 listings.DICT_PHYSICAL_FIELDS 对齐
-_SR_PHYSICAL_FIELDS = ("area_sqm", "floor", "total_floor", "rooms", "halls", "bathrooms")
+_SR_PHYSICAL_FIELDS = ("area_sqm", "floor", "total_floor", "rooms", "bathrooms")
 
 
 def _enrich_snapshot_from_dict(listing: dict) -> None:

@@ -180,7 +180,7 @@ def _layout_text(rooms: int, bathrooms: int) -> str:
 
 
 def create_listing(req, physical_attrs: dict, agent: dict) -> dict:
-    """LA 挂牌。physical_attrs = {area_sqm, floor, total_floor, rooms, halls, bathrooms}。
+    """LA 挂牌。physical_attrs = {area_sqm, floor, total_floor, rooms, bathrooms}。
 
     V2.1 #15: 先调辞典 identify + claim,成功后写本地 listing(仅营销字段 +
     property_code)。辞典不可达 → 503; claim 冲突 → 409 + diff。
@@ -775,7 +775,7 @@ def update_listing(
         raise HTTPException(status_code=400,
                             detail=f"「{STATUS_LABELS.get(doc['status'])}」状态的房源不能编辑")
 
-    # V2.1 #15: 物理字段(rooms/halls/bathrooms/floor/total_floor)已迁移到辞典
+    # V2.1 #15: 物理字段(rooms/bathrooms/floor/total_floor)已迁移到辞典
     allowed = {
         "orientation", "price_wan",
         "bonus_yuan",

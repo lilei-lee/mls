@@ -1,6 +1,6 @@
 """
 一次性迁移脚本
-给已有的老数据补上 V2 新增的字段:district、rooms、halls、bathrooms
+给已有的老数据补上 V2 新增的字段:district、rooms、bathrooms
 
 用法:
     cd C:\\projects\\mls\\backend
@@ -58,11 +58,10 @@ def migrate():
         if "district" not in doc:
             set_fields["district"] = "其他"
 
-        # 2. 补 rooms/halls/bathrooms(从 layout 解析)
+        # 2. 补 rooms/bathrooms(从 layout 解析)
         if "rooms" not in doc or "halls" not in doc or "bathrooms" not in doc:
             rooms, halls, bathrooms = parse_layout(doc.get("layout", ""))
             set_fields["rooms"] = rooms
-            set_fields["halls"] = halls
             set_fields["bathrooms"] = bathrooms
 
         if set_fields:
