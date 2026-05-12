@@ -47,7 +47,7 @@ def list_qna(
     limit: int = 20,
     offset: int = 0,
     status: str = "all",
-    agent = Depends(_get_agent()),  # noqa: F821
+    agent = Depends(_get_agent),  # noqa: F821
 ):
     try:
         lid_oid = ObjectId(listing_id)
@@ -103,7 +103,7 @@ def list_qna(
 # ═══════════════════ API 2: 提问 ═══════════════════
 
 @qna_router.post("/listings/{listing_id}/qna")
-def ask_qna(listing_id: str, body: AskQnaBody, agent = Depends(_get_agent())):  # noqa: F821
+def ask_qna(listing_id: str, body: AskQnaBody, agent = Depends(_get_agent)):  # noqa: F821
     try:
         lid_oid = ObjectId(listing_id)
     except Exception:
@@ -158,7 +158,7 @@ def ask_qna(listing_id: str, body: AskQnaBody, agent = Depends(_get_agent())):  
 # ═══════════════════ API 3: 回答 ═══════════════════
 
 @qna_router.post("/qna/{thread_id}/answer")
-def answer_qna(thread_id: str, body: AnswerQnaBody, agent = Depends(_get_agent())):  # noqa: F821
+def answer_qna(thread_id: str, body: AnswerQnaBody, agent = Depends(_get_agent)):  # noqa: F821
     thread = db["qna_threads"].find_one({"thread_id": thread_id})
     if not thread:
         raise HTTPException(status_code=404, detail="问答不存在")
@@ -189,7 +189,7 @@ def answer_qna(thread_id: str, body: AnswerQnaBody, agent = Depends(_get_agent()
 # ═══════════════════ API 4: 删除 ═══════════════════
 
 @qna_router.delete("/qna/{thread_id}")
-def delete_qna(thread_id: str, agent = Depends(_get_agent())):  # noqa: F821
+def delete_qna(thread_id: str, agent = Depends(_get_agent)):  # noqa: F821
     thread = db["qna_threads"].find_one({"thread_id": thread_id})
     if not thread:
         raise HTTPException(status_code=404, detail="问答不存在")
@@ -220,7 +220,7 @@ def _count_ba_pending_questions(ba_id) -> int:
 # ═══════════════════ API 5: 我的提问 ═══════════════════
 
 @qna_router.get("/qna/my")
-def list_my_qna(agent = Depends(_get_agent())):  # noqa: F821
+def list_my_qna(agent = Depends(_get_agent)):  # noqa: F821
     """BA 视角:返回自己所有提问(LA 调返回空)"""
     threads = list(
         db["qna_threads"].find({
@@ -264,5 +264,5 @@ def list_my_qna(agent = Depends(_get_agent())):  # noqa: F821
 
 
 @qna_router.get("/qna/my/pending-count")
-def my_pending_count(agent = Depends(_get_agent())):  # noqa: F821
+def my_pending_count(agent = Depends(_get_agent)):  # noqa: F821
     return {"success": True, "data": {"count": _count_ba_pending_questions(agent["_id"])}}
