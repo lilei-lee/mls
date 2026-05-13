@@ -28,6 +28,7 @@ import '../screens/transaction_pending_screen.dart';
 import '../screens/splash_screen.dart';
 import '../screens/settlement_pending_screen.dart';
 import '../screens/settlement_detail_screen.dart';
+import '../screens/dashboard_screen.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -56,6 +57,10 @@ final GoRouter appRouter = GoRouter(
         final initial = int.tryParse(tabStr ?? '0') ?? 0;
         return MainShell(initialIndex: initial);
       },
+    ),
+    GoRoute(
+      path: '/dashboard',
+      builder: (context, state) => const DashboardScreen(),
     ),
     GoRoute(
       path: '/settlements/pending-my',

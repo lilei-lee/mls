@@ -9,6 +9,7 @@ import '../widgets/mls/mls_card.dart';
 import '../widgets/mls/mls_section_header.dart';
 import '../widgets/mls/mls_status_badge.dart';
 import '../widgets/mls/mls_metric_cell.dart';
+import '../widgets/mls/mls_hero_today.dart';
 import '../theme/mls_radius.dart';
 import '../services/dashboard_service.dart';
 import '../services/qna_service.dart';
@@ -163,6 +164,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 )),
               ),
 
+              // ═══ Hero Today (mock) ═══
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: MlsHeroToday(
+                    topLabel: 'TODAY · 15:00',
+                    subtitle: '今日带看 · 与李红协同',
+                    countdownTarget: DateTime.now().add(const Duration(hours: 3, minutes: 28)),
+                    title: '万达华府 · 3室朝南',
+                    description: '108㎡ · 客户王先生 · 已二次咨询',
+                    collaborators: const ['李红', '王先生'],
+                    ctaText: '立即准备',
+                    onCtaPressed: () {},
+                  ),
+                ),
+              ),
+
               // ═══ 4 Metric Panel ═══
               SliverToBoxAdapter(
                 child: Padding(
@@ -173,12 +191,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text('REAL-TIME · 实时', style: MlsTypography.monoLabel),
                         const Spacer(),
                         Row(mainAxisSize: MainAxisSize.min, children: [
-                          Text('仪表盘', style: TextStyle(
-                            fontFamilyFallback: MlsTypography.sansFallback,
-                            fontSize: 11, color: MlsColors.primary,
-                            fontWeight: MlsTypography.semibold,
-                          )),
-                          const Icon(Icons.arrow_outward, size: 12, color: MlsColors.primary),
+                          GestureDetector(
+                            onTap: () => context.push('/dashboard'),
+                            child: Row(mainAxisSize: MainAxisSize.min, children: [
+                              Text('仪表盘', style: TextStyle(
+                                fontFamilyFallback: MlsTypography.sansFallback,
+                                fontSize: 11, color: MlsColors.primary,
+                                fontWeight: MlsTypography.semibold,
+                              )),
+                              const Icon(Icons.arrow_outward, size: 12, color: MlsColors.primary),
+                            ]),
+                          ),
                         ]),
                       ]),
                       const SizedBox(height: 12),
@@ -211,6 +234,36 @@ class _HomeScreenState extends State<HomeScreen> {
                           valueColor: MlsColors.textPrimary,
                           padding: EdgeInsets.zero,
                         )),
+                      ]),
+                    ]),
+                  ),
+                ),
+              ),
+
+              // ═══ 协作 row (mock) ═══
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: MlsCard(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Row(children: [
+                        Container(width: 7, height: 7, decoration: const BoxDecoration(shape: BoxShape.circle, color: MlsColors.success)),
+                        const SizedBox(width: 8),
+                        Text('协作中 · 7 人在线', style: MlsTypography.cardTitleLg),
+                        const Spacer(),
+                        Text('SEE ALL ↗', style: MlsTypography.monoLabel.copyWith(color: MlsColors.primary)),
+                      ]),
+                      const SizedBox(height: 12),
+                      MlsAvatarStack(
+                        names: const ['李红', '王明', '周丽', '陈强', '杨敏'],
+                        moreCount: 2,
+                        avatarSize: 36,
+                      ),
+                      const SizedBox(height: 10),
+                      Row(children: [
+                        const Icon(Icons.edit_outlined, size: 13, color: MlsColors.textTertiary),
+                        const SizedBox(width: 4),
+                        Text('李红 正在编辑成交确认 · 刚刚', style: MlsTypography.body2),
                       ]),
                     ]),
                   ),
