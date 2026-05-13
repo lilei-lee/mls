@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/mls_colors.dart';
 import 'package:go_router/go_router.dart';
 import '../services/showing_service.dart';
+import '../widgets/mls/mls_card.dart';
 
 /// LA 视角:待我确认的带看列表
 class ShowingPendingConfirmScreen extends StatefulWidget {
@@ -91,7 +92,7 @@ class _ShowingPendingConfirmScreenState
               itemBuilder: (ctx, i) {
                 final it = items[i];
                 final sp = Map<String, dynamic>.from(it['listing_snapshot']);
-                return Card(
+                return MlsCard(
                   margin: EdgeInsets.zero,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(8.0),

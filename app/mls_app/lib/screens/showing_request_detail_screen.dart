@@ -10,6 +10,7 @@ import '../services/showing_request_service.dart';
 import '../services/showing_service.dart';
 import '../services/transaction_service.dart';
 import '../widgets/status_labels.dart';
+import '../widgets/mls/mls_card.dart';
 
 /// 带客申请详情页
 class ShowingRequestDetailScreen extends StatefulWidget {
@@ -269,7 +270,7 @@ class _ShowingRequestDetailScreenState
               const SizedBox(height: 16),
 
               _sectionTitle('目标房源'),
-              Card(
+              MlsCard(
                 child: Padding(
                   padding: const EdgeInsets.all(14),
                   child: Column(
@@ -293,7 +294,7 @@ class _ShowingRequestDetailScreenState
               const SizedBox(height: 16),
 
               _sectionTitle('客户信息'),
-              Card(
+              MlsCard(
                 child: Padding(
                   padding: const EdgeInsets.all(14),
                   child: Column(
@@ -331,8 +332,7 @@ class _ShowingRequestDetailScreenState
 
               if (status == ShowingRequestStatus.rejected) ...[
                 _sectionTitle('拒绝理由'),
-                Card(
-                  color: MlsColors.borderLight.withValues(alpha: 0.5),
+                MlsCard(
                   child: Padding(
                     padding: const EdgeInsets.all(14),
                     child: Column(
@@ -500,8 +500,7 @@ class _ShowingRequestDetailScreenState
   ) {
     if (showing == null) {
       if (isLA) {
-        return Card(
-          color: MlsColors.borderLight.withValues(alpha: 0.5),
+        return MlsCard(
           child: const Padding(
             padding: EdgeInsets.all(14),
             child: Row(
@@ -519,8 +518,7 @@ class _ShowingRequestDetailScreenState
       }
       return Column(
         children: [
-          Card(
-            color: Colors.orange.withValues(alpha: 0.08),
+          MlsCard(
             child: const Padding(
               padding: EdgeInsets.all(14),
               child: Row(
@@ -558,7 +556,7 @@ class _ShowingRequestDetailScreenState
     final showingTime = _formatTime(showing['showing_time'] as String);
     final rejectReason = showing['reject_reason'] as String?;
 
-    final infoCard = Card(
+    final infoCard = MlsCard(
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
@@ -711,8 +709,7 @@ class _ShowingRequestDetailScreenState
   ) {
     if (tx == null) {
       if (isLA) {
-        return Card(
-          color: MlsColors.borderLight.withValues(alpha: 0.8),
+        return MlsCard(
           child: const Padding(
             padding: EdgeInsets.all(14),
             child: Row(
@@ -730,8 +727,7 @@ class _ShowingRequestDetailScreenState
       }
       return Column(
         children: [
-          Card(
-            color: Colors.amber.withValues(alpha: 0.08),
+          MlsCard(
             child: const Padding(
               padding: EdgeInsets.all(14),
               child: Row(
@@ -769,8 +765,7 @@ class _ShowingRequestDetailScreenState
     // 已撤回:BA 可重新发起,LA 看提示
     if (tx['status'] == 'cancelled') {
       if (isLA) {
-        return Card(
-          color: MlsColors.borderLight.withValues(alpha: 0.8),
+        return MlsCard(
           child: const Padding(
             padding: EdgeInsets.all(14),
             child: Row(
@@ -788,8 +783,7 @@ class _ShowingRequestDetailScreenState
       }
       return Column(
         children: [
-          Card(
-            color: Colors.orange.withValues(alpha: 0.08),
+          MlsCard(
             child: const Padding(
               padding: EdgeInsets.all(14),
               child: Row(
@@ -832,7 +826,7 @@ class _ShowingRequestDetailScreenState
         ? (baPrice / 10000).toStringAsFixed(1)
         : '-';
 
-    final card = Card(
+    final card = MlsCard(
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
@@ -1058,7 +1052,7 @@ class _ShowingRequestDetailScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _sectionTitle(label),
-        Card(
+        MlsCard(
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: anonymous

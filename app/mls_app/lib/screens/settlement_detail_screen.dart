@@ -3,6 +3,7 @@ import '../theme/mls_colors.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/settlement_service.dart';
+import '../widgets/mls/mls_card.dart';
 
 /// 奖金结算单详情
 ///
@@ -121,7 +122,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
                 const SizedBox(height: 16),
 
                 _sectionTitle('房源'),
-                Card(
+                MlsCard(
                   child: Padding(
                     padding: const EdgeInsets.all(14),
                     child: Column(
@@ -146,7 +147,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
                 const SizedBox(height: 16),
 
                 _sectionTitle('结算信息'),
-                Card(
+                MlsCard(
                   child: Padding(
                     padding: const EdgeInsets.all(14),
                     child: Column(
@@ -302,7 +303,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
     final baReceivedAt = doc['ba_received_at'] as String?;
     final settledAt = doc['settled_at'] as String?;
 
-    return Card(
+    return MlsCard(
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(

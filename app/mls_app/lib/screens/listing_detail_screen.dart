@@ -12,6 +12,7 @@ import '../widgets/status_badge.dart';
 import '../services/qna_service.dart';
 import '../models/qna_thread.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../widgets/mls/mls_card.dart';
 
 /// V2.2 #1: 6-section 详情页 + 权限分层渲染
 class ListingDetailScreen extends StatefulWidget {
@@ -535,9 +536,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   Widget _sectionCard({String? title, required List<Widget> children}) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-      child: Card(
-        elevation: 1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: MlsCard(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -688,8 +687,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     );
   }
 
-  Widget _askingPriceCard(Map<String, dynamic> item) => Card(
-    color: MlsColors.danger.withValues(alpha: 0.05),
+  Widget _askingPriceCard(Map<String, dynamic> item) => MlsCard(
     child: Padding(
       padding: const EdgeInsets.all(16),
       child: Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
@@ -704,8 +702,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     final soldPriceYuan = item['sold_price_yuan'];
     final soldDate = item['sold_date'] as String?;
     final wan = soldPriceYuan != null ? ((soldPriceYuan as num) / 10000).toStringAsFixed(1) : '-';
-    return Card(
-      color: Colors.green.withValues(alpha: 0.06),
+    return MlsCard(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -726,8 +723,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     );
   }
 
-  Widget _soldActionsSection() => Card(
-    color: Colors.green.withValues(alpha: 0.05),
+  Widget _soldActionsSection() => MlsCard(
     child: const Padding(padding: EdgeInsets.all(16), child: Row(children: [
       Icon(Icons.check_circle, color: Colors.green, size: 20), SizedBox(width: 10),
       Expanded(child: Text('该房源已通过成交确认流程生效,不可再编辑。', style: TextStyle(color: Colors.green))),
@@ -735,7 +731,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   );
 
   Widget _offlineActionsSection() => Column(children: [
-    Card(color: MlsColors.borderLight.withValues(alpha: 0.5), child: const Padding(padding: EdgeInsets.all(16), child: Row(children: [
+    MlsCard(child: const Padding(padding: EdgeInsets.all(16), child: Row(children: [
       Icon(Icons.info_outline, color: Colors.grey, size: 20), SizedBox(width: 10),
       Expanded(child: Text('该房源已下架,在共享库不再展示', style: TextStyle(color: Colors.grey))),
     ]))),
@@ -1060,7 +1056,7 @@ class _ShowingSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = _statusColors[summary.currentStatus] ?? Colors.grey;
-    return Card(
+    return MlsCard(
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
         padding: const EdgeInsets.all(12),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../models/showing_request.dart';
 import '../services/showing_request_service.dart';
+import '../widgets/mls/mls_card.dart';
 
 /// LA 视角:我收到的带客申请(别人向我房源申请)
 class ShowingRequestReceivedScreen extends StatefulWidget {
@@ -157,7 +158,7 @@ class _ReceivedRequestCard extends StatelessWidget {
     final counter = Map<String, dynamic>.from(item['counterparty']);
     final approved = status == ShowingRequestStatus.approved;
 
-    return Card(
+    return MlsCard(
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: InkWell(
         onTap: onTap,

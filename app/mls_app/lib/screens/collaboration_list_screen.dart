@@ -3,6 +3,7 @@ import '../theme/mls_colors.dart';
 import 'package:go_router/go_router.dart';
 import '../services/collaboration_service.dart';
 import '../widgets/progress_tracker.dart';
+import '../widgets/mls/mls_card.dart';
 
 /// 协作列表页 · Day 13 新建
 ///
@@ -256,7 +257,7 @@ class _CollaborationCard extends StatelessWidget {
       return Colors.blue;
     }
 
-    return Card(
+    return MlsCard(
       margin: const EdgeInsets.only(bottom: 10),
       child: InkWell(
         borderRadius: BorderRadius.circular(8.0),

@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/showing_request_service.dart';
 import '../services/customer_service.dart';
+import '../widgets/mls/mls_card.dart';
 
 /// BA 发起带客申请(从共享库房源卡片点击"申请带客"跳转至此)
 ///
@@ -252,8 +253,7 @@ class _ShowingRequestCreateScreenState
           padding: const EdgeInsets.all(16),
           children: [
             // 房源信息卡片
-            Card(
-              color: Colors.blue.withValues(alpha: 0.05),
+            MlsCard(
               child: Padding(
                 padding: const EdgeInsets.all(14),
                 child: Column(

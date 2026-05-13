@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/transaction_service.dart';
+import '../widgets/mls/mls_card.dart';
 
 class TransactionInitiateScreen extends StatefulWidget {
   final String showingId;
@@ -189,7 +190,7 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           // 房源快照
-          Card(
+          MlsCard(
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Column(

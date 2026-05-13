@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/showing_service.dart';
+import '../widgets/mls/mls_card.dart';
 
 /// Day 16:直接带看新建页(1:N 模式)
 ///
@@ -216,8 +217,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
             child: Text('目标房源',
                 style: TextStyle(color: Colors.grey, fontSize: 11.0)),
           ),
-          Card(
-            color: Colors.grey.withValues(alpha: 0.05),
+          MlsCard(
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Column(
@@ -246,8 +246,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
             child: Text('客户(沿用首次申请)',
                 style: TextStyle(color: Colors.grey, fontSize: 11.0)),
           ),
-          Card(
-            color: Colors.grey.withValues(alpha: 0.05),
+          MlsCard(
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Row(

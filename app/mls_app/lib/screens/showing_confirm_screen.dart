@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/showing_service.dart';
+import '../widgets/mls/mls_card.dart';
 
 /// LA 查看并确认带看记录
 class ShowingConfirmScreen extends StatefulWidget {
@@ -161,7 +162,7 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
               const SizedBox(height: 16),
 
               _sectionTitle('目标房源'),
-              Card(
+              MlsCard(
                 child: Padding(
                   padding: const EdgeInsets.all(14),
                   child: Column(
@@ -185,7 +186,7 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
               const SizedBox(height: 16),
 
               _sectionTitle('带看时间'),
-              Card(
+              MlsCard(
                 child: Padding(
                   padding: const EdgeInsets.all(14),
                   child: Row(
@@ -206,7 +207,7 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
 
               if (notes.isNotEmpty) ...[
                 _sectionTitle('带看备注'),
-                Card(
+                MlsCard(
                   child: Padding(
                     padding: const EdgeInsets.all(14),
                     child: Text(notes, style: const TextStyle(fontSize: 12.0)),
@@ -216,7 +217,7 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
               ],
 
               _sectionTitle('带客经纪人'),
-              Card(
+              MlsCard(
                 child: Padding(
                   padding: const EdgeInsets.all(14),
                   child: Row(

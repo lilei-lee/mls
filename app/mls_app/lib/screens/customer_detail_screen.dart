@@ -3,6 +3,7 @@ import '../theme/mls_colors.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/customer_service.dart';
+import '../widgets/mls/mls_card.dart';
 
 /// 客户详情页 · Day 12
 ///
@@ -164,7 +165,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
     final isClosed = status == 'closed';
     final avatarColor = gender == 'male' ? Colors.blue : Colors.pink;
 
-    return Card(
+    return MlsCard(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

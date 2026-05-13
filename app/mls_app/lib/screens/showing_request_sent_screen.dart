@@ -3,6 +3,7 @@ import '../theme/mls_colors.dart';
 import '../models/showing_request.dart';
 import '../services/showing_request_service.dart';
 import 'package:go_router/go_router.dart';
+import '../widgets/mls/mls_card.dart';
 
 /// BA 视角:我发出的带客申请列表
 class ShowingRequestSentScreen extends StatefulWidget {
@@ -118,7 +119,7 @@ class _SentRequestCard extends StatelessWidget {
     final snapshot = Map<String, dynamic>.from(item['listing_snapshot']);
     final counter = Map<String, dynamic>.from(item['counterparty']);
 
-    return Card(
+    return MlsCard(
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: Padding(
         padding: const EdgeInsets.all(14),

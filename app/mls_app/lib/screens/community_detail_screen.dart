@@ -3,6 +3,7 @@ import '../theme/mls_colors.dart';
 import 'package:go_router/go_router.dart';
 import '../services/api_client.dart';
 import '../widgets/base64_image.dart';
+import '../widgets/mls/mls_card.dart';
 
 /// V2.2 #4: 小区 3-tab 详情(在售房源 / 成交记录 / 小区档案)
 class CommunityDetailScreen extends StatefulWidget {
@@ -183,7 +184,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: Card(
+      child: MlsCard(
         child: InkWell(
           onTap: () => context.push('/listing/$lid'),
           borderRadius: BorderRadius.circular(8.0),

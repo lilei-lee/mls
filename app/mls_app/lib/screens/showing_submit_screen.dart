@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import '../services/showing_service.dart';
+import '../widgets/mls/mls_card.dart';
 
 /// BA 提交带看记录(交易留痕节点 ④)
 class ShowingSubmitScreen extends StatefulWidget {
@@ -184,7 +185,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Card(
+          MlsCard(
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Column(

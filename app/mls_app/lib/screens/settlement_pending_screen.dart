@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/mls_colors.dart';
 import 'package:go_router/go_router.dart';
 import '../services/settlement_service.dart';
+import '../widgets/mls/mls_card.dart';
 
 /// 待我操作的奖金结算单列表
 ///
@@ -150,8 +151,7 @@ class _SettlementCard extends StatelessWidget {
       actionHint = '';
     }
 
-    return Card(
-      elevation: 1,
+    return MlsCard(
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(8.0),

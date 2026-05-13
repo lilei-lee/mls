@@ -6,6 +6,7 @@ import '../widgets/status_badge.dart';
 import '../services/api_client.dart';
 import '../widgets/filter_sheet.dart';
 import '../widgets/base64_image.dart';
+import '../widgets/mls/mls_card.dart';
 
 /// 我的房源列表页(分类 Tab + 搜索 + 排序 + 筛选)
 class ListingListScreen extends StatefulWidget {
@@ -391,7 +392,7 @@ class _ListingCard extends StatelessWidget {
     final cover = item['cover_thumbnail'] as String?;
     final photoCount = (item['photo_count'] as num?)?.toInt() ?? 0;
 
-    return Card(
+    return MlsCard(
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: InkWell(
         onTap: onTap,

@@ -208,14 +208,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       Row(children: [
                         Expanded(child: MlsMetricCell(
                           label: '待办',
-                          value: (data.summary['todo_count'] ?? data.todoTotal).toString().padLeft(2, '0'),
-                          suffix: '/5',
+                          value: (() {
+                            final s = data.summary;
+                            final n = ((s['pending_approval_count'] ?? 0) as int) +
+                                      ((s['pending_confirm_showing_count'] ?? 0) as int) +
+                                      ((s['pending_confirm_transaction_count'] ?? 0) as int) +
+                                      ((s['pending_settlement_count'] ?? 0) as int);
+                            return n.toString().padLeft(2, '0');
+                          })(),
                           valueColor: MlsColors.danger,
                           padding: EdgeInsets.zero,
                         )),
                         Expanded(child: MlsMetricCell(
                           label: '协作中',
-                          value: (data.summary['collab_count'] ?? 0).toString().padLeft(2, '0'),
+                          value: '00',
                           valueColor: MlsColors.primary,
                           padding: EdgeInsets.zero,
                         )),
@@ -224,13 +230,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       Row(children: [
                         Expanded(child: MlsMetricCell(
                           label: '本月奖金',
-                          value: '¥${(data.summary['month_bonus'] ?? 0).toString()}',
+                          value: '¥0',
                           valueColor: MlsColors.gold,
                           padding: EdgeInsets.zero,
                         )),
                         Expanded(child: MlsMetricCell(
                           label: '在售房源',
-                          value: (data.summary['listing_count'] ?? 0).toString().padLeft(2, '0'),
+                          value: ((data.summary['my_on_sale_count'] ?? 0) as int).toString().padLeft(2, '0'),
                           valueColor: MlsColors.textPrimary,
                           padding: EdgeInsets.zero,
                         )),

@@ -263,7 +263,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
               const SizedBox(height: 16),
 
               _sectionTitle('成交房源'),
-              Card(
+              MlsCard(
                 child: Padding(
                   padding: const EdgeInsets.all(14),
                   child: Column(
@@ -294,7 +294,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
               if (!maskBa &&
                   ((doc['ba_notes'] as String?)?.isNotEmpty ?? false)) ...[
                 _sectionTitle('BA 备注'),
-                Card(
+                MlsCard(
                   child: Padding(
                     padding: const EdgeInsets.all(14),
                     child: Text(doc['ba_notes'],

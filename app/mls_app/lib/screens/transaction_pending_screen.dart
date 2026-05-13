@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/mls_colors.dart';
 import 'package:go_router/go_router.dart';
 import '../services/transaction_service.dart';
+import '../widgets/mls/mls_card.dart';
 
 /// 成交待办列表 — filter=la(默认)=LA视角待确认 / filter=ba=BA视角等待LA
 class TransactionPendingScreen extends StatefulWidget {
@@ -89,7 +90,7 @@ class _TransactionPendingScreenState extends State<TransactionPendingScreen> {
     final sp = Map<String, dynamic>.from(it['listing_snapshot'] ?? {});
     final baPrice = it['ba_deal_price_yuan'] as int?;
     final baWan = (baPrice != null && baPrice > 0) ? (baPrice / 10000).toStringAsFixed(1) : '-';
-    return Card(
+    return MlsCard(
       margin: EdgeInsets.zero,
       child: InkWell(
         borderRadius: BorderRadius.circular(8.0),
@@ -124,7 +125,7 @@ class _TransactionPendingScreenState extends State<TransactionPendingScreen> {
   // ── BA 卡片 ──
   Widget _buildBaCard(Map<String, dynamic> it) {
     final sp = Map<String, dynamic>.from(it['listing_snapshot'] ?? {});
-    return Card(
+    return MlsCard(
       margin: EdgeInsets.zero,
       child: InkWell(
         borderRadius: BorderRadius.circular(8.0),

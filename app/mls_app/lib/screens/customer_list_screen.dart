@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/mls_colors.dart';
 import 'package:go_router/go_router.dart';
 import '../services/customer_service.dart';
+import '../widgets/mls/mls_card.dart';
 
 /// 客户列表页 · Day 12 新建
 ///
@@ -201,10 +202,8 @@ class _CustomerCard extends StatelessWidget {
 
     final avatarColor = gender == 'male' ? Colors.blue : Colors.pink;
 
-    return Card(
+    return MlsCard(
       margin: const EdgeInsets.only(bottom: 10),
-      elevation: isClosed ? 0 : 1,
-      color: isClosed ? MlsColors.borderLight.withValues(alpha: 0.8) : null,
       child: InkWell(
         borderRadius: BorderRadius.circular(8.0),
         onTap: onTap,
