@@ -318,7 +318,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
         Expanded(
           child: _statBox(
             icon: Icons.gavel_outlined,
-            color: AppTheme.colorOnSale,
+            color: MlsColors.success,
             label: '成交',
             count: (stats['transactions_count'] ?? 0) as int,
           ),

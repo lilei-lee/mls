@@ -56,7 +56,7 @@ class AppButton extends StatelessWidget {
         return BoxDecoration(
           borderRadius: BorderRadius.circular(12.0),
           color: enabled ? MlsColors.bgCardPrimary : MlsColors.borderLight,
-          border: Border.all(color: enabled ? AppTheme.n150 : MlsColors.borderStrong, width: 1.5),
+          border: Border.all(color: enabled ? MlsColors.borderLight : MlsColors.borderStrong, width: 1.5),
         );
       case _ButtonVariant.danger:
         return BoxDecoration(
@@ -67,7 +67,7 @@ class AppButton extends StatelessWidget {
       case _ButtonVariant.gold:
         return BoxDecoration(
           borderRadius: BorderRadius.circular(12.0),
-          gradient: enabled ? AppTheme.gradientGold : null,
+          gradient: enabled ? MlsColors.goldBg : null,
           color: enabled ? null : MlsColors.borderStrong,
           boxShadow: enabled ? MlsShadows.goldGlow : null,
         );
@@ -81,7 +81,7 @@ class AppButton extends StatelessWidget {
       case _ButtonVariant.gold:
         return base.copyWith(color: enabled ? MlsColors.bgCardPrimary : MlsColors.bgCardPrimary);
       case _ButtonVariant.secondary:
-        return base.copyWith(color: enabled ? AppTheme.n800 : MlsColors.borderStrong);
+        return base.copyWith(color: enabled ? MlsColors.textPrimary : MlsColors.borderStrong);
       case _ButtonVariant.danger:
         return base.copyWith(color: enabled ? MlsColors.danger : MlsColors.borderStrong);
     }

@@ -490,7 +490,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
             Text(
               '防伪机制:请您独立填写记忆中的成交价,系统将自动比对。',
               style: TextStyle(
-                color: AppTheme.grey800,
+                color: MlsColors.textPrimary,
                 fontSize: 11.0,
               ),
             ),

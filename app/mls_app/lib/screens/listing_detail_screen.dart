@@ -779,7 +779,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               icon: Icon(LucideIcons.helpCircle, size: 16, color: canAsk ? MlsColors.textPrimary : MlsColors.borderStrong),
               label: Text(canAsk ? '发起提问' : '已有 $myPending 个问题待回答',
                   style: TextStyle(color: canAsk ? MlsColors.textPrimary : MlsColors.borderStrong)),
-              style: OutlinedButton.styleFrom(foregroundColor: canAsk ? MlsColors.textPrimary : MlsColors.borderStrong, side: BorderSide(color: canAsk ? MlsColors.borderStrong : AppTheme.n150)),
+              style: OutlinedButton.styleFrom(foregroundColor: canAsk ? MlsColors.textPrimary : MlsColors.borderStrong, side: BorderSide(color: canAsk ? MlsColors.borderStrong : MlsColors.borderLight)),
             )),
         ]);
       },

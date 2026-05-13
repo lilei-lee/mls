@@ -354,7 +354,7 @@ class _CollaborationCard extends StatelessWidget {
                     child: Text(
                       lastActionText,
                       style: TextStyle(
-                          color: AppTheme.grey800, fontSize: 11.0),
+                          color: MlsColors.textPrimary, fontSize: 11.0),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

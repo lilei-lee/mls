@@ -168,7 +168,7 @@ class _ShowingRequestCreateScreenState
                   const Text(
                     '已选客户档案',
                     style: TextStyle(
-                        color: AppTheme.colorOnSale,
+                        color: MlsColors.success,
                         fontSize: 11.0,
                         fontWeight: FontWeight.bold),
                   ),

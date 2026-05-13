@@ -12,7 +12,7 @@ class AppAvatar extends StatelessWidget {
 
   const AppAvatar({super.key, required this.name, this.size = 40, this.showStatusDot = false, this.statusColor, this.onDark = false});
 
-  static const _colors = [MlsColors.primary, AppTheme.gold500, AppTheme.accentCyan, AppTheme.accentPurple];
+  static const _colors = [MlsColors.primary, MlsColors.gold, MlsColors.primary, MlsColors.primary];
 
   Color _hashColor() => name.isNotEmpty ? _colors[name.codeUnitAt(0) % _colors.length] : MlsColors.primary;
 

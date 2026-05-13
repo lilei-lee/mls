@@ -263,7 +263,7 @@ class _CustomerCard extends StatelessWidget {
                           fontSize: 12.0,
                           color: isClosed
                               ? Colors.grey
-                              : AppTheme.grey800,
+                              : MlsColors.textPrimary,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
