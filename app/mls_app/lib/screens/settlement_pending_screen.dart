@@ -154,7 +154,7 @@ class _SettlementCard extends StatelessWidget {
       elevation: 1,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        borderRadius: BorderRadius.circular(8.0),
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Column(
@@ -204,7 +204,7 @@ class _SettlementCard extends StatelessWidget {
                       style: TextStyle(fontSize: 11.0, color: Colors.grey)),
                   Text('¥$bonus',
                       style: TextStyle(
-                          fontSize: AppTheme.fontAppBar,
+                          fontSize: 20.0,
                           fontWeight: FontWeight.bold,
                           color: tagColor)),
                   const SizedBox(width: 4),

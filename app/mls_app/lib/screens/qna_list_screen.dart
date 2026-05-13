@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import '../services/qna_service.dart';
 import '../models/qna_thread.dart';
 
@@ -85,7 +86,7 @@ class _QnaListScreenState extends State<QnaListScreen> {
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          const Icon(LucideIcons.user, size: 16, color: AppTheme.n500),
+          const Icon(LucideIcons.user, size: 16, color: MlsColors.textSecondary),
           const SizedBox(width: 4), Text(t.askerName, style: AppTheme.titleS),
           const Spacer(),
           Text(_fmt(t.questionAt), style: AppTheme.caption.copyWith(color: AppTheme.n300)),

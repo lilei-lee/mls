@@ -94,7 +94,7 @@ class _ShowingPendingConfirmScreenState
                 return Card(
                   margin: EdgeInsets.zero,
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                    borderRadius: BorderRadius.circular(8.0),
                     onTap: () async {
                       final result = await context
                           .push<bool>('/showing/${it['showing_id']}/confirm');

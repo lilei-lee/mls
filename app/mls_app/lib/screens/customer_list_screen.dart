@@ -206,7 +206,7 @@ class _CustomerCard extends StatelessWidget {
       elevation: isClosed ? 0 : 1,
       color: isClosed ? AppTheme.grey100.withValues(alpha: 0.8) : null,
       child: InkWell(
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        borderRadius: BorderRadius.circular(8.0),
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(14),

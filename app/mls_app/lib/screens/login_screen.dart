@@ -149,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
               const Text(
                 '张家口 MLS',
-                style: TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),

@@ -185,7 +185,7 @@ Future<void> _submit() async {
                   const Text(
                     '加入 MLS 经纪人平台',
                     style: TextStyle(
-                      fontSize: AppTheme.fontAppBar,
+                      fontSize: 20.0,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

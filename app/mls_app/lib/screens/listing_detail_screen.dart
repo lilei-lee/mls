@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -197,7 +198,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                   Row(children: [
                     Expanded(child: Text(
                         building.isNotEmpty ? addressFull : (item['community'] ?? '').toString(),
-                        style: const TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold))),
+                        style: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold))),
                     StatusBadge(status: status),
                   ]),
                   const SizedBox(height: 4),
@@ -285,7 +286,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       return _sectionCard(title: '带看记录', children: [
                         Container(
                           padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(color: AppTheme.grey50, borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+                          decoration: BoxDecoration(color: AppTheme.grey50, borderRadius: BorderRadius.circular(8.0)),
                           child: const Row(children: [
                             Icon(Icons.people_outline, size: 24, color: Colors.grey),
                             SizedBox(width: 12),
@@ -347,7 +348,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                   _sectionCard(children: [
                     Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(color: AppTheme.grey50, borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+                      decoration: BoxDecoration(color: AppTheme.grey50, borderRadius: BorderRadius.circular(8.0)),
                       child: Row(children: [
                         const Icon(Icons.lock_outline, size: 24, color: Colors.grey),
                         const SizedBox(width: 12),
@@ -536,7 +537,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       child: Card(
         elevation: 1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -602,7 +603,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     if (cf is! Map || cf.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: AppTheme.grey50, borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+        decoration: BoxDecoration(color: AppTheme.grey50, borderRadius: BorderRadius.circular(8.0)),
         child: const Row(children: [
           Icon(Icons.info_outline, size: 16, color: Colors.grey),
           SizedBox(width: 8),
@@ -651,7 +652,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     if (lines.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: AppTheme.grey50, borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+        decoration: BoxDecoration(color: AppTheme.grey50, borderRadius: BorderRadius.circular(8.0)),
         child: const Row(children: [
           Icon(Icons.info_outline, size: 16, color: Colors.grey),
           SizedBox(width: 8),
@@ -664,11 +665,11 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
 
     return InkWell(
       onTap: cid != null ? () => context.push('/community/$cid') : null,
-      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+      borderRadius: BorderRadius.circular(8.0),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: Colors.blue.shade50.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+        decoration: BoxDecoration(color: Colors.blue.shade50.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(8.0)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             const Icon(Icons.apartment, size: 16, color: Colors.blue),
@@ -693,7 +694,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       padding: const EdgeInsets.all(16),
       child: Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
         const Text('挂牌价', style: TextStyle(color: Colors.grey, fontSize: 12.0)), const SizedBox(width: 12),
-        Text('¥${item['price_wan']}', style: const TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold, color: Colors.red)),
+        Text('¥${item['price_wan']}', style: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold, color: Colors.red)),
         const SizedBox(width: 4), const Text('万', style: TextStyle(color: Colors.red, fontSize: 12.0)),
       ]),
     ),
@@ -710,7 +711,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
             const Text('成交价', style: TextStyle(color: Colors.grey, fontSize: 12.0)), const SizedBox(width: 12),
-            Text('¥$wan', style: const TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold, color: Colors.green)),
+            Text('¥$wan', style: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold, color: Colors.green)),
             const SizedBox(width: 4), const Text('万', style: TextStyle(color: Colors.green, fontSize: 12.0)),
           ]),
           const SizedBox(height: 4),
@@ -759,7 +760,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               const Icon(LucideIcons.helpCircle, size: 32, color: AppTheme.n300),
               const SizedBox(height: 8),
               Text(isOwner ? '等待 BA 提问中' : '看到这套房有疑问?第一个提问吧',
-                  style: AppTheme.bodyS.copyWith(color: AppTheme.n500)),
+                  style: AppTheme.bodyS.copyWith(color: MlsColors.textSecondary)),
             ]))),
           ]);
         }
@@ -789,7 +790,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          const Icon(LucideIcons.user, size: 14, color: AppTheme.n500),
+          const Icon(LucideIcons.user, size: 14, color: MlsColors.textSecondary),
           const SizedBox(width: 4), Text(t.askerName, style: AppTheme.caption),
           const Spacer(),
           Text(_fmtTime(t.questionAt), style: AppTheme.caption.copyWith(fontSize: 11.0, color: AppTheme.n300)),
@@ -801,7 +802,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
           Container(
             width: double.infinity, padding: const EdgeInsets.all(10),
             margin: const EdgeInsets.only(left: 24),
-            decoration: BoxDecoration(color: AppTheme.n50, borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+            decoration: BoxDecoration(color: AppTheme.n50, borderRadius: BorderRadius.circular(8.0)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
                 Text(t.answererName ?? '', style: AppTheme.caption.copyWith(color: AppTheme.primary500)),
@@ -838,7 +839,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
             Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppTheme.n200, borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 16), Text('对「$community」提问', style: AppTheme.titleM),
-            const SizedBox(height: 8), Text('LA 收到后会尽快回复,问答公开可见', style: AppTheme.caption.copyWith(color: AppTheme.n500)),
+            const SizedBox(height: 8), Text('LA 收到后会尽快回复,问答公开可见', style: AppTheme.caption.copyWith(color: MlsColors.textSecondary)),
             const SizedBox(height: 16),
             TextField(controller: ctrl, maxLength: 200, minLines: 3, maxLines: 5,
               decoration: const InputDecoration(hintText: '例:满五唯一吗?可议价?能看房吗?', border: OutlineInputBorder())),
@@ -1007,7 +1008,7 @@ class _PhotoCarouselState extends State<_PhotoCarousel> {
       ),
       Positioned(right: 12, bottom: 12, child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.55), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+        decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.55), borderRadius: BorderRadius.circular(8.0)),
         child: Text('${_currentIndex+1}/${widget.photos.length}', style: const TextStyle(color: Colors.white, fontSize: 11.0)),
       )),
     ]));

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import 'app_button.dart';
 
 class AppEmpty extends StatelessWidget {
@@ -24,7 +25,7 @@ class AppEmpty extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(title, style: AppTheme.titleS.copyWith(color: AppTheme.n700)),
-          if (subtitle != null) ...[const SizedBox(height: 8), Text(subtitle!, style: AppTheme.bodyM.copyWith(color: AppTheme.n500), textAlign: TextAlign.center)],
+          if (subtitle != null) ...[const SizedBox(height: 8), Text(subtitle!, style: AppTheme.bodyM.copyWith(color: MlsColors.textSecondary), textAlign: TextAlign.center)],
           if (actionLabel != null && onAction != null) ...[const SizedBox(height: 16), AppButton.primary(actionLabel!, onPressed: onAction, height: 40)],
         ]),
       ),

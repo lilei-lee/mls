@@ -321,7 +321,7 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        borderRadius: BorderRadius.circular(8.0),
       ),
       child: Row(
         children: [

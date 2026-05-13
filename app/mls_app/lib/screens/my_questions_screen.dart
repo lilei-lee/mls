@@ -82,7 +82,7 @@ class _MyQuestionsScreenState extends State<MyQuestionsScreen> {
               const SizedBox(width: 8),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(info.title, style: AppTheme.titleS.copyWith(fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
-                Text(info.communityName, style: AppTheme.caption.copyWith(color: AppTheme.n500)),
+                Text(info.communityName, style: AppTheme.caption.copyWith(color: MlsColors.textSecondary)),
               ])),
             ]),
           if (info != null) const SizedBox(height: 8),
@@ -93,7 +93,7 @@ class _MyQuestionsScreenState extends State<MyQuestionsScreen> {
           Row(children: [
             Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
               decoration: BoxDecoration(color: isPending ? MlsColors.warning.withValues(alpha: 0.12) : AppTheme.n100, borderRadius: BorderRadius.circular(4)),
-              child: Text(isPending ? '等待回答' : '已回答', style: AppTheme.caption.copyWith(fontSize: 10, color: isPending ? MlsColors.warning : AppTheme.n500))),
+              child: Text(isPending ? '等待回答' : '已回答', style: AppTheme.caption.copyWith(fontSize: 10, color: isPending ? MlsColors.warning : MlsColors.textSecondary))),
             const Spacer(),
             Text(_fmt(t.questionAt), style: AppTheme.caption.copyWith(fontSize: 10, color: AppTheme.n300)),
           ]),

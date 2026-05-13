@@ -249,7 +249,7 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
             // 地址不可改
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+              decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8.0)),
               child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 const Icon(Icons.info_outline, color: Colors.orange, size: 18),
                 const SizedBox(width: 8),
@@ -453,7 +453,7 @@ class _BuildSyncBanner extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: Colors.amber.shade100, borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+      decoration: BoxDecoration(color: Colors.amber.shade100, borderRadius: BorderRadius.circular(8.0),
           border: Border.all(color: Colors.amber.shade700, width: 1)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Row(children: [

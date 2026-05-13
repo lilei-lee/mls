@@ -500,7 +500,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
               children: [
                 Text('$priceYuan',
                     style: const TextStyle(
-                        fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold)),
+                        fontSize: 20.0, fontWeight: FontWeight.bold)),
                 const SizedBox(width: 4),
                 const Text('元',
                     style: TextStyle(color: Colors.grey, fontSize: 11.0)),

@@ -18,7 +18,7 @@ class AppAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fallbackBg = onDark ? MlsColors.bgCardPrimary.withValues(alpha: 0.2) : AppTheme.n100;
-    final fallbackIcon = onDark ? MlsColors.bgCardPrimary.withValues(alpha: 0.8) : AppTheme.n500;
+    final fallbackIcon = onDark ? MlsColors.bgCardPrimary.withValues(alpha: 0.8) : MlsColors.textSecondary;
 
     return SizedBox(
       width: size,

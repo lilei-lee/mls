@@ -120,7 +120,7 @@ class _FilterSheetState extends State<FilterSheet> {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
               child: Row(children: [
-                const Text('筛选条件', style: TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold)),
+                const Text('筛选条件', style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold)),
                 const Spacer(),
                 IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).pop()),
               ]),

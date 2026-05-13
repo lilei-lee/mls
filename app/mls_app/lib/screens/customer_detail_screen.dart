@@ -193,7 +193,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                           Text(
                             '$surname${gender == 'male' ? '先生' : '女士'}',
                             style: const TextStyle(
-                                fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold),
+                                fontSize: 20.0, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(width: 8),
                           if (isClosed)
@@ -336,7 +336,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
       padding: const EdgeInsets.symmetric(vertical: 14),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        borderRadius: BorderRadius.circular(8.0),
       ),
       child: Column(
         children: [
@@ -345,7 +345,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
           Text('$count',
               style: TextStyle(
                   color: color,
-                  fontSize: AppTheme.fontAppBar,
+                  fontSize: 20.0,
                   fontWeight: FontWeight.bold)),
           Text(label,
               style: TextStyle(color: color, fontSize: 11.0)),
@@ -414,7 +414,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        borderRadius: BorderRadius.circular(8.0),
         border: Border.all(color: color.withValues(alpha: 0.15)),
       ),
       child: Row(

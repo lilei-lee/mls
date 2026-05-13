@@ -113,7 +113,7 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
               children: [
                 Text('$price',
                     style: const TextStyle(
-                        fontSize: AppTheme.fontAppBar,
+                        fontSize: 20.0,
                         fontWeight: FontWeight.bold,
                         color: Colors.red)),
                 const SizedBox(width: 4),
@@ -233,7 +233,7 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
               border: OutlineInputBorder(),
               counterText: '',
             ),
-            style: const TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           // 换算预览

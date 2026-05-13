@@ -259,7 +259,7 @@ class _CollaborationCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: InkWell(
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        borderRadius: BorderRadius.circular(8.0),
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(14),

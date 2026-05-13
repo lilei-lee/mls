@@ -236,7 +236,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
         bottom: TabBar(
           controller: _tabController,
           labelColor: theme.colorScheme.primary,
-          unselectedLabelColor: AppTheme.n500,
+          unselectedLabelColor: MlsColors.textSecondary,
           indicatorColor: theme.colorScheme.primary,
           tabs: const [Tab(text: '全部'), Tab(text: '今日新')],
         ),
@@ -278,7 +278,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Wrap(spacing: 6, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
                       Text(_headerText(processed.length, allItems.length, isTodayTab: isTodayTab),
-                          style: TextStyle(color: AppTheme.n500, fontSize: 12.0)),
+                          style: TextStyle(color: MlsColors.textSecondary, fontSize: 12.0)),
                       _anonymousBadge(),
                     ]),
                     if (filterChips.isNotEmpty) ...[
@@ -307,7 +307,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
     return PopupMenuItem<String>(
       value: value,
       child: Row(children: [
-        Icon(icon, size: 18, color: sel ? AppTheme.primary500 : AppTheme.n500),
+        Icon(icon, size: 18, color: sel ? AppTheme.primary500 : MlsColors.textSecondary),
         const SizedBox(width: 10),
         Text(label, style: TextStyle(color: sel ? AppTheme.primary500 : AppTheme.n800, fontWeight: sel ? FontWeight.w600 : null)),
       ]),
@@ -399,7 +399,7 @@ class _SharedListingCard extends StatelessWidget {
         break;
       case 'sold':
         label = '已成交';
-        color = AppTheme.n500;
+        color = MlsColors.textSecondary;
         break;
       default:
         return null;
@@ -520,7 +520,7 @@ class _SharedListingCard extends StatelessWidget {
           Stack(
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                borderRadius: BorderRadius.circular(8.0),
                 child: Base64Image(dataUrl: cover, width: 110, height: 110, fit: BoxFit.cover),
               ),
               if (photoCount > 0)
@@ -580,9 +580,9 @@ class _SharedListingCard extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
                   child: Row(children: [
-                    const Icon(LucideIcons.mapPin, size: 12, color: AppTheme.n500),
+                    const Icon(LucideIcons.mapPin, size: 12, color: MlsColors.textSecondary),
                     const SizedBox(width: 2),
-                    Text('$district · $community', style: TextStyle(fontSize: 11.0, color: AppTheme.n500)),
+                    Text('$district · $community', style: TextStyle(fontSize: 11.0, color: MlsColors.textSecondary)),
                   ]),
                 ),
                 const SizedBox(height: 4),
@@ -620,7 +620,7 @@ class _SharedListingCard extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Text(
                       publicRemarks.length > 50 ? '${publicRemarks.substring(0, 50)}...' : publicRemarks,
-                      style: TextStyle(color: AppTheme.n500, fontSize: 11.0),
+                      style: TextStyle(color: MlsColors.textSecondary, fontSize: 11.0),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -651,12 +651,12 @@ class _SharedListingCard extends StatelessWidget {
                           ],
                         ),
                         if (unitPrice > 0)
-                          Text('$unitPrice 元/㎡', style: TextStyle(color: AppTheme.n500, fontSize: 11.0)),
+                          Text('$unitPrice 元/㎡', style: TextStyle(color: MlsColors.textSecondary, fontSize: 11.0)),
                       ],
                     ),
                     if (createdAt != null) ...[
                       const SizedBox(width: 8),
-                      Text(_relativeTime(createdAt), style: TextStyle(color: AppTheme.n500, fontSize: 11.0)),
+                      Text(_relativeTime(createdAt), style: TextStyle(color: MlsColors.textSecondary, fontSize: 11.0)),
                     ],
                     const Spacer(),
                     // V2.5: Q&A 计数角标
@@ -670,9 +670,9 @@ class _SharedListingCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(color: AppTheme.n50, borderRadius: BorderRadius.circular(4.0), border: Border.all(color: AppTheme.n150)),
                             child: Row(mainAxisSize: MainAxisSize.min, children: [
-                              const Icon(LucideIcons.helpCircle, size: 12, color: AppTheme.n500),
+                              const Icon(LucideIcons.helpCircle, size: 12, color: MlsColors.textSecondary),
                               const SizedBox(width: 2),
-                              Text('${item['qna_count']}', style: AppTheme.caption.copyWith(fontSize: 11.0, color: AppTheme.n500)),
+                              Text('${item['qna_count']}', style: AppTheme.caption.copyWith(fontSize: 11.0, color: MlsColors.textSecondary)),
                             ]),
                           ),
                         ),

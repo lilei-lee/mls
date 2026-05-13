@@ -93,7 +93,7 @@ class _TransactionPendingScreenState extends State<TransactionPendingScreen> {
     return Card(
       margin: EdgeInsets.zero,
       child: InkWell(
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        borderRadius: BorderRadius.circular(8.0),
         onTap: () async { final r = await context.push<bool>('/transaction/${it['transaction_id']}'); if (r == true) _reload(); },
         child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
@@ -128,7 +128,7 @@ class _TransactionPendingScreenState extends State<TransactionPendingScreen> {
     return Card(
       margin: EdgeInsets.zero,
       child: InkWell(
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        borderRadius: BorderRadius.circular(8.0),
         onTap: () async { final r = await context.push<bool>('/transaction/${it['transaction_id']}'); if (r == true) _reload(); },
         child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [

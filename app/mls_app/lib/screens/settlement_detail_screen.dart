@@ -173,7 +173,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
                             Text(
                               '¥${(doc['bonus_yuan'] as num?)?.toInt() ?? 0}',
                               style: const TextStyle(
-                                fontSize: AppTheme.fontAppBar,
+                                fontSize: 20.0,
                                 fontWeight: FontWeight.bold,
                                 color: AppTheme.colorPending,
                               ),
@@ -277,7 +277,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        borderRadius: BorderRadius.circular(8.0),
       ),
       child: Row(
         children: [
@@ -446,7 +446,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.blue.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+          borderRadius: BorderRadius.circular(8.0),
           border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
         ),
         child: const Column(

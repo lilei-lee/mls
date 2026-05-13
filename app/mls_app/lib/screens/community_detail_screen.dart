@@ -71,7 +71,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(color: AppTheme.primary50),
               child: Column(children: [
-                Text(name, style: const TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold)),
+                Text(name, style: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 Text(data['district'] ?? '', style: const TextStyle(color: Colors.grey, fontSize: 12.0)),
                 const SizedBox(height: 12),
@@ -130,7 +130,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
 
   Widget _statCol(String label, String value) {
     return Column(children: [
-      Text(value, style: const TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold, color: Colors.red)),
+      Text(value, style: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold, color: Colors.red)),
       Text(label, style: const TextStyle(fontSize: 11.0, color: Colors.grey)),
     ]);
   }
@@ -186,7 +186,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
       child: Card(
         child: InkWell(
           onTap: () => context.push('/listing/$lid'),
-          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+          borderRadius: BorderRadius.circular(8.0),
           child: Padding(
             padding: const EdgeInsets.all(10),
             child: Row(children: [

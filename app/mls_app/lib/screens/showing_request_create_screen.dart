@@ -154,7 +154,7 @@ class _ShowingRequestCreateScreenState
         decoration: BoxDecoration(
           color: Colors.green.withValues(alpha: 0.08),
           border: Border.all(color: Colors.green.withValues(alpha: 0.4)),
-          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+          borderRadius: BorderRadius.circular(8.0),
         ),
         child: Row(
           children: [
@@ -199,7 +199,7 @@ class _ShowingRequestCreateScreenState
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.grey.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        borderRadius: BorderRadius.circular(8.0),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -293,7 +293,7 @@ class _ShowingRequestCreateScreenState
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.orange.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                borderRadius: BorderRadius.circular(8.0),
               ),
               child: const Row(
                 children: [

@@ -193,7 +193,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.blue.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+              borderRadius: BorderRadius.circular(8.0),
             ),
             child: const Row(
               children: [
@@ -276,7 +276,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 border: Border.all(color: AppTheme.grey400),
-                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                borderRadius: BorderRadius.circular(8.0),
               ),
               child: Row(
                 children: [

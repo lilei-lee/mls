@@ -396,7 +396,7 @@ class _ListingCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        borderRadius: BorderRadius.circular(8.0),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: IntrinsicHeight(
@@ -407,7 +407,7 @@ class _ListingCard extends StatelessWidget {
                 Stack(
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                      borderRadius: BorderRadius.circular(8.0),
                       child: Base64Image(
                         dataUrl: cover,
                         width: 100,
@@ -496,7 +496,7 @@ class _ListingCard extends StatelessWidget {
                           Text(
                             '¥$price',
                             style: const TextStyle(
-                              fontSize: AppTheme.fontAppBar,
+                              fontSize: 20.0,
                               fontWeight: FontWeight.bold,
                               color: AppTheme.colorError,
                             ),
