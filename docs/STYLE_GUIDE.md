@@ -47,3 +47,19 @@
 - import '../components/app_card.dart';  ❌ (已删除)
 - import '../components/app_avatar.dart';  ❌ (已删除)
 - import '../components/app_section.dart';  ❌ (已删除)
+
+## 给 Claude / Code 派 UI 工单的模板
+
+派工开头粘贴本规约链接 + 关键规则:
+
+---
+> 视觉规约 (必读):
+> - 颜色: 仅 MlsColors.*
+> - 字号: 仅 MlsTypography.*
+> - 卡片: 仅 MlsCard
+> - 头像: 仅 MlsAvatar
+> - Badge: 仅 MlsStatusBadge
+> - Section: 仅 MlsSectionHeader
+> - Tab Scaffold 必须有 floatingActionButton (无则 SizedBox.shrink())
+> 完整: docs/STYLE_GUIDE.md
+---
