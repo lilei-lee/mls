@@ -5,6 +5,9 @@ import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/transaction_service.dart';
 import '../widgets/mls/mls_encrypted_panel.dart';
+import '../widgets/mls/mls_status_badge.dart';
+import '../widgets/mls/mls_progress_stepper.dart';
+import '../widgets/mls/mls_card.dart';
 
 class TransactionDetailScreen extends StatefulWidget {
   final String transactionId;
@@ -246,6 +249,17 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
             padding: const EdgeInsets.all(16),
             children: [
               _statusBanner(status, doc),
+              const SizedBox(height: 12),
+              MlsProgressStepper(
+                currentIndex: _statusToStep(status),
+                steps: const [
+                  MlsStepData(label: 'BA 提交'),
+                  MlsStepData(label: 'LA 填价'),
+                  MlsStepData(label: '系统比对'),
+                  MlsStepData(label: '揭示'),
+                  MlsStepData(label: '成交'),
+                ],
+              ),
               const SizedBox(height: 16),
 
               _sectionTitle('成交房源'),
@@ -308,17 +322,17 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
   }
 
   Widget _statusBanner(String status, Map<String, dynamic> doc) {
-    late Color color;
+    late MlsBadgeVariant variant;
     late IconData icon;
     late String text;
     switch (status) {
       case 'pending_la_confirm':
-        color = Colors.orange;
+        variant = MlsBadgeVariant.warning;
         icon = Icons.hourglass_empty;
         text = '等待 LA 独立填价确认';
         break;
       case 'confirmed':
-        color = Colors.green;
+        variant = MlsBadgeVariant.success;
         icon = Icons.check_circle;
         final p = doc['la_deal_price_yuan'] ?? doc['ba_deal_price_yuan'];
         if (p != null) {
@@ -330,7 +344,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
         }
         break;
       case 'rejected':
-        color = Colors.red;
+        variant = MlsBadgeVariant.danger;
         icon = Icons.block;
         final kind = doc['reject_kind'];
         if (kind == 'price_mismatch') {
@@ -340,36 +354,30 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
         }
         break;
       case 'cancelled':
-        color = Colors.grey;
+        variant = MlsBadgeVariant.neutral;
         icon = Icons.cancel_outlined;
         text = '已撤回';
         break;
       default:
-        color = Colors.grey;
+        variant = MlsBadgeVariant.neutral;
         icon = Icons.info_outline;
         text = status;
     }
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(text,
-                style: TextStyle(
-                    color: color,
-                    fontSize: AppTheme.fontBody,
-                    fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
+    return MlsStatusBadge(text: text, variant: variant, icon: icon);
+  }
+
+  int _statusToStep(String status) {
+    switch (status) {
+      case 'pending_la_confirm':
+        return 1;
+      case 'confirmed':
+        return 4;
+      case 'rejected':
+      case 'cancelled':
+        return 1;
+      default:
+        return 0;
+    }
   }
 
   Widget _buildSubmissionCards(Map<String, dynamic> doc,
@@ -432,85 +440,83 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
         ],
       );
     }
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return MlsCard(
+      variant: MlsCardVariant.primary,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                ),
+                child: Text(roleLabel,
+                    style: TextStyle(
+                        color: color,
+                        fontSize: AppTheme.fontCaption,
+                        fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(width: 8),
+              Text(agentName,
+                  style: const TextStyle(
+                      fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          if (masked && hasSubmitted) ...[
+            // 防伪:LA 视角 + 待确认状态 —— 告诉 LA "对方已提交",但隐去价格
             Row(
               children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                const Icon(Icons.lock_outline,
+                    size: 18, color: Colors.orange),
+                const SizedBox(width: 6),
+                Text(
+                  '已提交',
+                  style: TextStyle(
+                    color: Colors.orange.shade800,
+                    fontSize: AppTheme.fontSectionTitle,
+                    fontWeight: FontWeight.bold,
                   ),
-                  child: Text(roleLabel,
-                      style: TextStyle(
-                          color: color,
-                          fontSize: AppTheme.fontCaption,
-                          fontWeight: FontWeight.bold)),
                 ),
-                const SizedBox(width: 8),
-                Text(agentName,
-                    style: const TextStyle(
-                        fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold)),
               ],
             ),
-            const SizedBox(height: 10),
-
-            if (masked && hasSubmitted) ...[
-              // 防伪:LA 视角 + 待确认状态 —— 告诉 LA "对方已提交",但隐去价格
-              Row(
-                children: [
-                  const Icon(Icons.lock_outline,
-                      size: 18, color: Colors.orange),
-                  const SizedBox(width: 6),
-                  Text(
-                    '已提交',
-                    style: TextStyle(
-                      color: Colors.orange.shade800,
-                      fontSize: AppTheme.fontSectionTitle,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+            const SizedBox(height: 6),
+            Text(
+              '防伪机制:请您独立填写记忆中的成交价,系统将自动比对。',
+              style: TextStyle(
+                color: AppTheme.grey800,
+                fontSize: AppTheme.fontCaption,
               ),
-              const SizedBox(height: 6),
-              Text(
-                '防伪机制:请您独立填写记忆中的成交价,系统将自动比对。',
-                style: TextStyle(
-                  color: AppTheme.grey800,
-                  fontSize: AppTheme.fontCaption,
-                ),
-              ),
-            ] else if (priceYuan != null) ...[
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text('$priceYuan',
-                      style: const TextStyle(
-                          fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold)),
-                  const SizedBox(width: 4),
-                  const Text('元',
-                      style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
-                  const SizedBox(width: 10),
-                  Text('≈ ${(priceYuan / 10000).toStringAsFixed(1)} 万',
-                      style: const TextStyle(
-                          color: Colors.grey, fontSize: AppTheme.fontCaption)),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text('成交日期:${dateStr ?? '-'}',
-                  style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
-            ] else
-              const Text('尚未填报',
-                  style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
-          ],
-        ),
+            ),
+          ] else if (priceYuan != null) ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text('$priceYuan',
+                    style: const TextStyle(
+                        fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold)),
+                const SizedBox(width: 4),
+                const Text('元',
+                    style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
+                const SizedBox(width: 10),
+                Text('≈ ${(priceYuan / 10000).toStringAsFixed(1)} 万',
+                    style: const TextStyle(
+                        color: Colors.grey, fontSize: AppTheme.fontCaption)),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text('成交日期:${dateStr ?? '-'}',
+                style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
+          ] else
+            const Text('尚未填报',
+                style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
+        ],
       ),
     );
   }
