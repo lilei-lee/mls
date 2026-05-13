@@ -137,7 +137,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
                         Text(
                           '${sp['layout'] ?? ''} · ${sp['area_sqm'] ?? '-'}㎡',
                           style: const TextStyle(
-                              fontSize: AppTheme.fontCaption, color: Colors.grey),
+                              fontSize: 11.0, color: Colors.grey),
                         ),
                       ],
                     ),
@@ -168,7 +168,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
                           children: [
                             const Text('合作奖金',
                                 style: TextStyle(
-                                    fontSize: AppTheme.fontBody, color: Colors.grey)),
+                                    fontSize: 12.0, color: Colors.grey)),
                             const SizedBox(width: 12),
                             Text(
                               '¥${(doc['bonus_yuan'] as num?)?.toInt() ?? 0}',
@@ -181,19 +181,19 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
                             const SizedBox(width: 4),
                             const Text('元',
                                 style: TextStyle(
-                                    fontSize: AppTheme.fontCaption, color: Colors.grey)),
+                                    fontSize: 11.0, color: Colors.grey)),
                             const SizedBox(width: 10),
                             Text(
                               '≈ ${(((doc['bonus_yuan'] as num?)?.toInt() ?? 0) / 10000).toStringAsFixed(2)} 万',
                               style: const TextStyle(
-                                  fontSize: AppTheme.fontCaption, color: Colors.grey),
+                                  fontSize: 11.0, color: Colors.grey),
                             ),
                           ],
                         ),
                         const SizedBox(height: 6),
                         const Text(
                           '金额锁定 = BA 提交成交确认时 LA 设定的奖金值',
-                          style: TextStyle(fontSize: AppTheme.fontSmall, color: Colors.grey),
+                          style: TextStyle(fontSize: 11.0, color: Colors.grey),
                         ),
                       ],
                     ),
@@ -221,7 +221,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
       child: Text(text,
           style: const TextStyle(
               color: Colors.grey,
-              fontSize: AppTheme.fontBody,
+              fontSize: 12.0,
               fontWeight: FontWeight.bold)),
     );
   }
@@ -233,12 +233,12 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
         SizedBox(
           width: 90,
           child: Text(k,
-              style: const TextStyle(fontSize: AppTheme.fontBody, color: Colors.grey)),
+              style: const TextStyle(fontSize: 12.0, color: Colors.grey)),
         ),
         Expanded(
             child: Text(v,
                 style: const TextStyle(
-                    fontSize: AppTheme.fontBody, fontWeight: FontWeight.w500))),
+                    fontSize: 12.0, fontWeight: FontWeight.w500))),
       ],
     );
   }
@@ -287,7 +287,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
             child: Text(text,
                 style: TextStyle(
                     color: color,
-                    fontSize: AppTheme.fontBody,
+                    fontSize: 12.0,
                     fontWeight: FontWeight.bold)),
           ),
         ],
@@ -381,13 +381,13 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
                 children: [
                   Text(title,
                       style: TextStyle(
-                          fontSize: AppTheme.fontBody,
+                          fontSize: 12.0,
                           fontWeight: FontWeight.w600,
                           color: done ? Colors.black87 : Colors.grey)),
                   const SizedBox(height: 2),
                   Text(subtitle,
                       style: const TextStyle(
-                          fontSize: AppTheme.fontCaption, color: Colors.grey)),
+                          fontSize: 11.0, color: Colors.grey)),
                 ],
               ),
             ),
@@ -458,7 +458,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
                 SizedBox(width: 6),
                 Text('收款确认即将开放',
                     style: TextStyle(
-                        fontSize: AppTheme.fontBody,
+                        fontSize: 12.0,
                         fontWeight: FontWeight.bold,
                         color: Colors.blue)),
               ],
@@ -468,7 +468,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
               '收款确认需要上传微信转账 / 银行回单截图作为凭证。'
               '该功能将在下次版本更新中提供。'
               '在此之前,如已收到款,建议与 LA 线下确认。',
-              style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.black87),
+              style: TextStyle(fontSize: 11.0, color: Colors.black87),
             ),
           ],
         ),
@@ -508,7 +508,7 @@ class _LaMarkPaidDialogState extends State<_LaMarkPaidDialog> {
           const Text(
             '确认您已通过线下(微信转账/银行转账等)把奖金支付给对方。'
             '此操作会将结算单状态变为"待 BA 确认收款"。',
-            style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.black87),
+            style: TextStyle(fontSize: 11.0, color: Colors.black87),
           ),
           const SizedBox(height: 12),
           TextField(

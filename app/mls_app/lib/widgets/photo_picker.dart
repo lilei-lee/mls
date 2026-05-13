@@ -226,14 +226,14 @@ class _PhotoPickerState extends State<PhotoPicker> {
             const Text(
               '房源照片',
               style: TextStyle(
-                  fontSize: AppTheme.fontBody,
+                  fontSize: 12.0,
                   fontWeight: FontWeight.bold,
                   color: Colors.grey),
             ),
             const SizedBox(width: 8),
             Text(
               '(${_photos.length}/${widget.maxCount})',
-              style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
+              style: const TextStyle(color: Colors.grey, fontSize: 11.0),
             ),
           ],
         ),
@@ -260,14 +260,14 @@ class _PhotoPickerState extends State<PhotoPicker> {
                   child: CircularProgressIndicator(strokeWidth: 2)),
               SizedBox(width: 8),
               Text('正在处理...',
-                  style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
+                  style: TextStyle(color: Colors.grey, fontSize: 11.0)),
             ],
           ),
         ],
         const SizedBox(height: 4),
         const Text(
           '首张自动作为封面,长按可删除',
-          style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
+          style: TextStyle(color: Colors.grey, fontSize: 11.0),
         ),
       ],
     );
@@ -288,7 +288,7 @@ class _PhotoPickerState extends State<PhotoPicker> {
             width: 90,
             height: 90,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+              borderRadius: BorderRadius.circular(4.0),
               border: Border.all(color: AppTheme.grey400),
             ),
             child: ClipRRect(
@@ -307,7 +307,7 @@ class _PhotoPickerState extends State<PhotoPicker> {
                     const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                 decoration: BoxDecoration(
                   color: AppTheme.primaryBlue,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                  borderRadius: BorderRadius.circular(4.0),
                 ),
                 child: const Text(
                   '封面',
@@ -331,7 +331,7 @@ class _PhotoPickerState extends State<PhotoPicker> {
         width: 90,
         height: 90,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+          borderRadius: BorderRadius.circular(4.0),
           border: Border.all(
               color: AppTheme.grey400, style: BorderStyle.solid),
           color: Colors.grey.withValues(alpha: 0.05),
@@ -344,7 +344,7 @@ class _PhotoPickerState extends State<PhotoPicker> {
             const SizedBox(height: 4),
             Text(
               '添加照片',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: AppTheme.fontCaption),
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 11.0),
             ),
           ],
         ),

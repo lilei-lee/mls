@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import '../services/qna_service.dart';
 import '../models/qna_thread.dart';
 import '../components/app_card.dart';
@@ -91,8 +92,8 @@ class _MyQuestionsScreenState extends State<MyQuestionsScreen> {
           // Status + time
           Row(children: [
             Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-              decoration: BoxDecoration(color: isPending ? AppTheme.warning.withValues(alpha: 0.12) : AppTheme.n100, borderRadius: BorderRadius.circular(4)),
-              child: Text(isPending ? '等待回答' : '已回答', style: AppTheme.caption.copyWith(fontSize: 10, color: isPending ? AppTheme.warning : AppTheme.n500))),
+              decoration: BoxDecoration(color: isPending ? MlsColors.warning.withValues(alpha: 0.12) : AppTheme.n100, borderRadius: BorderRadius.circular(4)),
+              child: Text(isPending ? '等待回答' : '已回答', style: AppTheme.caption.copyWith(fontSize: 10, color: isPending ? MlsColors.warning : AppTheme.n500))),
             const Spacer(),
             Text(_fmt(t.questionAt), style: AppTheme.caption.copyWith(fontSize: 10, color: AppTheme.n300)),
           ]),

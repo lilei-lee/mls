@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 
 class AppAvatar extends StatelessWidget {
   final String name;
@@ -16,8 +17,8 @@ class AppAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fallbackBg = onDark ? AppTheme.n0.withValues(alpha: 0.2) : AppTheme.n100;
-    final fallbackIcon = onDark ? AppTheme.n0.withValues(alpha: 0.8) : AppTheme.n500;
+    final fallbackBg = onDark ? MlsColors.bgCardPrimary.withValues(alpha: 0.2) : AppTheme.n100;
+    final fallbackIcon = onDark ? MlsColors.bgCardPrimary.withValues(alpha: 0.8) : AppTheme.n500;
 
     return SizedBox(
       width: size,
@@ -40,7 +41,7 @@ class AppAvatar extends StatelessWidget {
           ),
         if (showStatusDot)
           Positioned(right: 0, bottom: 0, child: Container(width: size * 0.3, height: size * 0.3,
-              decoration: BoxDecoration(color: statusColor ?? AppTheme.success, shape: BoxShape.circle, border: Border.all(color: AppTheme.n0, width: 2)))),
+              decoration: BoxDecoration(color: statusColor ?? AppTheme.success, shape: BoxShape.circle, border: Border.all(color: MlsColors.bgCardPrimary, width: 2)))),
       ]),
     );
   }

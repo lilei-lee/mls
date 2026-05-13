@@ -168,14 +168,14 @@ class _ShowingRequestCreateScreenState
                     '已选客户档案',
                     style: TextStyle(
                         color: AppTheme.colorOnSale,
-                        fontSize: AppTheme.fontCaption,
+                        fontSize: 11.0,
                         fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     '$_selectedCustomerSurname${_selectedCustomerGender == 'male' ? '先生' : '女士'}',
                     style: const TextStyle(
-                        fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold),
+                        fontSize: 12.0, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -206,7 +206,7 @@ class _ShowingRequestCreateScreenState
         children: [
           const Text(
             '客户来源',
-            style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
+            style: TextStyle(color: Colors.grey, fontSize: 11.0),
           ),
           const SizedBox(height: 8),
           Row(
@@ -231,7 +231,7 @@ class _ShowingRequestCreateScreenState
           const SizedBox(height: 6),
           const Text(
             '默认为本次新建(填下方表单);选老客户可一键带入信息',
-            style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
+            style: TextStyle(color: Colors.grey, fontSize: 11.0),
           ),
         ],
       ),
@@ -262,7 +262,7 @@ class _ShowingRequestCreateScreenState
                     const Text(
                       '目标房源',
                       style:
-                          TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
+                          TextStyle(color: Colors.grey, fontSize: 11.0),
                     ),
                     const SizedBox(height: 6),
                     Text(
@@ -276,7 +276,7 @@ class _ShowingRequestCreateScreenState
                     Text(
                       '${s['layout'] ?? ''} · ${s['area_sqm']}㎡ · ¥${s['price_wan']}万',
                       style:
-                          const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody),
+                          const TextStyle(color: Colors.grey, fontSize: 12.0),
                     ),
                   ],
                 ),
@@ -302,7 +302,7 @@ class _ShowingRequestCreateScreenState
                   Expanded(
                     child: Text(
                       '申请审批前双方匿名。审批通过后身份互相公开。',
-                      style: TextStyle(fontSize: AppTheme.fontCaption),
+                      style: TextStyle(fontSize: 11.0),
                     ),
                   ),
                 ],
@@ -336,7 +336,7 @@ class _ShowingRequestCreateScreenState
             const Padding(
               padding: EdgeInsets.only(left: 4, bottom: 6),
               child: Text('客户性别',
-                  style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
+                  style: TextStyle(color: Colors.grey, fontSize: 12.0)),
             ),
             Row(
               children: [
@@ -457,7 +457,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
               height: 4,
               decoration: BoxDecoration(
                 color: AppTheme.grey400,
-                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                borderRadius: BorderRadius.circular(4.0),
               ),
             ),
             const Padding(
@@ -508,7 +508,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
                             SizedBox(height: 4),
                             Text('回退本次新建,后续到客户 Tab 录入',
                                 style: TextStyle(
-                                    color: Colors.grey, fontSize: AppTheme.fontCaption)),
+                                    color: Colors.grey, fontSize: 11.0)),
                           ],
                         ),
                       ),
@@ -553,12 +553,12 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
                                 requirements,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: AppTheme.fontCaption),
+                                style: const TextStyle(fontSize: 11.0),
                               ),
                             if (phone.isNotEmpty)
                               Text('📞 $phone',
                                   style: const TextStyle(
-                                      fontSize: AppTheme.fontCaption, color: Colors.grey)),
+                                      fontSize: 11.0, color: Colors.grey)),
                           ],
                         ),
                         trailing: const Icon(Icons.chevron_right),

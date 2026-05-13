@@ -64,7 +64,7 @@ class ProgressTracker extends StatelessWidget {
                 labels[i],
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: AppTheme.fontSmall,
+                  fontSize: 11.0,
                   color: _labelColor(i),
                   fontWeight: i == stage ? FontWeight.bold : FontWeight.normal,
                 ),

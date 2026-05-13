@@ -185,12 +185,12 @@ class _ReceivedRequestCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 '客户:${item['customer_surname']}${item['customer_gender'] == 'male' ? '先生' : '女士'}',
-                style: const TextStyle(fontSize: AppTheme.fontBody),
+                style: const TextStyle(fontSize: 12.0),
               ),
               const SizedBox(height: 4),
               Text(
                 '需求:${item['requirements']}',
-                style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey),
+                style: const TextStyle(fontSize: 11.0, color: Colors.grey),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -203,7 +203,7 @@ class _ReceivedRequestCard extends StatelessWidget {
                     Text(
                       '带客人:${counter['name']} · ${counter['store'] ?? ''}',
                       style:
-                          const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.green),
+                          const TextStyle(fontSize: 11.0, color: Colors.green),
                     ),
                   ],
                 ),
@@ -241,12 +241,12 @@ class _StatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+        borderRadius: BorderRadius.circular(4.0),
       ),
       child: Text(
         status.label,
         style: TextStyle(
-            color: color, fontSize: AppTheme.fontCaption, fontWeight: FontWeight.bold),
+            color: color, fontSize: 11.0, fontWeight: FontWeight.bold),
       ),
     );
   }

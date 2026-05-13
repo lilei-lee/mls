@@ -155,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 8),
               const Text(
                 '经纪人协作平台',
-                style: TextStyle(fontSize: AppTheme.fontBody, color: Colors.grey),
+                style: TextStyle(fontSize: 12.0, color: Colors.grey),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 60),
@@ -240,7 +240,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const Text(
                     '还没账号?',
-                    style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody),
+                    style: TextStyle(color: Colors.grey, fontSize: 12.0),
                   ),
                   TextButton(
                     onPressed: () => context.push('/register'),

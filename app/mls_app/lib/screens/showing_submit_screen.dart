@@ -191,7 +191,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text('目标房源',
-                      style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
+                      style: TextStyle(color: Colors.grey, fontSize: 11.0)),
                   const SizedBox(height: 6),
                   Text(
                     '${sp['community']} ${sp['building']}号楼${sp['unit']}单元${sp['room_no']}',
@@ -201,7 +201,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
                   const SizedBox(height: 4),
                   Text(
                     '${sp['layout'] ?? ''} · ${sp['area_sqm']}㎡ · ¥${sp['price_wan']}万',
-                    style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody),
+                    style: const TextStyle(color: Colors.grey, fontSize: 12.0),
                   ),
                 ],
               ),
@@ -210,16 +210,16 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
           const SizedBox(height: 20),
 
           const Text('带看时间 *',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppTheme.fontBody)),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.0)),
           const SizedBox(height: 8),
           InkWell(
             onTap: _pickTime,
-            borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+            borderRadius: BorderRadius.circular(4.0),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
               decoration: BoxDecoration(
                 border: Border.all(color: AppTheme.grey400),
-                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                borderRadius: BorderRadius.circular(4.0),
               ),
               child: Row(
                 children: [
@@ -229,7 +229,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
                     _showingTime == null ? '点击选择实际带看时间' : _formatTime(_showingTime!),
                     style: TextStyle(
                       color: _showingTime == null ? Colors.grey : Colors.black,
-                      fontSize: AppTheme.fontBody,
+                      fontSize: 12.0,
                     ),
                   ),
                 ],
@@ -241,10 +241,10 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
           Row(
             children: [
               const Text('现场照片 *',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppTheme.fontBody)),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.0)),
               const SizedBox(width: 8),
               Text('${_photos.length}/$_maxPhotos',
-                  style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
+                  style: const TextStyle(color: Colors.grey, fontSize: 11.0)),
             ],
           ),
           const SizedBox(height: 4),
@@ -252,7 +252,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
           const SizedBox(height: 20),
 
           const Text('带看备注(选填)',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppTheme.fontBody)),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.0)),
           const SizedBox(height: 8),
           TextField(
             controller: _notesController,
@@ -316,7 +316,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
       clipBehavior: Clip.none,
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+          borderRadius: BorderRadius.circular(4.0),
           child: Image.memory(bytes,
               width: size, height: size, fit: BoxFit.cover),
         ),
@@ -341,12 +341,12 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
   Widget _buildAddTile(double size) {
     return InkWell(
       onTap: _picking ? null : _showSourceSheet,
-      borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+      borderRadius: BorderRadius.circular(4.0),
       child: Container(
         width: size, height: size,
         decoration: BoxDecoration(
           border: Border.all(color: AppTheme.grey400),
-          borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+          borderRadius: BorderRadius.circular(4.0),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -358,7 +358,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
                 : const Icon(Icons.camera_alt, color: Colors.grey, size: 28),
             const SizedBox(height: 4),
             Text(_picking ? '处理中' : '拍照',
-                style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
+                style: const TextStyle(color: Colors.grey, fontSize: 11.0)),
           ],
         ),
       ),

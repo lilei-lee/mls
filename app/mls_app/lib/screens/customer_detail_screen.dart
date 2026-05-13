@@ -202,11 +202,11 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                                   horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: Colors.grey.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                                borderRadius: BorderRadius.circular(4.0),
                               ),
                               child: const Text('已结单',
                                   style: TextStyle(
-                                      color: Colors.grey, fontSize: AppTheme.fontCaption)),
+                                      color: Colors.grey, fontSize: 11.0)),
                             ),
                         ],
                       ),
@@ -219,7 +219,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                             const SizedBox(width: 4),
                             Text(phone,
                                 style: const TextStyle(
-                                    fontSize: AppTheme.fontBody, color: Colors.grey)),
+                                    fontSize: 12.0, color: Colors.grey)),
                           ],
                         ),
                       ],
@@ -240,7 +240,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Colors.blue.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                  borderRadius: BorderRadius.circular(4.0),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -251,7 +251,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                     Expanded(
                       child: Text(
                         requirements,
-                        style: const TextStyle(fontSize: AppTheme.fontBody),
+                        style: const TextStyle(fontSize: 12.0),
                       ),
                     ),
                   ],
@@ -348,7 +348,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                   fontSize: AppTheme.fontAppBar,
                   fontWeight: FontWeight.bold)),
           Text(label,
-              style: TextStyle(color: color, fontSize: AppTheme.fontCaption)),
+              style: TextStyle(color: color, fontSize: 11.0)),
         ],
       ),
     );
@@ -368,7 +368,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
             padding: const EdgeInsets.symmetric(vertical: 18),
             alignment: Alignment.center,
             child: const Text('还没有协作事件',
-                style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
+                style: TextStyle(color: Colors.grey, fontSize: 12.0)),
           )
         else
           ...events.map((e) => _timelineRow(e)),
@@ -429,16 +429,16 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                 Text(
                   community.isEmpty ? '(未知房源)' : community,
                   style: const TextStyle(
-                      fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold),
+                      fontSize: 12.0, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 2),
                 Text(label,
-                    style: TextStyle(color: color, fontSize: AppTheme.fontCaption)),
+                    style: TextStyle(color: color, fontSize: 11.0)),
                 if (time != null) ...[
                   const SizedBox(height: 2),
                   Text(_formatTime(time),
                       style: const TextStyle(
-                          color: Colors.grey, fontSize: AppTheme.fontCaption)),
+                          color: Colors.grey, fontSize: 11.0)),
                 ],
                 // 带看事件额外显示备忘
                 if (type == 'showing' &&
@@ -450,11 +450,11 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                      borderRadius: BorderRadius.circular(4.0),
                     ),
                     child: Text(
                       '备忘:${event['customer_feedback']}',
-                      style: const TextStyle(fontSize: AppTheme.fontCaption),
+                      style: const TextStyle(fontSize: 11.0),
                     ),
                   ),
                 ],
@@ -536,7 +536,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                     fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold)),
             const SizedBox(width: 6),
             Text('(${memos.length})',
-                style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
+                style: const TextStyle(color: Colors.grey, fontSize: 12.0)),
             const Spacer(),
             TextButton.icon(
               onPressed: _addMemo,
@@ -552,7 +552,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
             alignment: Alignment.center,
             child: const Text(
               '点击右上角「添加」记录每次跟进',
-              style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
+              style: TextStyle(color: Colors.grey, fontSize: 11.0),
             ),
           )
         else
@@ -563,18 +563,18 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.grey.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                borderRadius: BorderRadius.circular(4.0),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text((map['text'] ?? '') as String,
-                      style: const TextStyle(fontSize: AppTheme.fontBody)),
+                      style: const TextStyle(fontSize: 12.0)),
                   const SizedBox(height: 4),
                   Text(
                     _formatTime((map['created_at'] ?? '') as String),
                     style: const TextStyle(
-                        color: Colors.grey, fontSize: AppTheme.fontCaption),
+                        color: Colors.grey, fontSize: 11.0),
                   ),
                 ],
               ),

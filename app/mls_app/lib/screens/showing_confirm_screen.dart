@@ -177,7 +177,7 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
                       Text(
                         '${sp['layout'] ?? ''} · ${sp['area_sqm']}㎡ · ¥${sp['price_wan']}万',
                         style: const TextStyle(
-                            color: Colors.grey, fontSize: AppTheme.fontBody),
+                            color: Colors.grey, fontSize: 12.0),
                       ),
                     ],
                   ),
@@ -210,7 +210,7 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(14),
-                    child: Text(notes, style: const TextStyle(fontSize: AppTheme.fontBody)),
+                    child: Text(notes, style: const TextStyle(fontSize: 12.0)),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -288,7 +288,7 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
       padding: const EdgeInsets.only(bottom: 8, left: 4),
       child: Text(text,
           style: const TextStyle(
-              color: Colors.grey, fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold)),
+              color: Colors.grey, fontSize: 12.0, fontWeight: FontWeight.bold)),
     );
   }
 
@@ -330,7 +330,7 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
           Expanded(
             child: Text(text,
                 style: TextStyle(
-                    color: color, fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold)),
+                    color: color, fontSize: 12.0, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -352,7 +352,7 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
             return GestureDetector(
               onTap: () => _viewPhoto(b64, i, photos.length),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                borderRadius: BorderRadius.circular(4.0),
                 child: Image.memory(bytes,
                     width: w, height: w, fit: BoxFit.cover),
               ),
@@ -389,7 +389,7 @@ class _RejectDialogState extends State<_RejectDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('请简要说明驳回原因,BA 可根据此反馈重新提交:',
-              style: TextStyle(fontSize: AppTheme.fontBody, color: Colors.grey)),
+              style: TextStyle(fontSize: 12.0, color: Colors.grey)),
           const SizedBox(height: 8),
           TextField(
             controller: _controller,

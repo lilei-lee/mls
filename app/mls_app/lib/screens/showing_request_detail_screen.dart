@@ -284,7 +284,7 @@ class _ShowingRequestDetailScreenState
                       Text(
                         '${snapshot['layout'] ?? ''} · ${snapshot['area_sqm']}㎡ · ¥${snapshot['price_wan']}万',
                         style: const TextStyle(
-                            color: Colors.grey, fontSize: AppTheme.fontBody),
+                            color: Colors.grey, fontSize: 12.0),
                       ),
                     ],
                   ),
@@ -314,11 +314,11 @@ class _ShowingRequestDetailScreenState
                       const SizedBox(height: 10),
                       const Text('需求',
                           style: TextStyle(
-                              color: Colors.grey, fontSize: AppTheme.fontCaption)),
+                              color: Colors.grey, fontSize: 11.0)),
                       const SizedBox(height: 4),
                       Text(
                         data['requirements'] ?? '',
-                        style: const TextStyle(fontSize: AppTheme.fontBody),
+                        style: const TextStyle(fontSize: 12.0),
                       ),
                     ],
                   ),
@@ -340,7 +340,7 @@ class _ShowingRequestDetailScreenState
                       children: [
                         Text(
                           data['reject_reason_text'] ?? '-',
-                          style: const TextStyle(fontSize: AppTheme.fontBody),
+                          style: const TextStyle(fontSize: 12.0),
                         ),
                         if (data['reject_extra'] != null &&
                             data['reject_extra'].toString().isNotEmpty) ...[
@@ -348,7 +348,7 @@ class _ShowingRequestDetailScreenState
                           Text(
                             '补充说明:${data['reject_extra']}',
                             style: const TextStyle(
-                                color: Colors.grey, fontSize: AppTheme.fontCaption),
+                                color: Colors.grey, fontSize: 11.0),
                           ),
                         ],
                       ],
@@ -427,7 +427,7 @@ class _ShowingRequestDetailScreenState
                 const Center(
                   child: Text(
                     '点击拨号将调用系统拨号盘,平台会记录该拨号动作',
-                    style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
+                    style: TextStyle(color: Colors.grey, fontSize: 11.0),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -510,7 +510,7 @@ class _ShowingRequestDetailScreenState
                 SizedBox(width: 8),
                 Expanded(
                   child: Text('等待 BA 提交带看记录',
-                      style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
+                      style: TextStyle(color: Colors.grey, fontSize: 12.0)),
                 ),
               ],
             ),
@@ -529,7 +529,7 @@ class _ShowingRequestDetailScreenState
                   SizedBox(width: 8),
                   Expanded(
                     child: Text('完成实地带看后,请及时提交带看记录',
-                        style: TextStyle(fontSize: AppTheme.fontBody)),
+                        style: TextStyle(fontSize: 12.0)),
                   ),
                 ],
               ),
@@ -572,7 +572,7 @@ class _ShowingRequestDetailScreenState
                     size: 14, color: Colors.grey),
                 const SizedBox(width: 4),
                 Text('带看时间:$showingTime',
-                    style: const TextStyle(fontSize: AppTheme.fontBody)),
+                    style: const TextStyle(fontSize: 12.0)),
               ],
             ),
             const SizedBox(height: 6),
@@ -582,7 +582,7 @@ class _ShowingRequestDetailScreenState
                     size: 14, color: Colors.grey),
                 const SizedBox(width: 4),
                 Text('现场照片:$photoCount 张',
-                    style: const TextStyle(fontSize: AppTheme.fontBody)),
+                    style: const TextStyle(fontSize: 12.0)),
               ],
             ),
             if (status == 'rejected' &&
@@ -593,11 +593,11 @@ class _ShowingRequestDetailScreenState
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.red.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                  borderRadius: BorderRadius.circular(4.0),
                 ),
                 child: Text(
                   '驳回理由:$rejectReason',
-                  style: const TextStyle(color: Colors.red, fontSize: AppTheme.fontCaption),
+                  style: const TextStyle(color: Colors.red, fontSize: 11.0),
                 ),
               ),
             ],
@@ -628,7 +628,7 @@ class _ShowingRequestDetailScreenState
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 4),
               child: Text('等待 LA 确认中...',
-                  style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
+                  style: TextStyle(color: Colors.grey, fontSize: 11.0),
                   textAlign: TextAlign.center),
             ),
         ],
@@ -690,7 +690,7 @@ class _ShowingRequestDetailScreenState
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 4),
               child: Text('等待 BA 重新提交...',
-                  style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
+                  style: TextStyle(color: Colors.grey, fontSize: 11.0),
                   textAlign: TextAlign.center),
             ),
         ],
@@ -721,7 +721,7 @@ class _ShowingRequestDetailScreenState
                 SizedBox(width: 8),
                 Expanded(
                   child: Text('等待 BA 发起成交确认',
-                      style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
+                      style: TextStyle(color: Colors.grey, fontSize: 12.0)),
                 ),
               ],
             ),
@@ -741,7 +741,7 @@ class _ShowingRequestDetailScreenState
                   Expanded(
                     child: Text(
                       '交易达成后,请发起成交确认。需要房源处于「定金已付」或「成交进行中」状态(由 LA 标记)。',
-                      style: TextStyle(fontSize: AppTheme.fontCaption),
+                      style: TextStyle(fontSize: 11.0),
                     ),
                   ),
                 ],
@@ -779,7 +779,7 @@ class _ShowingRequestDetailScreenState
                 SizedBox(width: 8),
                 Expanded(
                   child: Text('BA 已撤回此成交确认,等待重新发起',
-                      style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
+                      style: TextStyle(color: Colors.grey, fontSize: 12.0)),
                 ),
               ],
             ),
@@ -799,7 +799,7 @@ class _ShowingRequestDetailScreenState
                   Expanded(
                     child: Text(
                       '你已撤回此成交确认,可重新发起。',
-                      style: TextStyle(fontSize: AppTheme.fontCaption),
+                      style: TextStyle(fontSize: 11.0),
                     ),
                   ),
                 ],
@@ -845,7 +845,7 @@ class _ShowingRequestDetailScreenState
                 const Icon(Icons.attach_money, size: 14, color: Colors.grey),
                 const SizedBox(width: 4),
                 Text('BA 填:¥$baWan 万',
-                    style: const TextStyle(fontSize: AppTheme.fontBody)),
+                    style: const TextStyle(fontSize: 12.0)),
               ],
             ),
             if (laPrice != null) ...[
@@ -857,7 +857,7 @@ class _ShowingRequestDetailScreenState
                   const SizedBox(width: 4),
                   Text(
                     'LA 填:¥${(laPrice / 10000).toStringAsFixed(1)} 万',
-                    style: const TextStyle(fontSize: AppTheme.fontBody),
+                    style: const TextStyle(fontSize: 12.0),
                   ),
                 ],
               ),
@@ -869,7 +869,7 @@ class _ShowingRequestDetailScreenState
                     size: 14, color: Colors.grey),
                 const SizedBox(width: 4),
                 Text('成交日期:${tx['ba_deal_date'] ?? '-'}',
-                    style: const TextStyle(fontSize: AppTheme.fontBody)),
+                    style: const TextStyle(fontSize: 12.0)),
               ],
             ),
             if (txStatus == 'rejected' &&
@@ -879,11 +879,11 @@ class _ShowingRequestDetailScreenState
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.red.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                  borderRadius: BorderRadius.circular(4.0),
                 ),
                 child: Text(
                   '驳回:${tx['reject_reason']}',
-                  style: const TextStyle(color: Colors.red, fontSize: AppTheme.fontCaption),
+                  style: const TextStyle(color: Colors.red, fontSize: 11.0),
                 ),
               ),
             ],
@@ -942,11 +942,11 @@ class _ShowingRequestDetailScreenState
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+        borderRadius: BorderRadius.circular(4.0),
       ),
       child: Text(text,
           style: TextStyle(
-              color: color, fontSize: AppTheme.fontCaption, fontWeight: FontWeight.bold)),
+              color: color, fontSize: 11.0, fontWeight: FontWeight.bold)),
     );
   }
 
@@ -975,11 +975,11 @@ class _ShowingRequestDetailScreenState
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+        borderRadius: BorderRadius.circular(4.0),
       ),
       child: Text(text,
           style: TextStyle(
-              color: color, fontSize: AppTheme.fontCaption, fontWeight: FontWeight.bold)),
+              color: color, fontSize: 11.0, fontWeight: FontWeight.bold)),
     );
   }
 
@@ -995,7 +995,7 @@ class _ShowingRequestDetailScreenState
       child: Text(
         text,
         style: const TextStyle(
-            color: Colors.grey, fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold),
+            color: Colors.grey, fontSize: 12.0, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -1039,7 +1039,7 @@ class _ShowingRequestDetailScreenState
           Text(text,
               style: TextStyle(
                   color: color,
-                  fontSize: AppTheme.fontBody,
+                  fontSize: 12.0,
                   fontWeight: FontWeight.bold)),
         ],
       ),
@@ -1104,7 +1104,7 @@ class _ShowingRequestDetailScreenState
                         Text(
                           '门店:${counter['store']}',
                           style: const TextStyle(
-                              color: Colors.grey, fontSize: AppTheme.fontBody),
+                              color: Colors.grey, fontSize: 12.0),
                         ),
                       ],
                     ],
@@ -1143,13 +1143,13 @@ class _RejectDialogState extends State<_RejectDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('请选择拒绝理由:',
-              style: TextStyle(fontSize: AppTheme.fontBody, color: Colors.grey)),
+              style: TextStyle(fontSize: 12.0, color: Colors.grey)),
           const SizedBox(height: 8),
           ...RejectReasons.all.entries.map((e) {
             return RadioListTile<String>(
               value: e.key,
               groupValue: _selectedReason,
-              title: Text(e.value, style: const TextStyle(fontSize: AppTheme.fontBody)),
+              title: Text(e.value, style: const TextStyle(fontSize: 12.0)),
               dense: true,
               contentPadding: EdgeInsets.zero,
               onChanged: (v) => setState(() => _selectedReason = v),

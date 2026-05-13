@@ -80,7 +80,7 @@ class _ShowingRequestSentScreenState extends State<ShowingRequestSentScreen> {
                   SizedBox(height: 6),
                   Text('去共享库挑套房,给房东发申请吧',
                       style:
-                          TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
+                          TextStyle(color: Colors.grey, fontSize: 11.0)),
                 ],
               ),
             );
@@ -143,19 +143,19 @@ class _SentRequestCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               '${snapshot['layout']} · ${snapshot['area_sqm']}㎡ · ¥${snapshot['price_wan']}万',
-              style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
+              style: const TextStyle(color: Colors.grey, fontSize: 11.0),
             ),
             const Divider(height: 20),
 
             // 客户信息
             Text(
               '客户:${item['customer_surname']}${item['customer_gender'] == 'male' ? '先生' : '女士'}',
-              style: const TextStyle(fontSize: AppTheme.fontBody),
+              style: const TextStyle(fontSize: 12.0),
             ),
             const SizedBox(height: 4),
             Text(
               '需求:${item['requirements']}',
-              style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey),
+              style: const TextStyle(fontSize: 11.0, color: Colors.grey),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -167,7 +167,7 @@ class _SentRequestCard extends StatelessWidget {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Colors.green.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                  borderRadius: BorderRadius.circular(4.0),
                 ),
                 child: Row(
                   children: [
@@ -178,7 +178,7 @@ class _SentRequestCard extends StatelessWidget {
                       child: Text(
                         '房东:${counter['name']} · ${counter['phone']}',
                         style: const TextStyle(
-                            fontSize: AppTheme.fontBody, color: Colors.green),
+                            fontSize: 12.0, color: Colors.green),
                       ),
                     ),
                   ],
@@ -189,7 +189,7 @@ class _SentRequestCard extends StatelessWidget {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: AppTheme.grey200.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                  borderRadius: BorderRadius.circular(4.0),
                 ),
                 child: Row(
                   children: [
@@ -199,7 +199,7 @@ class _SentRequestCard extends StatelessWidget {
                       child: Text(
                         '拒绝理由:${item['reject_reason_text'] ?? ''}${item['reject_extra'] != null ? '(${item['reject_extra']})' : ''}',
                         style: const TextStyle(
-                            fontSize: AppTheme.fontCaption, color: Colors.grey),
+                            fontSize: 11.0, color: Colors.grey),
                       ),
                     ),
                   ],
@@ -212,7 +212,7 @@ class _SentRequestCard extends StatelessWidget {
                       size: 16, color: Colors.orange),
                   SizedBox(width: 4),
                   Text('等待房东审批...',
-                      style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.orange)),
+                      style: TextStyle(fontSize: 11.0, color: Colors.orange)),
                 ],
               ),
             ],
@@ -248,12 +248,12 @@ class _StatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+        borderRadius: BorderRadius.circular(4.0),
       ),
       child: Text(
         status.label,
         style: TextStyle(
-            color: color, fontSize: AppTheme.fontCaption, fontWeight: FontWeight.bold),
+            color: color, fontSize: 11.0, fontWeight: FontWeight.bold),
       ),
     );
   }

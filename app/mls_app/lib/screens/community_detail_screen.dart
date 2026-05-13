@@ -73,7 +73,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
               child: Column(children: [
                 Text(name, style: const TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                Text(data['district'] ?? '', style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
+                Text(data['district'] ?? '', style: const TextStyle(color: Colors.grey, fontSize: 12.0)),
                 const SizedBox(height: 12),
                 Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
                   _statCol('在售均价', avgPrice != null ? '${avgPrice ~/ 100}万/平' : '-'),
@@ -81,11 +81,11 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 ]),
                 const SizedBox(height: 8),
                 Text('在售 $activeListings 套 · 月新增 $monthlyNew',
-                    style: const TextStyle(fontSize: AppTheme.fontBody, color: Colors.black54)),
+                    style: const TextStyle(fontSize: 12.0, color: Colors.black54)),
                 if (bldStart != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
-                    child: Text(buildInfoLine(data), style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.black54)),
+                    child: Text(buildInfoLine(data), style: const TextStyle(fontSize: 11.0, color: Colors.black54)),
                   ),
               ]),
             ),
@@ -131,7 +131,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
   Widget _statCol(String label, String value) {
     return Column(children: [
       Text(value, style: const TextStyle(fontSize: AppTheme.fontAppBar, fontWeight: FontWeight.bold, color: Colors.red)),
-      Text(label, style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
+      Text(label, style: const TextStyle(fontSize: 11.0, color: Colors.grey)),
     ]);
   }
 
@@ -191,7 +191,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
             padding: const EdgeInsets.all(10),
             child: Row(children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                borderRadius: BorderRadius.circular(4.0),
                 child: SizedBox(width: 72, height: 72,
                     child: cover != null && cover.isNotEmpty
                         ? Base64Image(dataUrl: cover, fit: BoxFit.cover)
@@ -201,9 +201,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text('${item['building']}-${item['unit']}-${item['room_no']} | $layout',
-                      style: const TextStyle(fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      style: const TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
                   Text('${area}㎡ · ${item['floor']}/${item['total_floor']}层',
-                      style: const TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
+                      style: const TextStyle(fontSize: 11.0, color: Colors.grey)),
                 ]),
               ),
               Text('¥$price万', style: const TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold, color: Colors.red)),
@@ -266,11 +266,11 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
         _expTile('周边对比', Icons.compare_arrows_outlined, [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: AppTheme.grey100, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+            decoration: BoxDecoration(color: AppTheme.grey100, borderRadius: BorderRadius.circular(4.0)),
             child: const Row(children: [
               Icon(Icons.lock_outline, size: 14, color: Colors.grey),
               SizedBox(width: 8),
-              Text('即将上线', style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
+              Text('即将上线', style: TextStyle(color: Colors.grey, fontSize: 12.0)),
             ]),
           ),
         ]),
@@ -297,8 +297,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
   Widget _row(String label, String value) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      SizedBox(width: 80, child: Text(label, style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody))),
-      Expanded(child: Text(value, style: const TextStyle(fontSize: AppTheme.fontBody, fontWeight: FontWeight.w500))),
+      SizedBox(width: 80, child: Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12.0))),
+      Expanded(child: Text(value, style: const TextStyle(fontSize: 12.0, fontWeight: FontWeight.w500))),
     ]),
   );
 }

@@ -83,7 +83,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                     padding: const EdgeInsets.only(bottom: 8, left: 4),
                     child: Text(
                       '共 ${items.length} 位客户',
-                      style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody),
+                      style: const TextStyle(color: Colors.grey, fontSize: 12.0),
                     ),
                   );
                 }
@@ -126,7 +126,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
           const Center(
             child: Text(
               '点击右上角 [+] 添加第一位客户',
-              style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody),
+              style: TextStyle(color: Colors.grey, fontSize: 12.0),
             ),
           ),
           const SizedBox(height: 24),
@@ -246,11 +246,11 @@ class _CustomerCard extends StatelessWidget {
                                 horizontal: 5, vertical: 1),
                             decoration: BoxDecoration(
                               color: Colors.grey.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                              borderRadius: BorderRadius.circular(4.0),
                             ),
                             child: const Text('已结单',
                                 style: TextStyle(
-                                    color: Colors.grey, fontSize: AppTheme.fontSmall)),
+                                    color: Colors.grey, fontSize: 11.0)),
                           ),
                       ],
                     ),
@@ -259,7 +259,7 @@ class _CustomerCard extends StatelessWidget {
                       Text(
                         requirements,
                         style: TextStyle(
-                          fontSize: AppTheme.fontBody,
+                          fontSize: 12.0,
                           color: isClosed
                               ? Colors.grey
                               : AppTheme.grey800,
@@ -270,7 +270,7 @@ class _CustomerCard extends StatelessWidget {
                     else
                       const Text(
                         '暂无需求描述',
-                        style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption),
+                        style: TextStyle(color: Colors.grey, fontSize: 11.0),
                       ),
                     const SizedBox(height: 6),
                     Row(
@@ -281,7 +281,7 @@ class _CustomerCard extends StatelessWidget {
                           const SizedBox(width: 3),
                           Text(phone,
                               style: const TextStyle(
-                                  fontSize: AppTheme.fontCaption, color: Colors.grey)),
+                                  fontSize: 11.0, color: Colors.grey)),
                           const SizedBox(width: 10),
                         ],
                         if (memoCount > 0) ...[
@@ -290,13 +290,13 @@ class _CustomerCard extends StatelessWidget {
                           const SizedBox(width: 3),
                           Text('$memoCount 条跟进',
                               style: const TextStyle(
-                                  fontSize: AppTheme.fontCaption, color: Colors.grey)),
+                                  fontSize: 11.0, color: Colors.grey)),
                           const SizedBox(width: 10),
                         ],
                         if (updatedAt != null)
                           Text(_relativeTime(updatedAt),
                               style: const TextStyle(
-                                  fontSize: AppTheme.fontCaption, color: Colors.grey)),
+                                  fontSize: 11.0, color: Colors.grey)),
                       ],
                     ),
                   ],

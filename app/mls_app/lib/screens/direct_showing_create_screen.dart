@@ -202,7 +202,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
                 Expanded(
                   child: Text(
                     '基于已通过的申请,直接发起新一次带看记录,无需再走审批。',
-                    style: TextStyle(fontSize: AppTheme.fontCaption),
+                    style: TextStyle(fontSize: 11.0),
                   ),
                 ),
               ],
@@ -214,7 +214,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
           const Padding(
             padding: EdgeInsets.only(bottom: 6, left: 4),
             child: Text('目标房源',
-                style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
+                style: TextStyle(color: Colors.grey, fontSize: 11.0)),
           ),
           Card(
             color: Colors.grey.withValues(alpha: 0.05),
@@ -232,7 +232,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
                   Text(
                     '${s['layout'] ?? ''} · ${s['area_sqm']}㎡ · ¥${s['price_wan']}万',
                     style:
-                        const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody),
+                        const TextStyle(color: Colors.grey, fontSize: 12.0),
                   ),
                 ],
               ),
@@ -244,7 +244,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
           const Padding(
             padding: EdgeInsets.only(bottom: 6, left: 4),
             child: Text('客户(沿用首次申请)',
-                style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
+                style: TextStyle(color: Colors.grey, fontSize: 11.0)),
           ),
           Card(
             color: Colors.grey.withValues(alpha: 0.05),
@@ -268,7 +268,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
           const Padding(
             padding: EdgeInsets.only(bottom: 6, left: 4),
             child: Text('带看时间',
-                style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
+                style: TextStyle(color: Colors.grey, fontSize: 11.0)),
           ),
           InkWell(
             onTap: _pickTime,
@@ -303,7 +303,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
             padding: const EdgeInsets.only(bottom: 6, left: 4),
             child: Text('现场照片(1-3 张) · 已 ${_photos.length} 张',
                 style:
-                    const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
+                    const TextStyle(color: Colors.grey, fontSize: 11.0)),
           ),
           Wrap(
             spacing: 8,
@@ -318,7 +318,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                        borderRadius: BorderRadius.circular(4.0),
                         image: DecorationImage(
                           image: MemoryImage(base64Decode(b64)),
                           fit: BoxFit.cover,
@@ -356,7 +356,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
                       border: Border.all(
                           color: AppTheme.grey400,
                           style: BorderStyle.solid),
-                      borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                      borderRadius: BorderRadius.circular(4.0),
                     ),
                     child: const Icon(Icons.add_a_photo,
                         color: Colors.grey),

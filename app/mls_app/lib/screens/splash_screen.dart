@@ -56,7 +56,7 @@ class _SplashScreenState extends State<SplashScreen> {
             const SizedBox(height: 8),
             const Text(
               '经纪人协作平台',
-              style: TextStyle(fontSize: AppTheme.fontBody, color: Colors.grey),
+              style: TextStyle(fontSize: 12.0, color: Colors.grey),
             ),
             const SizedBox(height: 40),
             const CircularProgressIndicator(),

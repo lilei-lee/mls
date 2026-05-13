@@ -292,12 +292,12 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
                     Expanded(child: _textField(_areaSqm, '建筑面积(㎡)', hint: '89.5', numeric: true, allowDecimal: true)),
                   ]),
                   const SizedBox(height: 4),
-                  const Text('朝向', style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
+                  const Text('朝向', style: TextStyle(fontSize: 11.0, color: Colors.grey)),
                   const SizedBox(height: 6),
                   Wrap(spacing: 8, runSpacing: 4, children: ['朝东', '朝西', '朝南', '朝北'].map((d) {
                     final sel = _orientation == d;
                     return ChoiceChip(
-                      label: Text(d, style: TextStyle(fontSize: AppTheme.fontBody)),
+                      label: Text(d, style: TextStyle(fontSize: 12.0)),
                       selected: sel,
                       onSelected: (_) => setState(() => _orientation = d),
                       selectedColor: Colors.blue.shade50,
@@ -315,19 +315,19 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
                   const Padding(
                     padding: EdgeInsets.only(bottom: 16, left: 4),
                     child: Text('💡 奖金 = 成交后您从中介费里拿出激励 BA 的金额,鼓励同行优先带客。示例:2000-5000 元',
-                        style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
+                        style: TextStyle(fontSize: 11.0, color: Colors.grey)),
                   ),
 
                   // ═══ V2.2 Section 1: 格局特点(辞典 claim) ═══
                   _sectionTitle('格局特点(客观,辞典存档)'),
-                  const Text('客观特征(可多选)', style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
+                  const Text('客观特征(可多选)', style: TextStyle(fontSize: 11.0, color: Colors.grey)),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 8, runSpacing: 4,
                     children: SalePointsLibrary.objectiveFeatures.map((f) {
                       final sel = _selectedObjectiveFeatures.contains(f);
                       return FilterChip(
-                        label: Text(f, style: TextStyle(fontSize: AppTheme.fontBody)),
+                        label: Text(f, style: TextStyle(fontSize: 12.0)),
                         selected: sel,
                         onSelected: (_) {
                           setState(() {
@@ -341,14 +341,14 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
                     }).toList(),
                   ),
                   const SizedBox(height: 16),
-                  const Text('装修情况(单选)', style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
+                  const Text('装修情况(单选)', style: TextStyle(fontSize: 11.0, color: Colors.grey)),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 8, runSpacing: 4,
                     children: SalePointsLibrary.decorationOptions.map((d) {
                       final sel = _selectedDecoration == d;
                       return ChoiceChip(
-                        label: Text(d, style: TextStyle(fontSize: AppTheme.fontBody)),
+                        label: Text(d, style: TextStyle(fontSize: 12.0)),
                         selected: sel,
                         onSelected: (_) {
                           setState(() => _selectedDecoration = sel ? null : d);
@@ -358,14 +358,14 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
                     }).toList(),
                   ),
                   const SizedBox(height: 16),
-                  const Text('户型结构(单选)', style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
+                  const Text('户型结构(单选)', style: TextStyle(fontSize: 11.0, color: Colors.grey)),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 8, runSpacing: 4,
                     children: SalePointsLibrary.houseStructureOptions.map((h) {
                       final sel = _selectedHouseStructure == h;
                       return ChoiceChip(
-                        label: Text(h, style: TextStyle(fontSize: AppTheme.fontBody)),
+                        label: Text(h, style: TextStyle(fontSize: 12.0)),
                         selected: sel,
                         onSelected: (_) {
                           setState(() => _selectedHouseStructure = sel ? null : h);
@@ -392,13 +392,13 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
                       hint: '经纪人间私话,客户看不到'),
                   const Padding(
                     padding: EdgeInsets.only(left: 4, bottom: 12),
-                    child: Text('议价空间 / 业主诚意度 / 内部消息', style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
+                    child: Text('议价空间 / 业主诚意度 / 内部消息', style: TextStyle(fontSize: 11.0, color: Colors.grey)),
                   ),
                   _textField(_showingInstructions, '看房安排', required: false, maxLines: 2,
                       hint: '申请通过后展示'),
                   const Padding(
                     padding: EdgeInsets.only(left: 4, bottom: 16),
-                    child: Text('约看时间 / 业主时段 / 注意事项', style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
+                    child: Text('约看时间 / 业主时段 / 注意事项', style: TextStyle(fontSize: 11.0, color: Colors.grey)),
                   ),
 
                   PhotoPicker(
@@ -425,7 +425,7 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
 
   Widget _sectionTitle(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 12, top: 4),
-    child: Text(text, style: const TextStyle(fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold, color: Colors.grey)),
+    child: Text(text, style: const TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold, color: Colors.grey)),
   );
 
   Widget _textField(TextEditingController controller, String label,

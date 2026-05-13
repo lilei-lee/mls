@@ -60,7 +60,7 @@ class CommunityPicker extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () => _openPicker(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+        borderRadius: BorderRadius.circular(4.0),
         child: InputDecorator(
           decoration: InputDecoration(
             labelText: '小区名',
@@ -76,7 +76,7 @@ class CommunityPicker extends StatelessWidget {
                     Expanded(
                       child: Text(
                         initial!.name,
-                        style: const TextStyle(fontSize: AppTheme.fontBody),
+                        style: const TextStyle(fontSize: 12.0),
                       ),
                     ),
                     Container(
@@ -84,12 +84,12 @@ class CommunityPicker extends StatelessWidget {
                           horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                        borderRadius: BorderRadius.circular(4.0),
                       ),
                       child: Text(
                         initial!.district,
                         style: TextStyle(
-                          fontSize: AppTheme.fontCaption,
+                          fontSize: 11.0,
                           color: Colors.blue.shade700,
                         ),
                       ),
@@ -97,7 +97,7 @@ class CommunityPicker extends StatelessWidget {
                   ],
                 )
               : const Text('点击选择或添加',
-                  style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
+                  style: TextStyle(color: Colors.grey, fontSize: 12.0)),
         ),
       ),
     );
@@ -232,10 +232,10 @@ class _CommunityPickerScreenState extends State<_CommunityPickerScreen> {
               Icon(Icons.search, size: 60, color: Colors.grey),
               SizedBox(height: 12),
               Text('搜索小区库',
-                  style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
+                  style: TextStyle(color: Colors.grey, fontSize: 12.0)),
               SizedBox(height: 4),
               Text('输入名字关键词开始查找',
-                  style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
+                  style: TextStyle(color: Colors.grey, fontSize: 11.0)),
             ],
           ),
         ),
@@ -258,7 +258,7 @@ class _CommunityPickerScreenState extends State<_CommunityPickerScreen> {
             _results.isEmpty
                 ? '没找到?添加「${_searchController.text.trim()}」'
                 : '没找到?添加新小区',
-            style: const TextStyle(color: Colors.blue, fontSize: AppTheme.fontBody),
+            style: const TextStyle(color: Colors.blue, fontSize: 12.0),
           ),
           onTap: _openAddDialog,
         ),
@@ -275,7 +275,7 @@ class _CommunityPickerScreenState extends State<_CommunityPickerScreen> {
       title: Text(name, style: const TextStyle(fontSize: AppTheme.fontSectionTitle)),
       subtitle: Text(
         '$district${builtYear != null ? " · $builtYear年建" : ""}',
-        style: const TextStyle(fontSize: AppTheme.fontCaption),
+        style: const TextStyle(fontSize: 11.0),
       ),
       onTap: () => _pick(item),
     );

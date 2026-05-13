@@ -237,7 +237,7 @@ class _ListingListScreenState extends State<ListingListScreen>
                         Text(
                           _headerText(processed.length, allItems.length),
                           style: const TextStyle(
-                              color: Colors.grey, fontSize: AppTheme.fontBody),
+                              color: Colors.grey, fontSize: 12.0),
                         ),
                         if (_filters.isActive) ...[
                           const SizedBox(width: 8),
@@ -280,14 +280,14 @@ class _ListingListScreenState extends State<ListingListScreen>
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(
           color: AppTheme.colorPending.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+          borderRadius: BorderRadius.circular(4.0),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               '已筛选 ${_filters.activeDimensionCount} 项',
-              style: const TextStyle(color: Colors.orange, fontSize: AppTheme.fontCaption),
+              style: const TextStyle(color: Colors.orange, fontSize: 11.0),
             ),
             const SizedBox(width: 4),
             const Icon(Icons.close, color: Colors.orange, size: 12),
@@ -355,7 +355,7 @@ class _ListingListScreenState extends State<ListingListScreen>
           if (subtitle != null) ...[
             const SizedBox(height: 6),
             Text(subtitle,
-                style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody)),
+                style: const TextStyle(color: Colors.grey, fontSize: 12.0)),
           ],
         ],
       ),
@@ -424,7 +424,7 @@ class _ListingCard extends StatelessWidget {
                               horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: Colors.black.withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                            borderRadius: BorderRadius.circular(4.0),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -435,7 +435,7 @@ class _ListingCard extends StatelessWidget {
                               Text(
                                 '$photoCount',
                                 style: const TextStyle(
-                                    color: Colors.white, fontSize: AppTheme.fontSmall),
+                                    color: Colors.white, fontSize: 11.0),
                               ),
                             ],
                           ),
@@ -481,13 +481,13 @@ class _ListingCard extends StatelessWidget {
                               return p.join(' · ');
                             }(),
                             style: const TextStyle(
-                                color: Colors.grey, fontSize: AppTheme.fontCaption),
+                                color: Colors.grey, fontSize: 11.0),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             '朝向:${item['orientation']}',
                             style: const TextStyle(
-                                color: Colors.grey, fontSize: AppTheme.fontCaption),
+                                color: Colors.grey, fontSize: 11.0),
                           ),
                         ],
                       ),
@@ -504,7 +504,7 @@ class _ListingCard extends StatelessWidget {
                           const SizedBox(width: 2),
                           const Text('万',
                               style: TextStyle(
-                                  color: Colors.red, fontSize: AppTheme.fontCaption)),
+                                  color: Colors.red, fontSize: 11.0)),
                           const Spacer(),
                           const Icon(Icons.chevron_right,
                               color: Colors.grey, size: 18),

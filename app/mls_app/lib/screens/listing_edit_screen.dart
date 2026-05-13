@@ -254,9 +254,9 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
                 const Icon(Icons.info_outline, color: Colors.orange, size: 18),
                 const SizedBox(width: 8),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Text('地址信息不可修改', style: TextStyle(fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold)),
+                  const Text('地址信息不可修改', style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 2),
-                  Text('$district · $address', style: const TextStyle(fontSize: AppTheme.fontCaption)),
+                  Text('$district · $address', style: const TextStyle(fontSize: 11.0)),
                 ])),
               ]),
             ),
@@ -292,14 +292,14 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
 
             // ═══ V2.2 Section 1: 格局特点 ═══
             _sectionTitle('格局特点(客观,辞典存档)'),
-            const Text('客观特征(可多选)', style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
+            const Text('客观特征(可多选)', style: TextStyle(fontSize: 11.0, color: Colors.grey)),
             const SizedBox(height: 6),
             Wrap(
               spacing: 8, runSpacing: 4,
               children: SalePointsLibrary.objectiveFeatures.map((f) {
                 final sel = _selectedObjectiveFeatures.contains(f);
                 return FilterChip(
-                  label: Text(f, style: TextStyle(fontSize: AppTheme.fontBody)),
+                  label: Text(f, style: TextStyle(fontSize: 12.0)),
                   selected: sel,
                   onSelected: (_) {
                     setState(() {
@@ -313,14 +313,14 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
               }).toList(),
             ),
             const SizedBox(height: 16),
-            const Text('装修情况(单选)', style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
+            const Text('装修情况(单选)', style: TextStyle(fontSize: 11.0, color: Colors.grey)),
             const SizedBox(height: 6),
             Wrap(
               spacing: 8, runSpacing: 4,
               children: SalePointsLibrary.decorationOptions.map((d) {
                 final sel = _selectedDecoration == d;
                 return ChoiceChip(
-                  label: Text(d, style: TextStyle(fontSize: AppTheme.fontBody)),
+                  label: Text(d, style: TextStyle(fontSize: 12.0)),
                   selected: sel,
                   onSelected: (_) {
                     setState(() => _selectedDecoration = sel ? null : d);
@@ -330,14 +330,14 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
               }).toList(),
             ),
             const SizedBox(height: 16),
-            const Text('户型结构(单选)', style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
+            const Text('户型结构(单选)', style: TextStyle(fontSize: 11.0, color: Colors.grey)),
             const SizedBox(height: 6),
             Wrap(
               spacing: 8, runSpacing: 4,
               children: SalePointsLibrary.houseStructureOptions.map((h) {
                 final sel = _selectedHouseStructure == h;
                 return ChoiceChip(
-                  label: Text(h, style: TextStyle(fontSize: AppTheme.fontBody)),
+                  label: Text(h, style: TextStyle(fontSize: 12.0)),
                   selected: sel,
                   onSelected: (_) {
                     setState(() => _selectedHouseStructure = sel ? null : h);
@@ -362,12 +362,12 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
             _tf(_agentRemarks, '同行私话', required: false, maxLines: 3, hint: '经纪人间私话,客户看不到'),
             const Padding(
               padding: EdgeInsets.only(left: 4, bottom: 12),
-              child: Text('议价空间 / 业主诚意度 / 内部消息', style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
+              child: Text('议价空间 / 业主诚意度 / 内部消息', style: TextStyle(fontSize: 11.0, color: Colors.grey)),
             ),
             _tf(_showingInstructions, '看房安排', required: false, maxLines: 2, hint: '申请通过后展示'),
             const Padding(
               padding: EdgeInsets.only(left: 4, bottom: 16),
-              child: Text('约看时间 / 业主时段 / 注意事项', style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
+              child: Text('约看时间 / 业主时段 / 注意事项', style: TextStyle(fontSize: 11.0, color: Colors.grey)),
             ),
 
             _sectionTitle('朝向'),
@@ -380,7 +380,7 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
             const Padding(
               padding: EdgeInsets.only(bottom: 16, left: 4),
               child: Text('💡 奖金 = 成交后您从中介费里拿出激励 BA 的金额。0 表示无奖金。',
-                  style: TextStyle(fontSize: AppTheme.fontCaption, color: Colors.grey)),
+                  style: TextStyle(fontSize: 11.0, color: Colors.grey)),
             ),
             const SizedBox(height: 24),
 
@@ -401,7 +401,7 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
 
   Widget _sectionTitle(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 12, top: 4),
-    child: Text(text, style: const TextStyle(fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold, color: Colors.grey)),
+    child: Text(text, style: const TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold, color: Colors.grey)),
   );
 
   Widget _tf(TextEditingController c, String label,
@@ -459,13 +459,13 @@ class _BuildSyncBanner extends StatelessWidget {
         const Row(children: [
           Icon(Icons.warning_amber, color: Colors.orange, size: 20),
           SizedBox(width: 8),
-          Expanded(child: Text('你提交的物理信息与权威值不符', style: TextStyle(fontSize: AppTheme.fontBody, fontWeight: FontWeight.bold))),
+          Expanded(child: Text('你提交的物理信息与权威值不符', style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold))),
         ]),
         const SizedBox(height: 8),
         for (final d in diffs)
           Padding(padding: const EdgeInsets.only(bottom: 4, left: 28),
             child: Text('${_labels[d['field']]}: ${_format(d['auth'])}${_units[d['field']]}(权威) vs ${_format(d['my'])}${_units[d['field']]}(你)',
-                style: const TextStyle(fontSize: AppTheme.fontCaption))),
+                style: const TextStyle(fontSize: 11.0))),
         const SizedBox(height: 8),
         Center(child: syncing
             ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))

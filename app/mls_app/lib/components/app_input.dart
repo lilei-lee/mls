@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 
 class AppInput extends StatefulWidget {
   final TextEditingController? controller;
@@ -51,7 +52,7 @@ class _AppInputState extends State<AppInput> {
         prefixIcon: widget.prefixIcon != null ? Icon(widget.prefixIcon, size: 20, color: _focused ? AppTheme.primary500 : AppTheme.n500) : null,
         suffixIcon: widget.suffixIcon != null ? GestureDetector(onTap: widget.onSuffixTap, child: Icon(widget.suffixIcon, size: 20, color: AppTheme.n500)) : null,
         filled: true,
-        fillColor: _focused ? AppTheme.n0 : AppTheme.n100,
+        fillColor: _focused ? MlsColors.bgCardPrimary : AppTheme.n100,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTheme.radiusM), borderSide: BorderSide.none),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTheme.radiusM), borderSide: const BorderSide(color: AppTheme.primary500, width: 2)),

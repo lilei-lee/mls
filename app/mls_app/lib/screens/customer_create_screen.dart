@@ -91,7 +91,7 @@ class _CustomerCreateScreenState extends State<CustomerCreateScreen> {
 
             // 性别
             const Text('性别 *',
-                style: TextStyle(fontSize: AppTheme.fontBody, color: Colors.grey)),
+                style: TextStyle(fontSize: 12.0, color: Colors.grey)),
             const SizedBox(height: 6),
             Row(
               children: [

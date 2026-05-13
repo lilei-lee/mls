@@ -103,7 +103,7 @@ class _QnaListScreenState extends State<QnaListScreen> {
               Row(children: [
                 Text(t.answererName ?? '', style: AppTheme.caption.copyWith(color: AppTheme.primary500)),
                 const Spacer(),
-                Text(_fmt(t.answeredAt), style: AppTheme.caption.copyWith(fontSize: AppTheme.fontSmall, color: AppTheme.n300)),
+                Text(_fmt(t.answeredAt), style: AppTheme.caption.copyWith(fontSize: 11.0, color: AppTheme.n300)),
               ]),
               const SizedBox(height: 6),
               Text(t.answer ?? '', style: AppTheme.bodyM),

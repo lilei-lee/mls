@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import 'package:go_router/go_router.dart';
 import '../services/transaction_service.dart';
 
@@ -75,7 +76,7 @@ class _TransactionPendingScreenState extends State<TransactionPendingScreen> {
     const Icon(Icons.inbox_outlined, size: 80, color: Colors.grey),
     const SizedBox(height: 12),
     Center(child: Text(_isLa ? '暂无待确认的成交记录' : '暂无等待 LA 确认的成交',
-        style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody))),
+        style: const TextStyle(color: Colors.grey, fontSize: 12.0))),
   ]);
 
   Widget _buildError(String err) => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -97,24 +98,24 @@ class _TransactionPendingScreenState extends State<TransactionPendingScreen> {
         child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(color: AppTheme.warning.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
-              child: const Text('待独立填价', style: TextStyle(color: AppTheme.warning, fontSize: AppTheme.fontCaption, fontWeight: FontWeight.bold))),
+              decoration: BoxDecoration(color: MlsColors.warning.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4.0)),
+              child: const Text('待独立填价', style: TextStyle(color: MlsColors.warning, fontSize: 11.0, fontWeight: FontWeight.bold))),
             const Spacer(),
-            Text('BA 已填 $baWan 万', style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
+            Text('BA 已填 $baWan 万', style: const TextStyle(color: Colors.grey, fontSize: 11.0)),
           ]),
           const SizedBox(height: 8),
           Text('${sp['community']} ${sp['building']}-${sp['unit']}-${sp['room_no']}',
               style: const TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
           Text('${sp['layout'] ?? ''} · ${sp['area_sqm']}㎡ · 挂牌 ¥${sp['price_wan']}万',
-              style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
+              style: const TextStyle(color: Colors.grey, fontSize: 11.0)),
           const SizedBox(height: 8),
           Row(children: [
             const Icon(Icons.person_outline, size: 14, color: Colors.grey), const SizedBox(width: 4),
-            Text('BA:${it['ba_agent_name']}', style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
+            Text('BA:${it['ba_agent_name']}', style: const TextStyle(color: Colors.grey, fontSize: 11.0)),
             const Spacer(),
             const Icon(Icons.access_time, size: 14, color: Colors.grey), const SizedBox(width: 4),
-            Text('提交 ${_formatDate(it['ba_submitted_at'] as String?)}', style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
+            Text('提交 ${_formatDate(it['ba_submitted_at'] as String?)}', style: const TextStyle(color: Colors.grey, fontSize: 11.0)),
           ]),
         ])),
       ),
@@ -132,8 +133,8 @@ class _TransactionPendingScreenState extends State<TransactionPendingScreen> {
         child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(color: AppTheme.info.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
-              child: const Text('等待 LA 确认', style: TextStyle(color: AppTheme.info, fontSize: AppTheme.fontCaption, fontWeight: FontWeight.bold))),
+              decoration: BoxDecoration(color: AppTheme.info.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4.0)),
+              child: const Text('等待 LA 确认', style: TextStyle(color: AppTheme.info, fontSize: 11.0, fontWeight: FontWeight.bold))),
             const Spacer(),
           ]),
           const SizedBox(height: 8),
@@ -141,14 +142,14 @@ class _TransactionPendingScreenState extends State<TransactionPendingScreen> {
               style: const TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
           Text('${sp['layout'] ?? ''} · ${sp['area_sqm']}㎡ · 挂牌 ¥${sp['price_wan']}万',
-              style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
+              style: const TextStyle(color: Colors.grey, fontSize: 11.0)),
           const SizedBox(height: 8),
           Row(children: [
             const Icon(Icons.person_outline, size: 14, color: Colors.grey), const SizedBox(width: 4),
-            Text('LA:${it['la_agent_name'] ?? ''}', style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
+            Text('LA:${it['la_agent_name'] ?? ''}', style: const TextStyle(color: Colors.grey, fontSize: 11.0)),
             const Spacer(),
             const Icon(Icons.access_time, size: 14, color: Colors.grey), const SizedBox(width: 4),
-            Text('提交 ${_formatDate(it['ba_submitted_at'] as String?)}', style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontCaption)),
+            Text('提交 ${_formatDate(it['ba_submitted_at'] as String?)}', style: const TextStyle(color: Colors.grey, fontSize: 11.0)),
           ]),
         ])),
       ),

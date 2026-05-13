@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import '../models/listing_filters.dart';
 import '../services/api_client.dart';
 import '../widgets/base64_image.dart';
@@ -148,7 +149,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Text(label, style: TextStyle(fontSize: AppTheme.fontCaption, color: AppTheme.primary500, fontWeight: FontWeight.w500)),
+            Text(label, style: TextStyle(fontSize: 11.0, color: AppTheme.primary500, fontWeight: FontWeight.w500)),
             const SizedBox(width: 4),
             Icon(LucideIcons.x, size: 12, color: AppTheme.primary500),
           ]),
@@ -195,10 +196,10 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
                   right: 8, top: 8,
                   child: Container(
                     width: 18, height: 18,
-                    decoration: BoxDecoration(color: AppTheme.warning, shape: BoxShape.circle),
+                    decoration: BoxDecoration(color: MlsColors.warning, shape: BoxShape.circle),
                     child: Center(
                       child: Text('${_filters.activeDimensionCount}',
-                          style: const TextStyle(color: Colors.white, fontSize: AppTheme.fontSmall, fontWeight: FontWeight.bold)),
+                          style: const TextStyle(color: Colors.white, fontSize: 11.0, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ),
@@ -277,7 +278,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Wrap(spacing: 6, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
                       Text(_headerText(processed.length, allItems.length, isTodayTab: isTodayTab),
-                          style: TextStyle(color: AppTheme.n500, fontSize: AppTheme.fontBody)),
+                          style: TextStyle(color: AppTheme.n500, fontSize: 12.0)),
                       _anonymousBadge(),
                     ]),
                     if (filterChips.isNotEmpty) ...[
@@ -297,8 +298,8 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
 
   Widget _anonymousBadge() => Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-        decoration: BoxDecoration(color: AppTheme.primary50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
-        child: Text('匿名浏览', style: TextStyle(color: AppTheme.primary500, fontSize: AppTheme.fontCaption)),
+        decoration: BoxDecoration(color: AppTheme.primary50, borderRadius: BorderRadius.circular(4.0)),
+        child: Text('匿名浏览', style: TextStyle(color: AppTheme.primary500, fontSize: 11.0)),
       );
 
   PopupMenuItem<String> _sortMenuItem(String value, String label, IconData icon) {
@@ -394,7 +395,7 @@ class _SharedListingCard extends StatelessWidget {
         break;
       case 'transaction_ongoing':
         label = '成交进行中';
-        color = AppTheme.warning;
+        color = MlsColors.warning;
         break;
       case 'sold':
         label = '已成交';
@@ -405,7 +406,7 @@ class _SharedListingCard extends StatelessWidget {
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4.0)),
       child: Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w600)),
     );
   }
@@ -414,18 +415,18 @@ class _SharedListingCard extends StatelessWidget {
     if (_myRequestStatus == 'pending') {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-        decoration: BoxDecoration(color: AppTheme.warning.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+        decoration: BoxDecoration(color: MlsColors.warning.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4.0)),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(LucideIcons.clock4, size: 10, color: AppTheme.warning),
+          Icon(LucideIcons.clock4, size: 10, color: MlsColors.warning),
           const SizedBox(width: 2),
-          Text('已申请', style: TextStyle(color: AppTheme.warning, fontSize: 10, fontWeight: FontWeight.w600)),
+          Text('已申请', style: TextStyle(color: MlsColors.warning, fontSize: 10, fontWeight: FontWeight.w600)),
         ]),
       );
     }
     if (_myRequestStatus == 'approved') {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-        decoration: BoxDecoration(color: AppTheme.success.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+        decoration: BoxDecoration(color: AppTheme.success.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4.0)),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(LucideIcons.checkCircle, size: 10, color: AppTheme.success),
           const SizedBox(width: 2),
@@ -528,11 +529,11 @@ class _SharedListingCard extends StatelessWidget {
                   bottom: 4,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+                    decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(4.0)),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       const Icon(LucideIcons.image, size: 10, color: Colors.white),
                       const SizedBox(width: 2),
-                      Text('$photoCount', style: const TextStyle(color: Colors.white, fontSize: AppTheme.fontSmall)),
+                      Text('$photoCount', style: const TextStyle(color: Colors.white, fontSize: 11.0)),
                     ]),
                   ),
                 ),
@@ -542,11 +543,11 @@ class _SharedListingCard extends StatelessWidget {
                   top: 4,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(color: AppTheme.gold500, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+                    decoration: BoxDecoration(color: AppTheme.gold500, borderRadius: BorderRadius.circular(4.0)),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       const Icon(LucideIcons.tag, size: 10, color: Colors.white),
                       const SizedBox(width: 2),
-                      Text('奖¥$bonusYuan', style: const TextStyle(color: Colors.white, fontSize: AppTheme.fontSmall, fontWeight: FontWeight.w700)),
+                      Text('奖¥$bonusYuan', style: const TextStyle(color: Colors.white, fontSize: 11.0, fontWeight: FontWeight.w700)),
                     ]),
                   ),
                 ),
@@ -562,7 +563,7 @@ class _SharedListingCard extends StatelessWidget {
                   if (isHot) ...[
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                      decoration: BoxDecoration(color: const Color(0xFFDC1414), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
+                      decoration: BoxDecoration(color: const Color(0xFFDC1414), borderRadius: BorderRadius.circular(4.0)),
                       child: const Text('必看好房', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
                     ),
                     const SizedBox(width: 4),
@@ -581,7 +582,7 @@ class _SharedListingCard extends StatelessWidget {
                   child: Row(children: [
                     const Icon(LucideIcons.mapPin, size: 12, color: AppTheme.n500),
                     const SizedBox(width: 2),
-                    Text('$district · $community', style: TextStyle(fontSize: AppTheme.fontCaption, color: AppTheme.n500)),
+                    Text('$district · $community', style: TextStyle(fontSize: 11.0, color: AppTheme.n500)),
                   ]),
                 ),
                 const SizedBox(height: 4),
@@ -592,7 +593,7 @@ class _SharedListingCard extends StatelessWidget {
                    if (floor != null && totalFloor != null) '$floor/$totalFloor层',
                    if (orientation.isNotEmpty) orientation,
                   ].join(' | '),
-                  style: TextStyle(fontSize: AppTheme.fontCaption, color: AppTheme.n700),
+                  style: TextStyle(fontSize: 11.0, color: AppTheme.n700),
                 ),
                 const SizedBox(height: 4),
 
@@ -606,8 +607,8 @@ class _SharedListingCard extends StatelessWidget {
                       children: tags
                           .map((t) => Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                                decoration: BoxDecoration(color: AppTheme.n50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
-                                child: Text(t, style: TextStyle(fontSize: AppTheme.fontSmall, color: AppTheme.n700)),
+                                decoration: BoxDecoration(color: AppTheme.n50, borderRadius: BorderRadius.circular(4.0)),
+                                child: Text(t, style: TextStyle(fontSize: 11.0, color: AppTheme.n700)),
                               ))
                           .toList(),
                     ),
@@ -619,7 +620,7 @@ class _SharedListingCard extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Text(
                       publicRemarks.length > 50 ? '${publicRemarks.substring(0, 50)}...' : publicRemarks,
-                      style: TextStyle(color: AppTheme.n500, fontSize: AppTheme.fontCaption),
+                      style: TextStyle(color: AppTheme.n500, fontSize: 11.0),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -646,16 +647,16 @@ class _SharedListingCard extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 2),
-                            Text('万', style: TextStyle(color: AppTheme.n900, fontSize: AppTheme.fontSmall, fontWeight: FontWeight.w600)),
+                            Text('万', style: TextStyle(color: AppTheme.n900, fontSize: 11.0, fontWeight: FontWeight.w600)),
                           ],
                         ),
                         if (unitPrice > 0)
-                          Text('$unitPrice 元/㎡', style: TextStyle(color: AppTheme.n500, fontSize: AppTheme.fontSmall)),
+                          Text('$unitPrice 元/㎡', style: TextStyle(color: AppTheme.n500, fontSize: 11.0)),
                       ],
                     ),
                     if (createdAt != null) ...[
                       const SizedBox(width: 8),
-                      Text(_relativeTime(createdAt), style: TextStyle(color: AppTheme.n500, fontSize: AppTheme.fontSmall)),
+                      Text(_relativeTime(createdAt), style: TextStyle(color: AppTheme.n500, fontSize: 11.0)),
                     ],
                     const Spacer(),
                     // V2.5: Q&A 计数角标
@@ -664,21 +665,21 @@ class _SharedListingCard extends StatelessWidget {
                         padding: const EdgeInsets.only(right: 8),
                         child: InkWell(
                           onTap: () => context.push('/listing/${item['listing_id']}/qna'),
-                          borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                          borderRadius: BorderRadius.circular(4.0),
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(color: AppTheme.n50, borderRadius: BorderRadius.circular(AppTheme.radiusSmall), border: Border.all(color: AppTheme.n150)),
+                            decoration: BoxDecoration(color: AppTheme.n50, borderRadius: BorderRadius.circular(4.0), border: Border.all(color: AppTheme.n150)),
                             child: Row(mainAxisSize: MainAxisSize.min, children: [
                               const Icon(LucideIcons.helpCircle, size: 12, color: AppTheme.n500),
                               const SizedBox(width: 2),
-                              Text('${item['qna_count']}', style: AppTheme.caption.copyWith(fontSize: AppTheme.fontSmall, color: AppTheme.n500)),
+                              Text('${item['qna_count']}', style: AppTheme.caption.copyWith(fontSize: 11.0, color: AppTheme.n500)),
                             ]),
                           ),
                         ),
                       ),
                     Material(
                       color: _myRequestStatus == 'pending'
-                          ? AppTheme.warning
+                          ? MlsColors.warning
                           : _myRequestStatus == 'approved'
                               ? AppTheme.success
                               : const Color(0xFF2B7FFF),

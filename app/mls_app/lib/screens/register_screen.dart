@@ -192,7 +192,7 @@ Future<void> _submit() async {
                   const SizedBox(height: 4),
                   Text(
                     '让每一次成交都留痕',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: AppTheme.fontBody),
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12.0),
                   ),
                 ],
               ),
@@ -328,7 +328,7 @@ Future<void> _submit() async {
               children: [
                 const Text(
                   '已有账号?',
-                  style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontBody),
+                  style: TextStyle(color: Colors.grey, fontSize: 12.0),
                 ),
                 TextButton(
                   onPressed: () => context.go('/login'),

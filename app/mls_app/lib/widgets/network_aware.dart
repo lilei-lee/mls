@@ -44,7 +44,7 @@ class _NetworkAwareState extends State<NetworkAware> {
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(Icons.wifi_off, color: Colors.white, size: 14),
               SizedBox(width: 8),
-              Text('网络已断开,请检查连接', style: TextStyle(color: Colors.white, fontSize: AppTheme.fontBody)),
+              Text('网络已断开,请检查连接', style: TextStyle(color: Colors.white, fontSize: 12.0)),
             ]),
           ),
         ),

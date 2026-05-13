@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 
 class AppButton extends StatelessWidget {
   final String label;
@@ -53,13 +54,13 @@ class AppButton extends StatelessWidget {
       case _ButtonVariant.secondary:
         return BoxDecoration(
           borderRadius: BorderRadius.circular(AppTheme.radiusM),
-          color: enabled ? AppTheme.n0 : AppTheme.n100,
+          color: enabled ? MlsColors.bgCardPrimary : AppTheme.n100,
           border: Border.all(color: enabled ? AppTheme.n150 : AppTheme.n200, width: 1.5),
         );
       case _ButtonVariant.danger:
         return BoxDecoration(
           borderRadius: BorderRadius.circular(AppTheme.radiusM),
-          color: enabled ? AppTheme.n0 : AppTheme.n100,
+          color: enabled ? MlsColors.bgCardPrimary : AppTheme.n100,
           border: Border.all(color: AppTheme.danger, width: 1.5),
         );
       case _ButtonVariant.gold:
@@ -77,7 +78,7 @@ class AppButton extends StatelessWidget {
     switch (variant) {
       case _ButtonVariant.primary:
       case _ButtonVariant.gold:
-        return base.copyWith(color: enabled ? AppTheme.n0 : AppTheme.n0);
+        return base.copyWith(color: enabled ? MlsColors.bgCardPrimary : MlsColors.bgCardPrimary);
       case _ButtonVariant.secondary:
         return base.copyWith(color: enabled ? AppTheme.n800 : AppTheme.n300);
       case _ButtonVariant.danger:
