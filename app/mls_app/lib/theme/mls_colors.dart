@@ -126,6 +126,23 @@ class MlsColors {
   /// 深色面板上的边框 8% white
   static const Color borderOnDark = Color(0x14FFFFFF);
 
+  // ============ Dashboard / Charts ============
+
+  /// Dashboard 整页底色 (#06173B)
+  static const Color bgDashboard = Color(0xFF06173B);
+
+  /// Dashboard 卡片底色 (#0A234E)
+  static const Color bgCardDark = Color(0xFF0A234E);
+
+  /// Dashboard 卡片边框 (#185FA5)
+  static const Color borderCard = Color(0xFF185FA5);
+
+  /// 双折线紫色 (#AFA9EC)
+  static const Color chartPurple = Color(0xFFAFA9EC);
+
+  /// 双折线橙色 (#EF9F27)
+  static const Color chartOrange = Color(0xFFEF9F27);
+
   // ============ 协作头像色系 (5 个) ============
   // 用于协作 row / 协作伙伴榜 头像
   // 每个协作伙伴一个色系,避免单调,强化"人感"
