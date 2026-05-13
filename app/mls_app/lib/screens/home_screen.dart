@@ -85,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ListTile(leading: const Icon(Icons.person_outline), title: Text(_myName), enabled: false),
           const Divider(height: 1),
           ListTile(leading: const Icon(LucideIcons.helpCircle), title: const Text('我的提问'),
-              trailing: _pendingQnaCount > 0 ? Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1), decoration: BoxDecoration(color: MlsColors.warningBg, borderRadius: BorderRadius.circular(4)), child: Text('$_pendingQnaCount', style: TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 10, color: MlsColors.warning, fontWeight: MlsTypography.semibold))) : null,
+              trailing: _pendingQnaCount > 0 ? Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1), decoration: BoxDecoration(color: MlsColors.warningBg, borderRadius: BorderRadius.circular(4)), child: Text('$_pendingQnaCount', style: const TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 10, color: MlsColors.warning, fontWeight: MlsTypography.semibold))) : null,
               onTap: () { Navigator.pop(ctx); context.push('/my-questions'); }),
           ListTile(leading: const Icon(Icons.logout, color: Colors.red), title: const Text('退出登录', style: TextStyle(color: Colors.red)),
               onTap: () { Navigator.pop(ctx); _confirmLogout(context); }),
@@ -141,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
                           const Spacer(),
                           Text('${_greeting()}，${_myName.isNotEmpty ? _myName : '用户'}',
-                              style: TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 15, fontWeight: MlsTypography.semibold, color: Colors.white)),
+                              style: const TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 15, fontWeight: MlsTypography.semibold, color: Colors.white)),
                           Text('工作台 · ${_todayLabel()}',
                               style: TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 11, color: Colors.white.withValues(alpha: 0.65))),
                           const Spacer(),
@@ -155,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               decoration: const BoxDecoration(color: MlsColors.danger, shape: BoxShape.circle),
                               constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                               alignment: Alignment.center,
-                              child: Text('${_unreadCount > 99 ? '99+' : _unreadCount}', style: TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 9, fontWeight: MlsTypography.bold, color: Colors.white)),
+                              child: Text('${_unreadCount > 99 ? '99+' : _unreadCount}', style: const TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 9, fontWeight: MlsTypography.bold, color: Colors.white)),
                             )),
                         ]),
                       ]),
@@ -193,13 +193,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         Row(mainAxisSize: MainAxisSize.min, children: [
                           GestureDetector(
                             onTap: () => context.push('/dashboard'),
-                            child: Row(mainAxisSize: MainAxisSize.min, children: [
+                            child: const Row(mainAxisSize: MainAxisSize.min, children: [
                               Text('仪表盘', style: TextStyle(
                                 fontFamilyFallback: MlsTypography.sansFallback,
                                 fontSize: 11, color: MlsColors.primary,
                                 fontWeight: MlsTypography.semibold,
                               )),
-                              const Icon(Icons.arrow_outward, size: 12, color: MlsColors.primary),
+                              Icon(Icons.arrow_outward, size: 12, color: MlsColors.primary),
                             ]),
                           ),
                         ]),
@@ -219,7 +219,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           valueColor: MlsColors.danger,
                           padding: EdgeInsets.zero,
                         )),
-                        Expanded(child: MlsMetricCell(
+                        const Expanded(child: MlsMetricCell(
                           label: '协作中',
                           value: '00',
                           valueColor: MlsColors.primary,
@@ -228,7 +228,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ]),
                       const SizedBox(height: 14),
                       Row(children: [
-                        Expanded(child: MlsMetricCell(
+                        const Expanded(child: MlsMetricCell(
                           label: '本月奖金',
                           value: '¥0',
                           valueColor: MlsColors.gold,
@@ -260,8 +260,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text('SEE ALL ↗', style: MlsTypography.monoLabel.copyWith(color: MlsColors.primary)),
                       ]),
                       const SizedBox(height: 12),
-                      MlsAvatarStack(
-                        names: const ['李红', '王明', '周丽', '陈强', '杨敏'],
+                      const MlsAvatarStack(
+                        names: ['李红', '王明', '周丽', '陈强', '杨敏'],
                         moreCount: 2,
                         avatarSize: 36,
                       ),
@@ -361,7 +361,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Container(width: 36, height: 36, decoration: const BoxDecoration(color: MlsColors.primaryBg, shape: BoxShape.circle),
             child: Icon(icon, size: 20, color: MlsColors.primary)),
         const SizedBox(width: 12),
-        Text(label, style: TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 14, fontWeight: MlsTypography.semibold, color: MlsColors.textPrimary)),
+        Text(label, style: const TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 14, fontWeight: MlsTypography.semibold, color: MlsColors.textPrimary)),
       ]),
     );
   }
@@ -396,7 +396,7 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(width: 12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            Expanded(child: Text(todo['title']?.toString() ?? '', style: TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 14, fontWeight: MlsTypography.semibold, color: MlsColors.textPrimary), maxLines: 2, overflow: TextOverflow.ellipsis)),
+            Expanded(child: Text(todo['title']?.toString() ?? '', style: const TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 14, fontWeight: MlsTypography.semibold, color: MlsColors.textPrimary), maxLines: 2, overflow: TextOverflow.ellipsis)),
             if (badge != null) ...[const SizedBox(width: 6), badge],
           ]),
           if (todo['subtitle'] != null && (todo['subtitle'] as String).isNotEmpty) ...[
@@ -444,7 +444,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: MlsSectionHeader(
             title: title,
             trailing: actionLabel != null
-                ? Text(actionLabel, style: TextStyle(
+                ? Text(actionLabel, style: const TextStyle(
                     fontFamilyFallback: MlsTypography.sansFallback,
                     fontSize: 12,
                     fontWeight: MlsTypography.semibold,

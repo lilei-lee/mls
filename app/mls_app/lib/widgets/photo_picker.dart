@@ -339,7 +339,7 @@ class _PhotoPickerState extends State<PhotoPicker> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add_a_photo_outlined,
+            const Icon(Icons.add_a_photo_outlined,
                 size: 28, color: MlsColors.textSecondary),
             const SizedBox(height: 4),
             Text(

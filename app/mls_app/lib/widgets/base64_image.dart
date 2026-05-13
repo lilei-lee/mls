@@ -45,7 +45,7 @@ class Base64Image extends StatelessWidget {
       height: height,
       fit: fit,
       gaplessPlayback: true,
-      errorBuilder: (_, __, ___) => _buildPlaceholder(),
+      errorBuilder: (_, _, _) => _buildPlaceholder(),
     );
   }
 

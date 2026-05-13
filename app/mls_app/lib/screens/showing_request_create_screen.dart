@@ -518,7 +518,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
                   return ListView.separated(
                     controller: scrollController,
                     itemCount: items.length,
-                    separatorBuilder: (_, __) =>
+                    separatorBuilder: (_, _) =>
                         const Divider(height: 1, indent: 16, endIndent: 16),
                     itemBuilder: (ctx, idx) {
                       final c = items[idx];

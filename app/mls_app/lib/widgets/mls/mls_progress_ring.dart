@@ -122,7 +122,7 @@ class _MlsProgressRingState extends State<MlsProgressRing>
         children: [
           AnimatedBuilder(
             animation: _animation,
-            builder: (_, __) => CustomPaint(
+            builder: (_, _) => CustomPaint(
               size: Size(widget.size, widget.size),
               painter: _RingPainter(
                 percent: _animation.value,

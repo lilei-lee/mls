@@ -73,9 +73,9 @@ class TransactionService {
     final resp = await _dio.patch(
       '/transactions/$transactionId/my-submission',
       data: {
-        if (dealPriceYuan != null) 'deal_price_yuan': dealPriceYuan,
-        if (dealDate != null) 'deal_date': dealDate,
-        if (notes != null) 'notes': notes,
+        'deal_price_yuan': ?dealPriceYuan,
+        'deal_date': ?dealDate,
+        'notes': ?notes,
       },
     );
     return Map<String, dynamic>.from(resp.data['data']);
@@ -143,8 +143,7 @@ class ListingStatusService {
     final resp = await _dio.post(
       '/listings/$listingId/mark-deposit-paid',
       data: {
-        if (depositAmountYuan != null)
-          'deposit_amount_yuan': depositAmountYuan,
+        'deposit_amount_yuan': ?depositAmountYuan,
         if (note != null && note.isNotEmpty) 'note': note,
       },
     );

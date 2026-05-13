@@ -62,7 +62,7 @@ class _TransactionPendingScreenState extends State<TransactionPendingScreen> {
             return ListView.separated(
               padding: const EdgeInsets.all(12),
               itemCount: items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              separatorBuilder: (_, _) => const SizedBox(height: 8),
               itemBuilder: (ctx, i) => _isLa ? _buildLaCard(items[i]) : _buildBaCard(items[i]),
             );
           },

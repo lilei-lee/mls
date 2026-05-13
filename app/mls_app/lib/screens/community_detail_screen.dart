@@ -70,7 +70,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: MlsColors.primaryBg),
+              decoration: const BoxDecoration(color: MlsColors.primaryBg),
               child: Column(children: [
                 Text(name, style: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
@@ -203,7 +203,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text('${item['building']}-${item['unit']}-${item['room_no']} | $layout',
                       style: const TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
-                  Text('${area}㎡ · ${item['floor']}/${item['total_floor']}层',
+                  Text('$area㎡ · ${item['floor']}/${item['total_floor']}层',
                       style: const TextStyle(fontSize: 11.0, color: Colors.grey)),
                 ]),
               ),
@@ -231,7 +231,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
     // 基础信息行
     final basicRows = <Widget>[];
     final bldS = data['bld_year_start'], bldE = data['bld_year_end'];
-    if (bldS != null) basicRows.add(_row('建成年代', bldS == bldE ? '${bldS}年' : '${bldS}-${bldE}年'));
+    if (bldS != null) basicRows.add(_row('建成年代', bldS == bldE ? '$bldS年' : '$bldS-$bldE年'));
     _addIf(basicRows, '总楼栋', data['total_buildings'], suffix: ' 栋');
     _addIf(basicRows, '总户数', data['total_units'], suffix: ' 户');
     _addIf(basicRows, '容积率', data['plot_ratio']);

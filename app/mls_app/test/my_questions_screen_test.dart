@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/models/qna_thread.dart';
+import 'package:mls_app/models/qna_thread.dart';
 
 void main() {
   group('MyQuestionsScreen 核心逻辑', () {

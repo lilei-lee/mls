@@ -70,10 +70,10 @@ class MlsTheme {
         ),
 
         // ============ 卡片 (业务一般用 MlsCard, 这里只兜底原生 Card) ============
-        cardTheme: CardThemeData(
+        cardTheme: const CardThemeData(
           color: MlsColors.bgCardPrimary,
           elevation: 0,
-          shape: const RoundedRectangleBorder(borderRadius: MlsRadius.card),
+          shape: RoundedRectangleBorder(borderRadius: MlsRadius.card),
           margin: EdgeInsets.zero,
         ),
 
@@ -113,7 +113,7 @@ class MlsTheme {
             ),
             padding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            textStyle: TextStyle(
+            textStyle: const TextStyle(
               fontFamilyFallback: MlsTypography.sansFallback,
               fontSize: 13.5,
               fontWeight: MlsTypography.semibold,
@@ -125,7 +125,7 @@ class MlsTheme {
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
             foregroundColor: MlsColors.primary,
-            textStyle: TextStyle(
+            textStyle: const TextStyle(
               fontFamilyFallback: MlsTypography.sansFallback,
               fontSize: 13,
               fontWeight: MlsTypography.medium,
@@ -169,14 +169,14 @@ class MlsTheme {
         ),
 
         // ============ SnackBar ============
-        snackBarTheme: SnackBarThemeData(
+        snackBarTheme: const SnackBarThemeData(
           backgroundColor: MlsColors.bgPanelDark,
           contentTextStyle: TextStyle(
             fontFamilyFallback: MlsTypography.sansFallback,
             color: MlsColors.textOnDark,
             fontSize: 13,
           ),
-          shape: const RoundedRectangleBorder(
+          shape: RoundedRectangleBorder(
             borderRadius: MlsRadius.button,
           ),
           behavior: SnackBarBehavior.floating,

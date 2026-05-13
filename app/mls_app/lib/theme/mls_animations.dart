@@ -208,7 +208,7 @@ class _MlsPulseState extends State<MlsPulse>
       children: [
         AnimatedBuilder(
           animation: _controller,
-          builder: (_, __) {
+          builder: (_, _) {
             // 0~1 三角波: 0→0.5→0
             final t = _controller.value;
             final wave = t < 0.5 ? t * 2 : (1 - t) * 2;

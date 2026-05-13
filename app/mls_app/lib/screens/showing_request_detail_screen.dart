@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/mls_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
@@ -500,8 +499,8 @@ class _ShowingRequestDetailScreenState
   ) {
     if (showing == null) {
       if (isLA) {
-        return MlsCard(
-          child: const Padding(
+        return const MlsCard(
+          child: Padding(
             padding: EdgeInsets.all(14),
             child: Row(
               children: [
@@ -518,8 +517,8 @@ class _ShowingRequestDetailScreenState
       }
       return Column(
         children: [
-          MlsCard(
-            child: const Padding(
+          const MlsCard(
+            child: Padding(
               padding: EdgeInsets.all(14),
               child: Row(
                 children: [
@@ -709,8 +708,8 @@ class _ShowingRequestDetailScreenState
   ) {
     if (tx == null) {
       if (isLA) {
-        return MlsCard(
-          child: const Padding(
+        return const MlsCard(
+          child: Padding(
             padding: EdgeInsets.all(14),
             child: Row(
               children: [
@@ -727,8 +726,8 @@ class _ShowingRequestDetailScreenState
       }
       return Column(
         children: [
-          MlsCard(
-            child: const Padding(
+          const MlsCard(
+            child: Padding(
               padding: EdgeInsets.all(14),
               child: Row(
                 children: [
@@ -765,8 +764,8 @@ class _ShowingRequestDetailScreenState
     // 已撤回:BA 可重新发起,LA 看提示
     if (tx['status'] == 'cancelled') {
       if (isLA) {
-        return MlsCard(
-          child: const Padding(
+        return const MlsCard(
+          child: Padding(
             padding: EdgeInsets.all(14),
             child: Row(
               children: [
@@ -783,8 +782,8 @@ class _ShowingRequestDetailScreenState
       }
       return Column(
         children: [
-          MlsCard(
-            child: const Padding(
+          const MlsCard(
+            child: Padding(
               padding: EdgeInsets.all(14),
               child: Row(
                 children: [

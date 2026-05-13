@@ -17,14 +17,14 @@ void main() {
     });
 
     test('count=0 → 不渲染卡片', () {
-      final count = 0;
-      final show = count > 0;
+      const count = 0;
+      const show = count > 0;
       expect(show, isFalse);
     });
 
     test('count>0 → 渲染卡片', () {
-      final count = 3;
-      final show = count > 0;
+      const count = 3;
+      const show = count > 0;
       expect(show, isTrue);
     });
   });

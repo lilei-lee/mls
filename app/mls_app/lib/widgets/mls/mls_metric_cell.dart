@@ -81,7 +81,7 @@ class MlsMetricCell extends StatelessWidget {
           // 标签
           Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               fontFamilyFallback: MlsTypography.sansFallback,
               fontSize: 11,
               color: MlsColors.textTertiary,
@@ -111,7 +111,7 @@ class MlsMetricCell extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 3),
                   child: Text(
                     suffix!,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontFamily: MlsTypography.monoFamily,
                       fontFamilyFallback: MlsTypography.monoFallback,
                       fontSize: 11,

@@ -98,7 +98,7 @@ Future<void> _submit() async {
       final data = response.data;
       if (data['success'] == true) {
         // 存 token
-        final storage = FlutterSecureStorage();
+        const storage = FlutterSecureStorage();
         await storage.write(key: 'access_token', value: data['access_token']);
         await storage.write(key: 'refresh_token', value: data['refresh_token']);
         await storage.write(key: 'agent_id', value: data['agent_id']);

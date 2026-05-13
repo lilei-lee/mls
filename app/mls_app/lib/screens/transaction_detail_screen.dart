@@ -486,7 +486,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
               ],
             ),
             const SizedBox(height: 6),
-            Text(
+            const Text(
               '防伪机制:请您独立填写记忆中的成交价,系统将自动比对。',
               style: TextStyle(
                 color: MlsColors.textPrimary,

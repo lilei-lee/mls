@@ -347,13 +347,13 @@ class _CollaborationCard extends StatelessWidget {
               // 底部:最近动作
               Row(
                 children: [
-                  Icon(Icons.access_time,
+                  const Icon(Icons.access_time,
                       size: 11, color: MlsColors.textSecondary),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       lastActionText,
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: MlsColors.textPrimary, fontSize: 11.0),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -361,7 +361,7 @@ class _CollaborationCard extends StatelessWidget {
                   ),
                   Text(
                     _relativeTime(lastActionTime),
-                    style: TextStyle(
+                    style: const TextStyle(
                         color: MlsColors.textSecondary, fontSize: 11.0),
                   ),
                 ],

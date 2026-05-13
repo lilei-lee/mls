@@ -88,7 +88,7 @@ class _ShowingPendingConfirmScreenState
             return ListView.separated(
               padding: const EdgeInsets.all(12),
               itemCount: items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              separatorBuilder: (_, _) => const SizedBox(height: 8),
               itemBuilder: (ctx, i) {
                 final it = items[i];
                 final sp = Map<String, dynamic>.from(it['listing_snapshot']);

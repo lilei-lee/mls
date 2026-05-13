@@ -77,7 +77,7 @@ class MlsHeroToday extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final card = Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: MlsColors.heroBlue,
         borderRadius: MlsRadius.hero,
         boxShadow: MlsShadows.heroBlue,
@@ -180,7 +180,7 @@ class MlsHeroToday extends StatelessWidget {
                   // 主标题
                   Text(
                     title,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontFamilyFallback: MlsTypography.sansFallback,
                       fontSize: 16,
                       fontWeight: MlsTypography.semibold,

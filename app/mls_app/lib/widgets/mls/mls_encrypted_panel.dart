@@ -124,7 +124,7 @@ class _MlsEncryptedPanelState extends State<MlsEncryptedPanel>
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: MlsColors.panelDark,
         borderRadius: MlsRadius.cardLg,
         boxShadow: MlsShadows.panelDark,
@@ -137,7 +137,7 @@ class _MlsEncryptedPanelState extends State<MlsEncryptedPanel>
             if (widget.showScanLine)
               AnimatedBuilder(
                 animation: _scanController,
-                builder: (_, __) {
+                builder: (_, _) {
                   return Positioned.fill(
                     child: LayoutBuilder(
                       builder: (_, constraints) {
@@ -190,7 +190,7 @@ class _MlsEncryptedPanelState extends State<MlsEncryptedPanel>
                       Expanded(
                         child: Text(
                           widget.title,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontFamilyFallback:
                                 MlsTypography.sansFallback,
                             fontSize: 13,
@@ -236,7 +236,7 @@ class _MlsEncryptedPanelState extends State<MlsEncryptedPanel>
                             const SizedBox(width: 6),
                             Text(
                               '${widget.submitterName} · ${widget.submitterRole}',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontFamilyFallback:
                                     MlsTypography.sansFallback,
                                 fontSize: 12,
@@ -246,12 +246,12 @@ class _MlsEncryptedPanelState extends State<MlsEncryptedPanel>
                             const Spacer(),
                             Text(
                               widget.submitterStatusText,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontFamily: MlsTypography.monoFamily,
                                 fontFamilyFallback:
                                     MlsTypography.monoFallback,
                                 fontSize: 9,
-                                color: const Color(0xFF86EFAC),
+                                color: Color(0xFF86EFAC),
                                 letterSpacing: 0.5,
                               ),
                             ),
@@ -287,7 +287,7 @@ class _MlsEncryptedPanelState extends State<MlsEncryptedPanel>
                         Expanded(
                           child: RichText(
                             text: TextSpan(
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontFamilyFallback:
                                     MlsTypography.sansFallback,
                                 fontSize: 11,
@@ -370,7 +370,7 @@ class _MlsEncryptedPanelState extends State<MlsEncryptedPanel>
             ],
             Text(
               f.label,
-              style: TextStyle(
+              style: const TextStyle(
                 fontFamilyFallback: MlsTypography.sansFallback,
                 fontSize: 11,
                 color: MlsColors.textOnDarkSubtle,
@@ -383,15 +383,15 @@ class _MlsEncryptedPanelState extends State<MlsEncryptedPanel>
         Text(
           f.value,
           style: f.masked
-              ? TextStyle(
+              ? const TextStyle(
                   fontFamily: MlsTypography.monoFamily,
                   fontFamilyFallback: MlsTypography.monoFallback,
                   fontSize: 13,
-                  color: const Color(0xFF475569),
+                  color: Color(0xFF475569),
                   letterSpacing: 2,
                   height: 1,
                 )
-              : TextStyle(
+              : const TextStyle(
                   fontFamilyFallback: MlsTypography.sansFallback,
                   fontSize: 11,
                   fontWeight: MlsTypography.medium,

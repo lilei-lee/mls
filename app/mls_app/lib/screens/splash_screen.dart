@@ -41,24 +41,24 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.home_work, size: 80, color: Colors.blue),
-            const SizedBox(height: 20),
-            const Text(
+            Icon(Icons.home_work, size: 80, color: Colors.blue),
+            SizedBox(height: 20),
+            Text(
               '张家口 MLS',
               style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 8),
-            const Text(
+            SizedBox(height: 8),
+            Text(
               '经纪人协作平台',
               style: TextStyle(fontSize: 12.0, color: Colors.grey),
             ),
-            const SizedBox(height: 40),
-            const CircularProgressIndicator(),
+            SizedBox(height: 40),
+            CircularProgressIndicator(),
           ],
         ),
       ),

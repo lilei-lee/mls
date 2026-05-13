@@ -108,8 +108,8 @@ class _MlsPreviewScreenState extends State<MlsPreviewScreen> {
                     children: [
                       Row(
                         children: [
-                          Expanded(
-                            child: const MlsMetricCell(
+                          const Expanded(
+                            child: MlsMetricCell(
                               label: '待办',
                               value: '02',
                               suffix: '紧急',
@@ -121,13 +121,13 @@ class _MlsPreviewScreenState extends State<MlsPreviewScreen> {
                             height: 80,
                             color: MlsColors.borderLight,
                           ),
-                          Expanded(
+                          const Expanded(
                             child: MlsMetricCell(
                               label: '协作活跃',
                               value: '07',
                               suffix: '↑ 2',
                               trailing: MlsSparkline(
-                                points: const [3, 5, 4, 6, 5, 4, 7],
+                                points: [3, 5, 4, 6, 5, 4, 7],
                                 color: MlsColors.primary,
                               ),
                             ),
@@ -138,14 +138,14 @@ class _MlsPreviewScreenState extends State<MlsPreviewScreen> {
                           height: 0.5, color: MlsColors.borderLight),
                       Row(
                         children: [
-                          Expanded(
+                          const Expanded(
                             child: MlsMetricCell(
                               label: '本月奖金',
                               value: '¥8,400',
                               suffix: '已结算',
                               valueColor: MlsColors.gold,
                               valueFontSize: 20,
-                              trailing: const MlsProgressBar(
+                              trailing: MlsProgressBar(
                                 percent: 0.56,
                                 color: MlsColors.gold,
                               ),
@@ -156,12 +156,12 @@ class _MlsPreviewScreenState extends State<MlsPreviewScreen> {
                             height: 100,
                             color: MlsColors.borderLight,
                           ),
-                          Expanded(
+                          const Expanded(
                             child: MlsMetricCell(
                               label: '本周带看',
                               value: '04',
                               trailing: MlsMiniBars(
-                                values: const [2, 4, 3, 5, 4, 4, 1],
+                                values: [2, 4, 3, 5, 4, 4, 1],
                                 color: MlsColors.primary,
                               ),
                             ),
@@ -184,7 +184,7 @@ class _MlsPreviewScreenState extends State<MlsPreviewScreen> {
                     children: [
                       Column(
                         children: [
-                          MlsProgressRing(
+                          const MlsProgressRing(
                             percent: 0.56,
                             size: 88,
                             strokeWidth: 8,
@@ -217,7 +217,7 @@ class _MlsPreviewScreenState extends State<MlsPreviewScreen> {
                       ),
                       Column(
                         children: [
-                          MlsProgressRing(
+                          const MlsProgressRing(
                             percent: 0.83,
                             size: 88,
                             strokeWidth: 8,
@@ -341,7 +341,7 @@ class _MlsPreviewScreenState extends State<MlsPreviewScreen> {
                       ),
                     const SizedBox(height: 10),
                     Container(
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         gradient: MlsColors.panelDark,
                         borderRadius: MlsRadius.cardLg,
                       ),
@@ -365,7 +365,7 @@ class _MlsPreviewScreenState extends State<MlsPreviewScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: MlsColors.successBg,
                       borderRadius: MlsRadius.badge,
                     ),

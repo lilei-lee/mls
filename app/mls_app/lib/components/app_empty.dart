@@ -20,7 +20,7 @@ class AppEmpty extends StatelessWidget {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Container(
             width: 80, height: 80,
-            decoration: BoxDecoration(color: MlsColors.primaryBg, shape: BoxShape.circle),
+            decoration: const BoxDecoration(color: MlsColors.primaryBg, shape: BoxShape.circle),
             child: Icon(icon, size: 40, color: MlsColors.primary),
           ),
           const SizedBox(height: 16),

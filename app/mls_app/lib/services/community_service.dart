@@ -32,8 +32,8 @@ class CommunityService {
     final resp = await _dio.post('/communities', data: {
       'name': name,
       'district': district,
-      if (builtYear != null) 'built_year': builtYear,
-      if (buildingCount != null) 'building_count': buildingCount,
+      'built_year': ?builtYear,
+      'building_count': ?buildingCount,
     });
     return resp.data['community_id'] as String;
   }

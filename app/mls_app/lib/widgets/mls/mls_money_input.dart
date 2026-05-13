@@ -290,7 +290,7 @@ class _MlsMoneyInputState extends State<MlsMoneyInput> {
               const SizedBox(width: 4),
               Text(
                 _warning!,
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamilyFallback: MlsTypography.sansFallback,
                   fontSize: 11,
                   color: MlsColors.danger,

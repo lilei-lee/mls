@@ -28,7 +28,7 @@ class DashboardScreen extends StatelessWidget {
                   strokeWidth: 9,
                   valueColor: MlsColors.gold,
                   center: Column(mainAxisSize: MainAxisSize.min, children: [
-                    Text('56%', style: TextStyle(
+                    const Text('56%', style: TextStyle(
                       fontFamily: MlsTypography.monoFamily,
                       fontSize: 22, fontWeight: MlsTypography.bold,
                       color: MlsColors.goldTextDark,
@@ -38,7 +38,7 @@ class DashboardScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 16),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('¥8,400', style: TextStyle(
+                  const Text('¥8,400', style: TextStyle(
                     fontFamily: MlsTypography.monoFamily,
                     fontSize: 32, fontWeight: MlsTypography.bold,
                     color: MlsColors.goldTextDark,
@@ -56,22 +56,22 @@ class DashboardScreen extends StatelessWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('本月业绩', style: MlsTypography.cardTitleLg),
               const SizedBox(height: 14),
-              Row(children: [
+              const Row(children: [
                 Expanded(child: MlsMetricCell(
                   label: '成交单数', value: '03', suffix: '↑1',
                   valueColor: MlsColors.success, padding: EdgeInsets.zero,
                 )),
                 Expanded(child: MlsMetricCell(
                   label: '带看次数', value: '12',
-                  trailing: MlsMiniBars(values: const [2, 4, 3, 5, 4, 4, 1]),
+                  trailing: MlsMiniBars(values: [2, 4, 3, 5, 4, 4, 1]),
                   padding: EdgeInsets.zero,
                 )),
               ]),
               const SizedBox(height: 18),
-              Row(children: [
+              const Row(children: [
                 Expanded(child: MlsMetricCell(
                   label: '新增客户', value: '08',
-                  trailing: MlsSparkline(points: const [3, 5, 4, 6, 5, 7]),
+                  trailing: MlsSparkline(points: [3, 5, 4, 6, 5, 7]),
                   padding: EdgeInsets.zero,
                 )),
                 Expanded(child: MlsMetricCell(
@@ -86,7 +86,7 @@ class DashboardScreen extends StatelessWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('房源状态分布', style: MlsTypography.cardTitleLg),
               const SizedBox(height: 12),
-              Row(children: [
+              const Row(children: [
                 Expanded(child: MlsMetricCell(
                   label: '在售', value: '12', valueColor: MlsColors.primary,
                   padding: EdgeInsets.zero,

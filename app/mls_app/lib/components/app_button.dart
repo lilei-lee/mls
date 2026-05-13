@@ -74,7 +74,7 @@ class AppButton extends StatelessWidget {
   }
 
   TextStyle _textStyle(bool enabled) {
-    final base = TextStyle(fontSize: 15, fontWeight: FontWeight.w600);
+    const base = TextStyle(fontSize: 15, fontWeight: FontWeight.w600);
     switch (variant) {
       case _ButtonVariant.primary:
       case _ButtonVariant.gold:

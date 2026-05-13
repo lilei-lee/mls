@@ -187,7 +187,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
             final isOwner = item['_is_owner'] == true;
             final isUnlocked = isOwner || agentRemarks.isNotEmpty || showingInst.isNotEmpty;
             final building = (item['building'] ?? '').toString();
-            final addressFull = '${item['community']} ${building}-${item['unit']}-${item['room_no']}';
+            final addressFull = '${item['community']} $building-${item['unit']}-${item['room_no']}';
 
             return ListView(
               padding: EdgeInsets.zero,
@@ -313,16 +313,16 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                         Expanded(child: Text(agentRemarks, style: const TextStyle(fontSize: 12.0, height: 1.6))),
                       ])
                     else if (isOwner)
-                      Row(children: [
-                        const Icon(Icons.info_outline, size: 16, color: Colors.grey),
-                        const SizedBox(width: 8),
-                        const Expanded(child: Text('本房暂无同行私话(可在编辑页填写)', style: TextStyle(color: Colors.grey, fontSize: 12.0))),
+                      const Row(children: [
+                        Icon(Icons.info_outline, size: 16, color: Colors.grey),
+                        SizedBox(width: 8),
+                        Expanded(child: Text('本房暂无同行私话(可在编辑页填写)', style: TextStyle(color: Colors.grey, fontSize: 12.0))),
                       ])
                     else
-                      Row(children: [
-                        const Icon(Icons.lock_open, size: 16, color: Colors.green),
-                        const SizedBox(width: 8),
-                        const Expanded(child: Text('(已通过协作,暂无同行私话)', style: TextStyle(color: Colors.grey, fontSize: 12.0))),
+                      const Row(children: [
+                        Icon(Icons.lock_open, size: 16, color: Colors.green),
+                        SizedBox(width: 8),
+                        Expanded(child: Text('(已通过协作,暂无同行私话)', style: TextStyle(color: Colors.grey, fontSize: 12.0))),
                       ]),
                   ]),
                   _sectionCard(title: '看房安排', children: [
@@ -333,16 +333,16 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                         Expanded(child: Text(showingInst, style: const TextStyle(fontSize: 12.0, height: 1.6))),
                       ])
                     else if (isOwner)
-                      Row(children: [
-                        const Icon(Icons.info_outline, size: 16, color: Colors.grey),
-                        const SizedBox(width: 8),
-                        const Expanded(child: Text('本房暂无看房安排(可在编辑页填写)', style: TextStyle(color: Colors.grey, fontSize: 12.0))),
+                      const Row(children: [
+                        Icon(Icons.info_outline, size: 16, color: Colors.grey),
+                        SizedBox(width: 8),
+                        Expanded(child: Text('本房暂无看房安排(可在编辑页填写)', style: TextStyle(color: Colors.grey, fontSize: 12.0))),
                       ])
                     else
-                      Row(children: [
-                        const Icon(Icons.schedule, size: 16, color: Colors.blue),
-                        const SizedBox(width: 8),
-                        const Expanded(child: Text('(已通过协作,暂无看房指引)', style: TextStyle(color: Colors.grey, fontSize: 12.0))),
+                      const Row(children: [
+                        Icon(Icons.schedule, size: 16, color: Colors.blue),
+                        SizedBox(width: 8),
+                        Expanded(child: Text('(已通过协作,暂无看房指引)', style: TextStyle(color: Colors.grey, fontSize: 12.0))),
                       ]),
                   ]),
                 ] else ...[
@@ -350,10 +350,10 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(color: MlsColors.bgPageStart, borderRadius: BorderRadius.circular(8.0)),
-                      child: Row(children: [
-                        const Icon(Icons.lock_outline, size: 24, color: Colors.grey),
-                        const SizedBox(width: 12),
-                        const Expanded(child: Text('申请通过后展示', style: TextStyle(color: Colors.grey, fontSize: 12.0))),
+                      child: const Row(children: [
+                        Icon(Icons.lock_outline, size: 24, color: Colors.grey),
+                        SizedBox(width: 12),
+                        Expanded(child: Text('申请通过后展示', style: TextStyle(color: Colors.grey, fontSize: 12.0))),
                       ]),
                     ),
                   ]),
@@ -441,14 +441,14 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       // 挂牌
       if (listedAt != null) {
         final dt = DateTime.tryParse(listedAt);
-        rows.add(_timelineRow('首次挂牌 ${currentPrice}万', dt, isFirst: true));
+        rows.add(_timelineRow('首次挂牌 $currentPrice万', dt, isFirst: true));
       }
       // 调价记录(倒序)
       for (final h in priceHistory.reversed) {
         final p = h['price_wan'] ?? h['price'];
         final at = h['changed_at']?.toString() ?? '';
         final dt = DateTime.tryParse(at);
-        rows.add(_timelineRow('调价至 ${p}万', dt));
+        rows.add(_timelineRow('调价至 $p万', dt));
       }
     }
 
@@ -619,7 +619,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     if (bldStart != null || totalBld != null) {
       final parts = <String>[];
       if (bldStart != null) {
-        parts.add('建成 ${bldStart}${bldEnd != null && bldEnd != bldStart ? '-$bldEnd' : ''}');
+        parts.add('建成 $bldStart${bldEnd != null && bldEnd != bldStart ? '-$bldEnd' : ''}');
       }
       if (totalBld != null) parts.add('共 $totalBld 栋');
       lines.add(parts.join(' | '));
@@ -723,15 +723,15 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     );
   }
 
-  Widget _soldActionsSection() => MlsCard(
-    child: const Padding(padding: EdgeInsets.all(16), child: Row(children: [
+  Widget _soldActionsSection() => const MlsCard(
+    child: Padding(padding: EdgeInsets.all(16), child: Row(children: [
       Icon(Icons.check_circle, color: Colors.green, size: 20), SizedBox(width: 10),
       Expanded(child: Text('该房源已通过成交确认流程生效,不可再编辑。', style: TextStyle(color: Colors.green))),
     ])),
   );
 
   Widget _offlineActionsSection() => Column(children: [
-    MlsCard(child: const Padding(padding: EdgeInsets.all(16), child: Row(children: [
+    const MlsCard(child: Padding(padding: EdgeInsets.all(16), child: Row(children: [
       Icon(Icons.info_outline, color: Colors.grey, size: 20), SizedBox(width: 10),
       Expanded(child: Text('该房源已下架,在共享库不再展示', style: TextStyle(color: Colors.grey))),
     ]))),
@@ -989,9 +989,9 @@ class _PhotoCarouselState extends State<_PhotoCarousel> {
   Widget build(BuildContext context) {
     if (widget.photos.isEmpty) {
       return Container(height: 200, color: MlsColors.borderLight, alignment: Alignment.center,
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          child: const Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         Icon(Icons.image_not_supported_outlined, color: MlsColors.textTertiary, size: 48),
-        const SizedBox(height: 8), Text('暂无照片', style: TextStyle(color: MlsColors.textSecondary, fontSize: 12.0)),
+        SizedBox(height: 8), Text('暂无照片', style: TextStyle(color: MlsColors.textSecondary, fontSize: 12.0)),
       ]));
     }
     return AspectRatio(aspectRatio: 4/3, child: Stack(children: [

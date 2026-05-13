@@ -28,7 +28,7 @@ class ProgressTracker extends StatelessWidget {
   /// 阶段标签(默认 6 个中文)
   final List<String> labels;
 
-  ProgressTracker({
+  const ProgressTracker({
     super.key,
     required this.stage,
     required this.stageStatus,

@@ -137,7 +137,7 @@ class _SalePointsPickerState extends State<SalePointsPicker> {
               Wrap(spacing: 6, runSpacing: 4, children: group.value.map((tag) {
                 final sel = _selectedPreset.contains(tag);
                 return FilterChip(
-                  label: Text(tag, style: TextStyle(fontSize: 11.0)),
+                  label: Text(tag, style: const TextStyle(fontSize: 11.0)),
                   selected: sel,
                   onSelected: (_) => _togglePreset(tag),
                   selectedColor: Colors.blue.shade50,

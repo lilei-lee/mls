@@ -36,7 +36,7 @@ class _MyQuestionsScreenState extends State<MyQuestionsScreen> {
           if (snap.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
           final threads = snap.data ?? [];
           if (threads.isEmpty) {
-            return AppEmpty(icon: LucideIcons.helpCircle, title: '还没有提问', subtitle: '在共享库找到感兴趣的房源,点击 Q&A 区域提问');
+            return const AppEmpty(icon: LucideIcons.helpCircle, title: '还没有提问', subtitle: '在共享库找到感兴趣的房源,点击 Q&A 区域提问');
           }
 
           final pending = threads.where((t) => t.status == 'pending').toList();

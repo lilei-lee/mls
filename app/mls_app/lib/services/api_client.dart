@@ -27,8 +27,8 @@ class ApiClient {
   ApiClient._internal() {
     dio = Dio(BaseOptions(
       baseUrl: ApiConfig.apiBaseUrl,
-      connectTimeout: Duration(seconds: ApiConfig.connectTimeout),
-      receiveTimeout: Duration(seconds: ApiConfig.receiveTimeout),
+      connectTimeout: const Duration(seconds: ApiConfig.connectTimeout),
+      receiveTimeout: const Duration(seconds: ApiConfig.receiveTimeout),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -37,8 +37,8 @@ class ApiClient {
 
     _refreshDio = Dio(BaseOptions(
       baseUrl: ApiConfig.apiBaseUrl,
-      connectTimeout: Duration(seconds: ApiConfig.connectTimeout),
-      receiveTimeout: Duration(seconds: ApiConfig.receiveTimeout),
+      connectTimeout: const Duration(seconds: ApiConfig.connectTimeout),
+      receiveTimeout: const Duration(seconds: ApiConfig.receiveTimeout),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',

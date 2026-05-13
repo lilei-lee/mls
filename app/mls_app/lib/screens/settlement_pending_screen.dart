@@ -67,7 +67,7 @@ class _SettlementPendingScreenState extends State<SettlementPendingScreen> {
             child: ListView.separated(
               padding: const EdgeInsets.all(12),
               itemCount: items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              separatorBuilder: (_, _) => const SizedBox(height: 8),
               itemBuilder: (_, i) => _SettlementCard(
                 item: items[i],
                 onTap: () async {
@@ -176,7 +176,7 @@ class _SettlementCard extends StatelessWidget {
                             fontWeight: FontWeight.bold)),
                   ),
                   const Spacer(),
-                  Icon(Icons.chevron_right,
+                  const Icon(Icons.chevron_right,
                       color: MlsColors.textTertiary, size: 20),
                 ],
               ),

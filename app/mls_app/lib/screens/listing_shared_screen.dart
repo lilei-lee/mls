@@ -149,9 +149,9 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Text(label, style: TextStyle(fontSize: 11.0, color: MlsColors.primary, fontWeight: FontWeight.w500)),
+            Text(label, style: const TextStyle(fontSize: 11.0, color: MlsColors.primary, fontWeight: FontWeight.w500)),
             const SizedBox(width: 4),
-            Icon(LucideIcons.x, size: 12, color: MlsColors.primary),
+            const Icon(LucideIcons.x, size: 12, color: MlsColors.primary),
           ]),
         ),
       ),
@@ -196,7 +196,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
                   right: 8, top: 8,
                   child: Container(
                     width: 18, height: 18,
-                    decoration: BoxDecoration(color: MlsColors.warning, shape: BoxShape.circle),
+                    decoration: const BoxDecoration(color: MlsColors.warning, shape: BoxShape.circle),
                     child: Center(
                       child: Text('${_filters.activeDimensionCount}',
                           style: const TextStyle(color: Colors.white, fontSize: 11.0, fontWeight: FontWeight.bold)),
@@ -278,7 +278,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Wrap(spacing: 6, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
                       Text(_headerText(processed.length, allItems.length, isTodayTab: isTodayTab),
-                          style: TextStyle(color: MlsColors.textSecondary, fontSize: 12.0)),
+                          style: const TextStyle(color: MlsColors.textSecondary, fontSize: 12.0)),
                       _anonymousBadge(),
                     ]),
                     if (filterChips.isNotEmpty) ...[
@@ -299,7 +299,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
   Widget _anonymousBadge() => Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(color: MlsColors.primaryBg, borderRadius: BorderRadius.circular(4.0)),
-        child: Text('匿名浏览', style: TextStyle(color: MlsColors.primary, fontSize: 11.0)),
+        child: const Text('匿名浏览', style: TextStyle(color: MlsColors.primary, fontSize: 11.0)),
       );
 
   PopupMenuItem<String> _sortMenuItem(String value, String label, IconData icon) {
@@ -416,9 +416,9 @@ class _SharedListingCard extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
         decoration: BoxDecoration(color: MlsColors.warning.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4.0)),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
+        child: const Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(LucideIcons.clock4, size: 10, color: MlsColors.warning),
-          const SizedBox(width: 2),
+          SizedBox(width: 2),
           Text('已申请', style: TextStyle(color: MlsColors.warning, fontSize: 10, fontWeight: FontWeight.w600)),
         ]),
       );
@@ -427,9 +427,9 @@ class _SharedListingCard extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
         decoration: BoxDecoration(color: MlsColors.success.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4.0)),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
+        child: const Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(LucideIcons.checkCircle, size: 10, color: MlsColors.success),
-          const SizedBox(width: 2),
+          SizedBox(width: 2),
           Text('已通过', style: TextStyle(color: MlsColors.success, fontSize: 10, fontWeight: FontWeight.w600)),
         ]),
       );
@@ -582,7 +582,7 @@ class _SharedListingCard extends StatelessWidget {
                   child: Row(children: [
                     const Icon(LucideIcons.mapPin, size: 12, color: MlsColors.textSecondary),
                     const SizedBox(width: 2),
-                    Text('$district · $community', style: TextStyle(fontSize: 11.0, color: MlsColors.textSecondary)),
+                    Text('$district · $community', style: const TextStyle(fontSize: 11.0, color: MlsColors.textSecondary)),
                   ]),
                 ),
                 const SizedBox(height: 4),
@@ -593,7 +593,7 @@ class _SharedListingCard extends StatelessWidget {
                    if (floor != null && totalFloor != null) '$floor/$totalFloor层',
                    if (orientation.isNotEmpty) orientation,
                   ].join(' | '),
-                  style: TextStyle(fontSize: 11.0, color: MlsColors.textPrimary),
+                  style: const TextStyle(fontSize: 11.0, color: MlsColors.textPrimary),
                 ),
                 const SizedBox(height: 4),
 
@@ -608,7 +608,7 @@ class _SharedListingCard extends StatelessWidget {
                           .map((t) => Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                                 decoration: BoxDecoration(color: MlsColors.bgPageStart, borderRadius: BorderRadius.circular(4.0)),
-                                child: Text(t, style: TextStyle(fontSize: 11.0, color: MlsColors.textPrimary)),
+                                child: Text(t, style: const TextStyle(fontSize: 11.0, color: MlsColors.textPrimary)),
                               ))
                           .toList(),
                     ),
@@ -620,7 +620,7 @@ class _SharedListingCard extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Text(
                       publicRemarks.length > 50 ? '${publicRemarks.substring(0, 50)}...' : publicRemarks,
-                      style: TextStyle(color: MlsColors.textSecondary, fontSize: 11.0),
+                      style: const TextStyle(color: MlsColors.textSecondary, fontSize: 11.0),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -647,16 +647,16 @@ class _SharedListingCard extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 2),
-                            Text('万', style: TextStyle(color: MlsColors.textPrimary, fontSize: 11.0, fontWeight: FontWeight.w600)),
+                            const Text('万', style: TextStyle(color: MlsColors.textPrimary, fontSize: 11.0, fontWeight: FontWeight.w600)),
                           ],
                         ),
                         if (unitPrice > 0)
-                          Text('$unitPrice 元/㎡', style: TextStyle(color: MlsColors.textSecondary, fontSize: 11.0)),
+                          Text('$unitPrice 元/㎡', style: const TextStyle(color: MlsColors.textSecondary, fontSize: 11.0)),
                       ],
                     ),
                     if (createdAt != null) ...[
                       const SizedBox(width: 8),
-                      Text(_relativeTime(createdAt), style: TextStyle(color: MlsColors.textSecondary, fontSize: 11.0)),
+                      Text(_relativeTime(createdAt), style: const TextStyle(color: MlsColors.textSecondary, fontSize: 11.0)),
                     ],
                     const Spacer(),
                     // V2.5: Q&A 计数角标

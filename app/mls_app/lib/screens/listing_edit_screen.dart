@@ -298,7 +298,7 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
               children: SalePointsLibrary.objectiveFeatures.map((f) {
                 final sel = _selectedObjectiveFeatures.contains(f);
                 return FilterChip(
-                  label: Text(f, style: TextStyle(fontSize: 12.0)),
+                  label: Text(f, style: const TextStyle(fontSize: 12.0)),
                   selected: sel,
                   onSelected: (_) {
                     setState(() {
@@ -319,7 +319,7 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
               children: SalePointsLibrary.decorationOptions.map((d) {
                 final sel = _selectedDecoration == d;
                 return ChoiceChip(
-                  label: Text(d, style: TextStyle(fontSize: 12.0)),
+                  label: Text(d, style: const TextStyle(fontSize: 12.0)),
                   selected: sel,
                   onSelected: (_) {
                     setState(() => _selectedDecoration = sel ? null : d);
@@ -336,7 +336,7 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
               children: SalePointsLibrary.houseStructureOptions.map((h) {
                 final sel = _selectedHouseStructure == h;
                 return ChoiceChip(
-                  label: Text(h, style: TextStyle(fontSize: 12.0)),
+                  label: Text(h, style: const TextStyle(fontSize: 12.0)),
                   selected: sel,
                   onSelected: (_) {
                     setState(() => _selectedHouseStructure = sel ? null : h);

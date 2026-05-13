@@ -102,7 +102,7 @@ class MlsSectionHeader extends StatelessWidget {
         children: [
           ...leftItems,
           const Spacer(),
-          if (rightWidget != null) rightWidget,
+          ?rightWidget,
         ],
       ),
     );
