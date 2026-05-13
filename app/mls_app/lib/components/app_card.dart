@@ -29,7 +29,7 @@ class AppCard extends StatelessWidget {
       child: child,
     );
     if (onTap != null) {
-      return Material(color: Colors.transparent, child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(AppTheme.radiusM), child: card));
+      return Material(color: Colors.transparent, child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(12.0), child: card));
     }
     return card;
   }
@@ -37,13 +37,13 @@ class AppCard extends StatelessWidget {
   BoxDecoration _decoration() {
     switch (variant) {
       case _CardVariant.base:
-        return BoxDecoration(color: AppTheme.surface2, borderRadius: BorderRadius.circular(AppTheme.radiusM), boxShadow: AppTheme.shadowCard);
+        return BoxDecoration(color: AppTheme.surface2, borderRadius: BorderRadius.circular(12.0), boxShadow: AppTheme.shadowCard);
       case _CardVariant.hero:
-        return BoxDecoration(color: AppTheme.surface2, borderRadius: BorderRadius.circular(AppTheme.radiusL), boxShadow: AppTheme.shadowHero);
+        return BoxDecoration(color: AppTheme.surface2, borderRadius: BorderRadius.circular(16.0), boxShadow: AppTheme.shadowHero);
       case _CardVariant.gold:
-        return BoxDecoration(borderRadius: BorderRadius.circular(AppTheme.radiusL), gradient: AppTheme.gradientGold, boxShadow: AppTheme.shadowGold);
+        return BoxDecoration(borderRadius: BorderRadius.circular(16.0), gradient: AppTheme.gradientGold, boxShadow: AppTheme.shadowGold);
       case _CardVariant.flat:
-        return BoxDecoration(color: AppTheme.surface1, borderRadius: BorderRadius.circular(AppTheme.radiusM));
+        return BoxDecoration(color: AppTheme.surface1, borderRadius: BorderRadius.circular(12.0));
     }
   }
 }

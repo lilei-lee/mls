@@ -34,7 +34,7 @@ class AppButton extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             onTap: enabled ? onPressed : null,
-            borderRadius: BorderRadius.circular(AppTheme.radiusM),
+            borderRadius: BorderRadius.circular(12.0),
             child: Center(child: Text(label, style: _textStyle(enabled))),
           ),
         ),
@@ -46,26 +46,26 @@ class AppButton extends StatelessWidget {
     switch (variant) {
       case _ButtonVariant.primary:
         return BoxDecoration(
-          borderRadius: BorderRadius.circular(AppTheme.radiusM),
+          borderRadius: BorderRadius.circular(12.0),
           gradient: enabled ? AppTheme.gradientPrimary : null,
           color: enabled ? null : AppTheme.n300,
           boxShadow: enabled ? AppTheme.shadowBtn : null,
         );
       case _ButtonVariant.secondary:
         return BoxDecoration(
-          borderRadius: BorderRadius.circular(AppTheme.radiusM),
+          borderRadius: BorderRadius.circular(12.0),
           color: enabled ? MlsColors.bgCardPrimary : AppTheme.n100,
           border: Border.all(color: enabled ? AppTheme.n150 : AppTheme.n200, width: 1.5),
         );
       case _ButtonVariant.danger:
         return BoxDecoration(
-          borderRadius: BorderRadius.circular(AppTheme.radiusM),
+          borderRadius: BorderRadius.circular(12.0),
           color: enabled ? MlsColors.bgCardPrimary : AppTheme.n100,
           border: Border.all(color: AppTheme.danger, width: 1.5),
         );
       case _ButtonVariant.gold:
         return BoxDecoration(
-          borderRadius: BorderRadius.circular(AppTheme.radiusM),
+          borderRadius: BorderRadius.circular(12.0),
           gradient: enabled ? AppTheme.gradientGold : null,
           color: enabled ? null : AppTheme.n300,
           boxShadow: enabled ? AppTheme.shadowGold : null,
