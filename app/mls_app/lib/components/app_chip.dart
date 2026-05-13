@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_typography.dart';
 import '../theme/mls_colors.dart';
 
 class AppChip extends StatelessWidget {
@@ -34,7 +35,7 @@ class AppChip extends StatelessWidget {
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         if (icon != null) ...[Icon(icon, size: 14, color: _textColor), const SizedBox(width: 4)],
-        Flexible(child: Text(label, style: AppTheme.caption.copyWith(color: _textColor, fontWeight: variant == _ChipVariant.selected ? FontWeight.w600 : null))),
+        Flexible(child: Text(label, style: MlsTypography.caption1.copyWith(color: _textColor, fontWeight: variant == _ChipVariant.selected ? FontWeight.w600 : null))),
         if (onDeleted != null) ...[const SizedBox(width: 4), GestureDetector(onTap: onDeleted, child: Icon(Icons.close, size: 12, color: _textColor))],
       ]),
     );

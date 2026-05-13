@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_typography.dart';
 import '../theme/mls_colors.dart';
 import '../services/qna_service.dart';
 import '../models/qna_thread.dart';
@@ -29,7 +30,7 @@ class _MyQuestionsScreenState extends State<MyQuestionsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('我的提问', style: AppTheme.titleM)),
+      appBar: AppBar(title: Text('我的提问', style: MlsTypography.sectionTitle)),
       body: FutureBuilder<List<QnaThread>>(
         future: _future,
         builder: (ctx, snap) {
@@ -57,7 +58,7 @@ class _MyQuestionsScreenState extends State<MyQuestionsScreen> {
 
   Widget _buildGroup(String title, List<QnaThread> threads, bool isPending) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(title, style: AppTheme.titleS)),
+      Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(title, style: MlsTypography.sectionTitle)),
       ...threads.map((t) => _buildCard(t, isPending: isPending)),
       const SizedBox(height: 16),
     ]);
@@ -81,21 +82,21 @@ class _MyQuestionsScreenState extends State<MyQuestionsScreen> {
                         : Container(color: MlsColors.borderLight, child: const Icon(LucideIcons.building, size: 18, color: MlsColors.borderStrong)))),
               const SizedBox(width: 8),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(info.title, style: AppTheme.titleS.copyWith(fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
-                Text(info.communityName, style: AppTheme.caption.copyWith(color: MlsColors.textSecondary)),
+                Text(info.title, style: MlsTypography.sectionTitle.copyWith(fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(info.communityName, style: MlsTypography.caption1.copyWith(color: MlsColors.textSecondary)),
               ])),
             ]),
           if (info != null) const SizedBox(height: 8),
           // Question
-          Text(t.question, style: AppTheme.bodyM, maxLines: 2, overflow: TextOverflow.ellipsis),
+          Text(t.question, style: MlsTypography.body2, maxLines: 2, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 6),
           // Status + time
           Row(children: [
             Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
               decoration: BoxDecoration(color: isPending ? MlsColors.warning.withValues(alpha: 0.12) : MlsColors.borderLight, borderRadius: BorderRadius.circular(4)),
-              child: Text(isPending ? '等待回答' : '已回答', style: AppTheme.caption.copyWith(fontSize: 10, color: isPending ? MlsColors.warning : MlsColors.textSecondary))),
+              child: Text(isPending ? '等待回答' : '已回答', style: MlsTypography.caption1.copyWith(fontSize: 10, color: isPending ? MlsColors.warning : MlsColors.textSecondary))),
             const Spacer(),
-            Text(_fmt(t.questionAt), style: AppTheme.caption.copyWith(fontSize: 10, color: MlsColors.borderStrong)),
+            Text(_fmt(t.questionAt), style: MlsTypography.caption1.copyWith(fontSize: 10, color: MlsColors.borderStrong)),
           ]),
         ]),
       ),

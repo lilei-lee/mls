@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_typography.dart';
 import '../theme/mls_colors.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
@@ -760,7 +761,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               const Icon(LucideIcons.helpCircle, size: 32, color: MlsColors.borderStrong),
               const SizedBox(height: 8),
               Text(isOwner ? '等待 BA 提问中' : '看到这套房有疑问?第一个提问吧',
-                  style: AppTheme.bodyS.copyWith(color: MlsColors.textSecondary)),
+                  style: MlsTypography.body2.copyWith(color: MlsColors.textSecondary)),
             ]))),
           ]);
         }
@@ -791,12 +792,12 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           const Icon(LucideIcons.user, size: 14, color: MlsColors.textSecondary),
-          const SizedBox(width: 4), Text(t.askerName, style: AppTheme.caption),
+          const SizedBox(width: 4), Text(t.askerName, style: MlsTypography.caption1),
           const Spacer(),
-          Text(_fmtTime(t.questionAt), style: AppTheme.caption.copyWith(fontSize: 11.0, color: MlsColors.borderStrong)),
+          Text(_fmtTime(t.questionAt), style: MlsTypography.caption1.copyWith(fontSize: 11.0, color: MlsColors.borderStrong)),
         ]),
         const SizedBox(height: 4),
-        Text('问:${t.question}', style: AppTheme.bodyM),
+        Text('问:${t.question}', style: MlsTypography.body2),
         const SizedBox(height: 4),
         if (t.isAnswered)
           Container(
@@ -805,19 +806,19 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
             decoration: BoxDecoration(color: MlsColors.bgPageStart, borderRadius: BorderRadius.circular(8.0)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
-                Text(t.answererName ?? '', style: AppTheme.caption.copyWith(color: MlsColors.primary)),
+                Text(t.answererName ?? '', style: MlsTypography.caption1.copyWith(color: MlsColors.primary)),
                 const Spacer(),
-                Text(_fmtTime(t.answeredAt), style: AppTheme.caption.copyWith(fontSize: 11.0, color: MlsColors.borderStrong)),
+                Text(_fmtTime(t.answeredAt), style: MlsTypography.caption1.copyWith(fontSize: 11.0, color: MlsColors.borderStrong)),
               ]),
               const SizedBox(height: 4),
-              Text(t.answer ?? '', style: AppTheme.bodyM),
+              Text(t.answer ?? '', style: MlsTypography.body2),
             ]),
           )
         else
           Padding(
             padding: const EdgeInsets.only(left: 24),
             child: Row(children: [
-              Expanded(child: Text('等待回答...', style: AppTheme.bodyS.copyWith(color: MlsColors.borderStrong, fontStyle: FontStyle.italic))),
+              Expanded(child: Text('等待回答...', style: MlsTypography.body2.copyWith(color: MlsColors.borderStrong, fontStyle: FontStyle.italic))),
               if (isOwner && t.answererSelf)
                 SizedBox(height: 32, child: TextButton.icon(
                   onPressed: () => _showAnswerSheet(context, t),
@@ -838,8 +839,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         child: SingleChildScrollView(child: Padding(padding: const EdgeInsets.all(20),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
             Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: MlsColors.borderStrong, borderRadius: BorderRadius.circular(2)))),
-            const SizedBox(height: 16), Text('对「$community」提问', style: AppTheme.titleM),
-            const SizedBox(height: 8), Text('LA 收到后会尽快回复,问答公开可见', style: AppTheme.caption.copyWith(color: MlsColors.textSecondary)),
+            const SizedBox(height: 16), Text('对「$community」提问', style: MlsTypography.sectionTitle),
+            const SizedBox(height: 8), Text('LA 收到后会尽快回复,问答公开可见', style: MlsTypography.caption1.copyWith(color: MlsColors.textSecondary)),
             const SizedBox(height: 16),
             TextField(controller: ctrl, maxLength: 200, minLines: 3, maxLines: 5,
               decoration: const InputDecoration(hintText: '例:满五唯一吗?可议价?能看房吗?', border: OutlineInputBorder())),
@@ -865,10 +866,10 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         child: SingleChildScrollView(child: Padding(padding: const EdgeInsets.all(20),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
             Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: MlsColors.borderStrong, borderRadius: BorderRadius.circular(2)))),
-            const SizedBox(height: 16), Text('回答 ${t.askerName} 的提问', style: AppTheme.titleM),
+            const SizedBox(height: 16), Text('回答 ${t.askerName} 的提问', style: MlsTypography.sectionTitle),
             const SizedBox(height: 8),
             Container(width: double.infinity, padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: MlsColors.bgPageStart, borderRadius: BorderRadius.circular(8)),
-              child: Text('问:${t.question}', style: AppTheme.bodyM.copyWith(color: MlsColors.textPrimary))),
+              child: Text('问:${t.question}', style: MlsTypography.body2.copyWith(color: MlsColors.textPrimary))),
             const SizedBox(height: 16),
             TextField(controller: ctrl, maxLength: 300, minLines: 3, maxLines: 6,
               decoration: const InputDecoration(hintText: '请客观作答,避免泄露敏感信息', border: OutlineInputBorder())),

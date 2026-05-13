@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_typography.dart';
 import '../theme/mls_colors.dart';
 import '../services/qna_service.dart';
 import '../models/qna_thread.dart';
@@ -44,7 +45,7 @@ class _QnaListScreenState extends State<QnaListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('「${widget.community}」的全部问答', style: AppTheme.titleM)),
+      appBar: AppBar(title: Text('「${widget.community}」的全部问答', style: MlsTypography.sectionTitle)),
       body: FutureBuilder<QnaListResp>(
         future: _future,
         builder: (ctx, snap) {
@@ -54,7 +55,7 @@ class _QnaListScreenState extends State<QnaListScreen> {
             return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
               const Icon(LucideIcons.helpCircle, size: 48, color: MlsColors.borderStrong),
               const SizedBox(height: 16),
-              Text('暂无问答', style: AppTheme.titleS.copyWith(color: MlsColors.textPrimary)),
+              Text('暂无问答', style: MlsTypography.sectionTitle.copyWith(color: MlsColors.textPrimary)),
             ]));
           }
           // Trigger scroll after build
@@ -87,14 +88,14 @@ class _QnaListScreenState extends State<QnaListScreen> {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           const Icon(LucideIcons.user, size: 16, color: MlsColors.textSecondary),
-          const SizedBox(width: 4), Text(t.askerName, style: AppTheme.titleS),
+          const SizedBox(width: 4), Text(t.askerName, style: MlsTypography.sectionTitle),
           const Spacer(),
-          Text(_fmt(t.questionAt), style: AppTheme.caption.copyWith(color: MlsColors.borderStrong)),
+          Text(_fmt(t.questionAt), style: MlsTypography.caption1.copyWith(color: MlsColors.borderStrong)),
         ]),
         const SizedBox(height: 6),
         Container(width: double.infinity, padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(color: MlsColors.bgPageStart, borderRadius: BorderRadius.circular(12)),
-          child: Text(t.question, style: AppTheme.bodyM)),
+          child: Text(t.question, style: MlsTypography.body2)),
         const SizedBox(height: 6),
         if (t.isAnswered)
           Container(width: double.infinity, padding: const EdgeInsets.all(14),
@@ -102,17 +103,17 @@ class _QnaListScreenState extends State<QnaListScreen> {
             decoration: BoxDecoration(color: MlsColors.primaryBg, borderRadius: BorderRadius.circular(12)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
-                Text(t.answererName ?? '', style: AppTheme.caption.copyWith(color: MlsColors.primary)),
+                Text(t.answererName ?? '', style: MlsTypography.caption1.copyWith(color: MlsColors.primary)),
                 const Spacer(),
-                Text(_fmt(t.answeredAt), style: AppTheme.caption.copyWith(fontSize: 11.0, color: MlsColors.borderStrong)),
+                Text(_fmt(t.answeredAt), style: MlsTypography.caption1.copyWith(fontSize: 11.0, color: MlsColors.borderStrong)),
               ]),
               const SizedBox(height: 6),
-              Text(t.answer ?? '', style: AppTheme.bodyM),
+              Text(t.answer ?? '', style: MlsTypography.body2),
             ]),
           )
         else
           Padding(padding: const EdgeInsets.only(left: 24),
-            child: Text('等待回答...', style: AppTheme.bodyS.copyWith(color: MlsColors.borderStrong, fontStyle: FontStyle.italic))),
+            child: Text('等待回答...', style: MlsTypography.body2.copyWith(color: MlsColors.borderStrong, fontStyle: FontStyle.italic))),
         const Divider(height: 24),
       ]),
     );

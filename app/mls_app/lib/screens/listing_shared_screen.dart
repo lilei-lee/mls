@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_typography.dart';
 import '../theme/mls_colors.dart';
 import '../models/listing_filters.dart';
 import '../services/api_client.dart';
@@ -672,7 +673,7 @@ class _SharedListingCard extends StatelessWidget {
                             child: Row(mainAxisSize: MainAxisSize.min, children: [
                               const Icon(LucideIcons.helpCircle, size: 12, color: MlsColors.textSecondary),
                               const SizedBox(width: 2),
-                              Text('${item['qna_count']}', style: AppTheme.caption.copyWith(fontSize: 11.0, color: MlsColors.textSecondary)),
+                              Text('${item['qna_count']}', style: MlsTypography.caption1.copyWith(fontSize: 11.0, color: MlsColors.textSecondary)),
                             ]),
                           ),
                         ),

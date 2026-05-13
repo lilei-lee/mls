@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_typography.dart';
 import '../theme/mls_colors.dart';
 
 class AppInput extends StatefulWidget {
@@ -48,7 +49,7 @@ class _AppInputState extends State<AppInput> {
       decoration: InputDecoration(
         labelText: widget.label,
         hintText: widget.hint,
-        hintStyle: AppTheme.caption.copyWith(color: MlsColors.borderStrong),
+        hintStyle: MlsTypography.caption1.copyWith(color: MlsColors.borderStrong),
         prefixIcon: widget.prefixIcon != null ? Icon(widget.prefixIcon, size: 20, color: _focused ? MlsColors.primary : MlsColors.textSecondary) : null,
         suffixIcon: widget.suffixIcon != null ? GestureDetector(onTap: widget.onSuffixTap, child: Icon(widget.suffixIcon, size: 20, color: MlsColors.textSecondary)) : null,
         filled: true,

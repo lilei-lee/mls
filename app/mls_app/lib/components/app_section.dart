@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_typography.dart';
 import '../theme/mls_colors.dart';
 
 class AppSection extends StatelessWidget {
@@ -20,11 +21,11 @@ class AppSection extends StatelessWidget {
         Padding(
           padding: padding,
           child: Row(children: [
-            Expanded(child: Text(title, style: AppTheme.titleM)),
+            Expanded(child: Text(title, style: MlsTypography.sectionTitle)),
             if (actionLabel != null)
               GestureDetector(
                 onTap: onAction,
-                child: Text(actionLabel!, style: AppTheme.caption.copyWith(color: MlsColors.primary, fontWeight: FontWeight.w600)),
+                child: Text(actionLabel!, style: MlsTypography.caption1.copyWith(color: MlsColors.primary, fontWeight: FontWeight.w600)),
               ),
           ]),
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_typography.dart';
 import '../theme/mls_colors.dart';
 
 /// 房源 / 协作 状态徽标 — v2.0 统一 Pill 样式
@@ -36,7 +37,7 @@ class AppStatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6.0)),
-      child: Text(label, style: AppTheme.caption.copyWith(fontSize: fontSize, fontWeight: FontWeight.w700, color: color)),
+      child: Text(label, style: MlsTypography.caption1.copyWith(fontSize: fontSize, fontWeight: FontWeight.w700, color: color)),
     );
   }
 }

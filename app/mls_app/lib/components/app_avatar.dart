@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_typography.dart';
 import '../theme/mls_colors.dart';
 
 class AppAvatar extends StatelessWidget {
@@ -37,7 +38,7 @@ class AppAvatar extends StatelessWidget {
             decoration: BoxDecoration(color: _hashColor().withValues(alpha: 0.15), shape: BoxShape.circle),
             alignment: Alignment.center,
             child: Text(name[0].toUpperCase(),
-                style: AppTheme.caption.copyWith(fontSize: size * 0.4, fontWeight: FontWeight.w700, color: _hashColor())),
+                style: MlsTypography.caption1.copyWith(fontSize: size * 0.4, fontWeight: FontWeight.w700, color: _hashColor())),
           ),
         if (showStatusDot)
           Positioned(right: 0, bottom: 0, child: Container(width: size * 0.3, height: size * 0.3,
