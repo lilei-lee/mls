@@ -8,6 +8,7 @@ import '../widgets/mls/mls_avatar.dart';
 import '../widgets/mls/mls_card.dart';
 import '../widgets/mls/mls_section_header.dart';
 import '../widgets/mls/mls_status_badge.dart';
+import '../widgets/mls/mls_metric_cell.dart';
 import '../theme/mls_radius.dart';
 import '../services/dashboard_service.dart';
 import '../services/qna_service.dart';
@@ -43,15 +44,23 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<_DashboardAllData> _loadAll() async {
     final todosF = DashboardService.instance.todos();
     final eventsF = DashboardService.instance.recentEvents();
-    final results = await Future.wait([todosF, eventsF]);
+    final summaryF = DashboardService.instance.summary();
+    final results = await Future.wait([todosF, eventsF, summaryF]);
     final todosData = results[0];
     if (mounted) setState(() => _unreadCount = 3); // mock
     // V2.5: 我的提问 pending 数
     try { final c = await QnaService.instance.getMyPendingCount(); if (mounted) setState(() => _pendingQnaCount = c); } catch (_) {}
+    Map<String, dynamic> summary;
+    try {
+      summary = Map<String, dynamic>.from(results[2]);
+    } catch (_) {
+      summary = {};
+    }
     return _DashboardAllData(
       todoItems: (todosData['todos'] as List).cast<Map<String, dynamic>>(),
       todoTotal: (todosData['total'] as num?)?.toInt() ?? 0,
       events: (results[1]['events'] as List).cast<Map<String, dynamic>>(),
+      summary: summary,
     );
   }
 
@@ -152,6 +161,60 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 )),
+              ),
+
+              // ═══ 4 Metric Panel ═══
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: MlsCard(
+                    child: Column(children: [
+                      Row(children: [
+                        Text('REAL-TIME · 实时', style: MlsTypography.monoLabel),
+                        const Spacer(),
+                        Row(mainAxisSize: MainAxisSize.min, children: [
+                          Text('仪表盘', style: TextStyle(
+                            fontFamilyFallback: MlsTypography.sansFallback,
+                            fontSize: 11, color: MlsColors.primary,
+                            fontWeight: MlsTypography.semibold,
+                          )),
+                          const Icon(Icons.arrow_outward, size: 12, color: MlsColors.primary),
+                        ]),
+                      ]),
+                      const SizedBox(height: 12),
+                      Row(children: [
+                        Expanded(child: MlsMetricCell(
+                          label: '待办',
+                          value: (data.summary['todo_count'] ?? data.todoTotal).toString().padLeft(2, '0'),
+                          suffix: '/5',
+                          valueColor: MlsColors.danger,
+                          padding: EdgeInsets.zero,
+                        )),
+                        Expanded(child: MlsMetricCell(
+                          label: '协作中',
+                          value: (data.summary['collab_count'] ?? 0).toString().padLeft(2, '0'),
+                          valueColor: MlsColors.primary,
+                          padding: EdgeInsets.zero,
+                        )),
+                      ]),
+                      const SizedBox(height: 14),
+                      Row(children: [
+                        Expanded(child: MlsMetricCell(
+                          label: '本月奖金',
+                          value: '¥${(data.summary['month_bonus'] ?? 0).toString()}',
+                          valueColor: MlsColors.gold,
+                          padding: EdgeInsets.zero,
+                        )),
+                        Expanded(child: MlsMetricCell(
+                          label: '在售房源',
+                          value: (data.summary['listing_count'] ?? 0).toString().padLeft(2, '0'),
+                          valueColor: MlsColors.textPrimary,
+                          padding: EdgeInsets.zero,
+                        )),
+                      ]),
+                    ]),
+                  ),
+                ),
               ),
 
               // ═══ 待办列表 ═══
@@ -345,5 +408,6 @@ class _DashboardAllData {
   final List<Map<String, dynamic>> todoItems;
   final int todoTotal;
   final List<Map<String, dynamic>> events;
-  _DashboardAllData({required this.todoItems, required this.todoTotal, required this.events});
+  final Map<String, dynamic> summary;
+  _DashboardAllData({required this.todoItems, required this.todoTotal, required this.events, this.summary = const {}});
 }
