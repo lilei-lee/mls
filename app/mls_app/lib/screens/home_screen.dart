@@ -219,9 +219,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           valueColor: MlsColors.danger,
                           padding: EdgeInsets.zero,
                         )),
-                        const Expanded(child: MlsMetricCell(
-                          label: '协作中',
-                          value: '00',
+                        Expanded(child: MlsMetricCell(
+                          label: '今日上新',
+                          value: ((data.summary['shared_new_today_count'] ?? 0) as int).toString().padLeft(2, '0'),
                           valueColor: MlsColors.primary,
                           padding: EdgeInsets.zero,
                         )),
@@ -318,7 +318,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       Expanded(child: _buildQuickAction(LucideIcons.userPlus, '添加客户', '/customer/new')),
                     ]),
                     Row(children: [
-                      Expanded(child: _buildQuickAction(LucideIcons.search, '共享库', '/listings/shared')),
+                      Expanded(child: _buildQuickAction(
+                        LucideIcons.search, '共享库', '/listings/shared',
+                        badge: (data.summary['shared_new_today_count'] ?? 0) as int,
+                      )),
                       const SizedBox(width: 12),
                       Expanded(child: _buildQuickAction(LucideIcons.briefcase, '协作记录', '/home?tab=2')),
                     ]),
@@ -353,13 +356,43 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickAction(IconData icon, String label, String route) {
+  Widget _buildQuickAction(IconData icon, String label, String route, {int? badge}) {
     return MlsCard(
       padding: const EdgeInsets.all(14),
       onTap: () => context.push(route),
       child: Row(children: [
-        Container(width: 36, height: 36, decoration: const BoxDecoration(color: MlsColors.primaryBg, shape: BoxShape.circle),
-            child: Icon(icon, size: 20, color: MlsColors.primary)),
+        Stack(clipBehavior: Clip.none, children: [
+          Container(
+            width: 36, height: 36,
+            decoration: const BoxDecoration(color: MlsColors.primaryBg, shape: BoxShape.circle),
+            child: Icon(icon, size: 20, color: MlsColors.primary),
+          ),
+          if (badge != null && badge > 0)
+            Positioned(
+              right: -4, top: -4,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                decoration: BoxDecoration(
+                  color: MlsColors.danger,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: MlsColors.bgCardPrimary, width: 1.5),
+                ),
+                constraints: const BoxConstraints(minWidth: 18),
+                child: Text(
+                  badge > 99 ? '99+' : badge.toString(),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontFamily: MlsTypography.monoFamily,
+                    fontFamilyFallback: MlsTypography.monoFallback,
+                    fontSize: 10,
+                    fontWeight: MlsTypography.bold,
+                    color: Colors.white,
+                    height: 1,
+                  ),
+                ),
+              ),
+            ),
+        ]),
         const SizedBox(width: 12),
         Text(label, style: const TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 14, fontWeight: MlsTypography.semibold, color: MlsColors.textPrimary)),
       ]),
