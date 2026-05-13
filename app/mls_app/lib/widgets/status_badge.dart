@@ -1,6 +1,5 @@
 /// 房源 / 协作 交易状态徽标 — 统一颜色映射
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 
 class StatusBadge extends StatelessWidget {
   final String status;

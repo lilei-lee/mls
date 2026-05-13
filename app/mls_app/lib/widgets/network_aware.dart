@@ -1,7 +1,6 @@
 /// 全局断网检测 — 离线时顶部红条提醒
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 class NetworkAware extends StatefulWidget {

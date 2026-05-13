@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 import 'package:dio/dio.dart';
 import '../services/community_service.dart';
 

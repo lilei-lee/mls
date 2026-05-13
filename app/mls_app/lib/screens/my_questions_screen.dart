@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../theme/app_theme.dart';
 import '../theme/mls_typography.dart';
 import '../theme/mls_colors.dart';
 import '../services/qna_service.dart';
 import '../models/qna_thread.dart';
-import '../components/app_card.dart';
+import '../widgets/mls/mls_card.dart';
 import '../components/app_empty.dart';
 import '../widgets/base64_image.dart';
 
@@ -68,7 +67,7 @@ class _MyQuestionsScreenState extends State<MyQuestionsScreen> {
     final info = t.listingInfo;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: AppCard.base(
+      child: MlsCard(
         padding: const EdgeInsets.all(12),
         onTap: () => context.push('/listing/${t.listingInfo?.listingId ?? ''}/qna?highlight=${t.threadId}'),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

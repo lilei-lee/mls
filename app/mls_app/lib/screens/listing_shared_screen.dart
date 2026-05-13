@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../theme/app_theme.dart';
 import '../theme/mls_typography.dart';
 import '../theme/mls_colors.dart';
 import '../models/listing_filters.dart';
@@ -9,7 +8,7 @@ import '../services/api_client.dart';
 import '../widgets/base64_image.dart';
 import '../widgets/filter_sheet.dart';
 import '../components/app_empty.dart';
-import '../components/app_card.dart';
+import '../widgets/mls/mls_card.dart';
 
 /// 共享房源库 V2.4: 5 行卡片 + 5 类筛选 + v2.0 设计系统
 class ListingSharedScreen extends StatefulWidget {
@@ -708,7 +707,7 @@ class _SharedListingCard extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: AppCard.base(
+      child: MlsCard(
         padding: const EdgeInsets.all(12),
         onTap: () => context.push('/listing/${item['listing_id']}'),
         child: cardChild,

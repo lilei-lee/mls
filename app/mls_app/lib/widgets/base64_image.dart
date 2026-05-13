@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 import '../theme/mls_colors.dart';
 
 /// 渲染 base64 dataUrl 的图片

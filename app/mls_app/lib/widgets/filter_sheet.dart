@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 import '../theme/mls_colors.dart';
 import '../models/listing_filters.dart';
 import '../services/meta_service.dart';

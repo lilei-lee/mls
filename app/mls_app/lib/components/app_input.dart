@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 import '../theme/mls_typography.dart';
 import '../theme/mls_colors.dart';
 

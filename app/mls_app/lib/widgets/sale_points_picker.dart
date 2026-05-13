@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 import '../constants/sale_points_library.dart';
 
 /// V2.2 #1: 卖点标签选择器共用组件(录入页 + 编辑页)
