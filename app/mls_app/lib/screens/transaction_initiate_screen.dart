@@ -201,7 +201,7 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
                   Text(
                     '${sp['community']} ${sp['building']}号楼${sp['unit']}单元${sp['room_no']}',
                     style: const TextStyle(
-                        fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
+                        fontSize: 16.0, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -353,7 +353,7 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
                     )
                   : const Icon(Icons.gavel),
               label: Text(_submitting ? '提交中...' : '发起成交确认',
-                  style: const TextStyle(fontSize: AppTheme.fontSectionTitle)),
+                  style: const TextStyle(fontSize: 16.0)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,

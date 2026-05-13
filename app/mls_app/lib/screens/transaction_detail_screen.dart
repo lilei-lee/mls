@@ -272,7 +272,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                       Text(
                         '${sp['community']} ${sp['building']}号楼${sp['unit']}单元${sp['room_no']}',
                         style: const TextStyle(
-                            fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
+                            fontSize: 16.0, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -479,7 +479,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                   '已提交',
                   style: TextStyle(
                     color: Colors.orange.shade800,
-                    fontSize: AppTheme.fontSectionTitle,
+                    fontSize: 16.0,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -796,7 +796,7 @@ class _LaConfirmDialogState extends State<_LaConfirmDialog> {
                 border: OutlineInputBorder(),
                 counterText: '',
               ),
-              style: const TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text('约 $wan 万元',
@@ -1022,7 +1022,7 @@ class _LaUpdateDialogState extends State<_LaUpdateDialog> {
                 border: OutlineInputBorder(),
                 counterText: '',
               ),
-              style: const TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text('约 $wan 万元',
@@ -1173,7 +1173,7 @@ class _BaUpdateDialogState extends State<_BaUpdateDialog> {
                 border: OutlineInputBorder(),
                 counterText: '',
               ),
-              style: const TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text('约 $wan 万元',

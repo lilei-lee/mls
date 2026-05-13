@@ -170,7 +170,7 @@ class _CustomerCreateScreenState extends State<CustomerCreateScreen> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text('保存', style: TextStyle(fontSize: AppTheme.fontSectionTitle)),
+                    : const Text('保存', style: TextStyle(fontSize: 16.0)),
               ),
             ),
           ],

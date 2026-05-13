@@ -134,7 +134,7 @@ class _ShowingPendingConfirmScreenState
                           Text(
                             '${sp['community']} ${sp['building']}-${sp['unit']}-${sp['room_no']}',
                             style: const TextStyle(
-                                fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
+                                fontSize: 16.0, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 4),
                           Text(

@@ -542,7 +542,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             if (title != null) ...[
-              Text(title, style: const TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold)),
+              Text(title, style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
             ],
             ...children,
@@ -909,7 +909,7 @@ class _StatusChangeSheet extends StatelessWidget {
     return SafeArea(child: Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Column(mainAxisSize: MainAxisSize.min, children: [
       Padding(padding: const EdgeInsets.all(16), child: Row(children: [
         const Icon(Icons.swap_horiz, color: Colors.orange), const SizedBox(width: 8),
-        const Text('变更交易状态', style: TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold)),
+        const Text('变更交易状态', style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold)),
         const Spacer(),
         Text('当前:${_label(currentStatus)}', style: const TextStyle(color: Colors.grey, fontSize: 11.0)),
       ])),

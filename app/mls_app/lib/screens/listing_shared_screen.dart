@@ -168,7 +168,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
         title: _searchMode
             ? TextField(
                 controller: _searchController, autofocus: true,
-                style: TextStyle(color: appBarTextColor, fontSize: AppTheme.fontSectionTitle),
+                style: TextStyle(color: appBarTextColor, fontSize: 16.0),
                 cursorColor: appBarTextColor,
                 decoration: InputDecoration(
                   hintText: '搜索小区名',
@@ -387,7 +387,7 @@ class _SharedListingCard extends StatelessWidget {
     switch (status) {
       case 'on_sale':
         label = '在售';
-        color = AppTheme.success;
+        color = MlsColors.success;
         break;
       case 'deposit_paid':
         label = '定金已付';
@@ -426,11 +426,11 @@ class _SharedListingCard extends StatelessWidget {
     if (_myRequestStatus == 'approved') {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-        decoration: BoxDecoration(color: AppTheme.success.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4.0)),
+        decoration: BoxDecoration(color: MlsColors.success.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4.0)),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(LucideIcons.checkCircle, size: 10, color: AppTheme.success),
+          Icon(LucideIcons.checkCircle, size: 10, color: MlsColors.success),
           const SizedBox(width: 2),
-          Text('已通过', style: TextStyle(color: AppTheme.success, fontSize: 10, fontWeight: FontWeight.w600)),
+          Text('已通过', style: TextStyle(color: MlsColors.success, fontSize: 10, fontWeight: FontWeight.w600)),
         ]),
       );
     }
@@ -681,7 +681,7 @@ class _SharedListingCard extends StatelessWidget {
                       color: _myRequestStatus == 'pending'
                           ? MlsColors.warning
                           : _myRequestStatus == 'approved'
-                              ? AppTheme.success
+                              ? MlsColors.success
                               : const Color(0xFF2B7FFF),
                       borderRadius: BorderRadius.circular(16),
                       child: InkWell(

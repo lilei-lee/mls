@@ -131,7 +131,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
                           '${sp['community'] ?? '-'} ${sp['building'] ?? ''}号楼'
                           '${sp['unit'] ?? ''}单元${sp['room_no'] ?? ''}',
                           style: const TextStyle(
-                              fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
+                              fontSize: 16.0, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
                         Text(

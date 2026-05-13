@@ -132,7 +132,7 @@ class _ListingListScreenState extends State<ListingListScreen>
             ? TextField(
                 controller: _searchController,
                 autofocus: true,
-                style: TextStyle(color: appBarTextColor, fontSize: AppTheme.fontSectionTitle),
+                style: TextStyle(color: appBarTextColor, fontSize: 16.0),
                 cursorColor: appBarTextColor,
                 decoration: InputDecoration(
                   hintText: '搜索小区名',
@@ -351,7 +351,7 @@ class _ListingListScreenState extends State<ListingListScreen>
         children: [
           const Icon(Icons.home_outlined, size: 80, color: Colors.grey),
           const SizedBox(height: 16),
-          Text(title, style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontSectionTitle)),
+          Text(title, style: const TextStyle(color: Colors.grey, fontSize: 16.0)),
           if (subtitle != null) ...[
             const SizedBox(height: 6),
             Text(subtitle,
@@ -459,7 +459,7 @@ class _ListingCard extends StatelessWidget {
                                 child: Text(
                                   addr,
                                   style: const TextStyle(
-                                      fontSize: AppTheme.fontSectionTitle,
+                                      fontSize: 16.0,
                                       fontWeight: FontWeight.bold),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,

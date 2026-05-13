@@ -272,7 +272,7 @@ class _CommunityPickerScreenState extends State<_CommunityPickerScreen> {
     final builtYear = item['built_year'];
     return ListTile(
       leading: const Icon(Icons.apartment, color: Colors.blueGrey),
-      title: Text(name, style: const TextStyle(fontSize: AppTheme.fontSectionTitle)),
+      title: Text(name, style: const TextStyle(fontSize: 16.0)),
       subtitle: Text(
         '$district${builtYear != null ? " · $builtYear年建" : ""}',
         style: const TextStyle(fontSize: 11.0),

@@ -227,7 +227,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : const Text('登 录', style: TextStyle(fontSize: AppTheme.fontSectionTitle)),
+                        : const Text('登 录', style: TextStyle(fontSize: 16.0)),
                   ),
                 ),
               ],

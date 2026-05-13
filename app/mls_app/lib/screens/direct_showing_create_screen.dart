@@ -226,7 +226,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
                   Text(
                     '${s['community']} ${s['building']}号楼${s['unit']}单元${s['room_no']}',
                     style: const TextStyle(
-                        fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
+                        fontSize: 16.0, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -257,7 +257,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
                   const SizedBox(width: 6),
                   Text(widget.customerLabel,
                       style: const TextStyle(
-                          fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold)),
+                          fontSize: 16.0, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -286,7 +286,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
                   Text(
                     _showingTime == null ? '请选择带看时间' : _fmtTime(_showingTime!),
                     style: TextStyle(
-                      fontSize: AppTheme.fontSectionTitle,
+                      fontSize: 16.0,
                       color: _showingTime == null
                           ? Colors.grey
                           : Colors.black87,
@@ -394,7 +394,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
                       ),
                     )
                   : const Text('提交带看记录',
-                      style: TextStyle(fontSize: AppTheme.fontSectionTitle)),
+                      style: TextStyle(fontSize: 16.0)),
             ),
           ),
         ],

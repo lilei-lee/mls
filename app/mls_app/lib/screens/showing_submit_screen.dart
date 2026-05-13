@@ -196,7 +196,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
                   Text(
                     '${sp['community']} ${sp['building']}号楼${sp['unit']}单元${sp['room_no']}',
                     style: const TextStyle(
-                        fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
+                        fontSize: 16.0, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -277,7 +277,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
                     )
                   : const Icon(Icons.check),
               label: Text(_submitting ? '提交中...' : '提交带看记录',
-                  style: const TextStyle(fontSize: AppTheme.fontSectionTitle)),
+                  style: const TextStyle(fontSize: 16.0)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
                 foregroundColor: Colors.white,

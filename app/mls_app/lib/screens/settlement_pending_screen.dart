@@ -91,7 +91,7 @@ class _SettlementPendingScreenState extends State<SettlementPendingScreen> {
           Icon(Icons.payments_outlined, size: 80, color: Colors.grey),
           SizedBox(height: 16),
           Text('暂无待操作的奖金单',
-              style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontSectionTitle)),
+              style: TextStyle(color: Colors.grey, fontSize: 16.0)),
           SizedBox(height: 6),
           Text('成交确认通过且有奖金的交易会自动生成结算单',
               style: TextStyle(color: Colors.grey, fontSize: 11.0)),
@@ -185,7 +185,7 @@ class _SettlementCard extends StatelessWidget {
                 '${sp['community'] ?? '-'} ${sp['building'] ?? ''}号楼'
                 '${sp['unit'] ?? ''}单元${sp['room_no'] ?? ''}',
                 style: const TextStyle(
-                    fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
+                    fontSize: 16.0, fontWeight: FontWeight.bold),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

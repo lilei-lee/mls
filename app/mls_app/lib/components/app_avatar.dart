@@ -41,7 +41,7 @@ class AppAvatar extends StatelessWidget {
           ),
         if (showStatusDot)
           Positioned(right: 0, bottom: 0, child: Container(width: size * 0.3, height: size * 0.3,
-              decoration: BoxDecoration(color: statusColor ?? AppTheme.success, shape: BoxShape.circle, border: Border.all(color: MlsColors.bgCardPrimary, width: 2)))),
+              decoration: BoxDecoration(color: statusColor ?? MlsColors.success, shape: BoxShape.circle, border: Border.all(color: MlsColors.bgCardPrimary, width: 2)))),
       ]),
     );
   }

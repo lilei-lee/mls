@@ -413,7 +413,7 @@ class _ListingCreateScreenState extends State<ListingCreateScreen> {
                       onPressed: _submitting ? null : _submit,
                       child: _submitting
                           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : const Text('提交', style: TextStyle(fontSize: AppTheme.fontSectionTitle)),
+                          : const Text('提交', style: TextStyle(fontSize: 16.0)),
                     ),
                   ),
                   const SizedBox(height: 24),

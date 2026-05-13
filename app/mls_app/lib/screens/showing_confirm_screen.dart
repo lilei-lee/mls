@@ -171,7 +171,7 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
                       Text(
                         '${sp['community']} ${sp['building']}号楼${sp['unit']}单元${sp['room_no']}',
                         style: const TextStyle(
-                            fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
+                            fontSize: 16.0, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -194,7 +194,7 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
                       const Icon(Icons.access_time, size: 18, color: Colors.grey),
                       const SizedBox(width: 8),
                       Text(_formatTime(d['showing_time']),
-                          style: const TextStyle(fontSize: AppTheme.fontSectionTitle)),
+                          style: const TextStyle(fontSize: 16.0)),
                     ],
                   ),
                 ),
@@ -227,7 +227,7 @@ class _ShowingConfirmScreenState extends State<ShowingConfirmScreen> {
                       Text(
                         d['ba_agent_name'] ?? '-',
                         style: const TextStyle(
-                            fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
+                            fontSize: 16.0, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),

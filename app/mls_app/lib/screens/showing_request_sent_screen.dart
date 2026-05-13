@@ -76,7 +76,7 @@ class _ShowingRequestSentScreenState extends State<ShowingRequestSentScreen> {
                   SizedBox(height: 16),
                   Text('还没有发出过申请',
                       style:
-                          TextStyle(color: Colors.grey, fontSize: AppTheme.fontSectionTitle)),
+                          TextStyle(color: Colors.grey, fontSize: 16.0)),
                   SizedBox(height: 6),
                   Text('去共享库挑套房,给房东发申请吧',
                       style:
@@ -132,7 +132,7 @@ class _SentRequestCard extends StatelessWidget {
                   child: Text(
                     '${snapshot['community']} ${snapshot['building']}号楼${snapshot['unit']}单元${snapshot['room_no']}',
                     style: const TextStyle(
-                      fontSize: AppTheme.fontSectionTitle,
+                      fontSize: 16.0,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

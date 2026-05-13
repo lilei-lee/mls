@@ -318,7 +318,7 @@ Future<void> _submit() async {
                           color: Colors.white,
                         ),
                       )
-                    : const Text('立即注册', style: TextStyle(fontSize: AppTheme.fontSectionTitle)),
+                    : const Text('立即注册', style: TextStyle(fontSize: 16.0)),
               ),
             ),
             const SizedBox(height: 16),

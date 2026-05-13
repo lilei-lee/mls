@@ -206,7 +206,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                       style: const TextStyle(fontSize: 11.0, color: Colors.grey)),
                 ]),
               ),
-              Text('¥$price万', style: const TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold, color: Colors.red)),
+              Text('¥$price万', style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold, color: Colors.red)),
             ]),
           ),
         ),
@@ -220,7 +220,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         Icon(Icons.receipt_long, size: 48, color: Colors.grey),
         SizedBox(height: 12),
-        Text('成交数据即将上线', style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontSectionTitle)),
+        Text('成交数据即将上线', style: TextStyle(color: Colors.grey, fontSize: 16.0)),
       ]),
     );
   }
@@ -282,7 +282,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
     return ExpansionTile(
       initiallyExpanded: true,
       leading: Icon(icon, size: 20, color: Colors.blue),
-      title: Text(title, style: const TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.w500)),
+      title: Text(title, style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500)),
       children: [Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 12), child: Column(children: children))],
     );
   }

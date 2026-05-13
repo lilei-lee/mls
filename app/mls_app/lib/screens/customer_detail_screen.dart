@@ -361,7 +361,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('时间线',
-            style: TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold)),
+            style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         if (events.isEmpty)
           Container(
@@ -533,7 +533,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
           children: [
             const Text('跟进记录',
                 style: TextStyle(
-                    fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold)),
+                    fontSize: 16.0, fontWeight: FontWeight.bold)),
             const SizedBox(width: 6),
             Text('(${memos.length})',
                 style: const TextStyle(color: Colors.grey, fontSize: 12.0)),

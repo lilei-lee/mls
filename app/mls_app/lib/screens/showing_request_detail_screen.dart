@@ -278,7 +278,7 @@ class _ShowingRequestDetailScreenState
                       Text(
                         '${snapshot['community']} ${snapshot['building']}号楼${snapshot['unit']}单元${snapshot['room_no']}',
                         style: const TextStyle(
-                            fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
+                            fontSize: 16.0, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -307,7 +307,7 @@ class _ShowingRequestDetailScreenState
                           Text(
                             '${data['customer_surname']}${data['customer_gender'] == 'male' ? '先生' : '女士'}',
                             style: const TextStyle(
-                                fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold),
+                                fontSize: 16.0, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -415,7 +415,7 @@ class _ShowingRequestDetailScreenState
                     icon: const Icon(Icons.phone),
                     label: Text(
                       '拨打 ${counter['name']}',
-                      style: const TextStyle(fontSize: AppTheme.fontSectionTitle),
+                      style: const TextStyle(fontSize: 16.0),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
@@ -1093,7 +1093,7 @@ class _ShowingRequestDetailScreenState
                           Text(
                             counter['name'] ?? '-',
                             style: const TextStyle(
-                                fontSize: AppTheme.fontSectionTitle,
+                                fontSize: 16.0,
                                 fontWeight: FontWeight.bold),
                           ),
                         ],

@@ -309,7 +309,7 @@ class _FilterSheetState extends State<FilterSheet> {
                   Expanded(flex: 2, child: ElevatedButton(
                     onPressed: _apply,
                     style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
-                    child: const Text('应用筛选', style: TextStyle(fontSize: AppTheme.fontSectionTitle)),
+                    child: const Text('应用筛选', style: TextStyle(fontSize: 16.0)),
                   )),
                 ]),
               ),
@@ -320,5 +320,5 @@ class _FilterSheetState extends State<FilterSheet> {
     );
   }
 
-  Widget _sectionTitle(String text) => Text(text, style: const TextStyle(fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold));
+  Widget _sectionTitle(String text) => Text(text, style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold));
 }

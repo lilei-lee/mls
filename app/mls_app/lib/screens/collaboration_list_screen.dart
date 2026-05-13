@@ -176,7 +176,7 @@ class _CollaborationListScreenState extends State<CollaborationListScreen>
           ),
           const SizedBox(height: 16),
           Text(tip,
-              style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontSectionTitle)),
+              style: const TextStyle(color: Colors.grey, fontSize: 16.0)),
           const SizedBox(height: 6),
           Text(hint,
               style: const TextStyle(color: Colors.grey, fontSize: 11.0)),

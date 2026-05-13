@@ -119,7 +119,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
           const Center(
             child: Text(
               '还没有客户',
-              style: TextStyle(color: Colors.grey, fontSize: AppTheme.fontSectionTitle),
+              style: TextStyle(color: Colors.grey, fontSize: 16.0),
             ),
           ),
           const SizedBox(height: 8),
@@ -234,7 +234,7 @@ class _CustomerCard extends StatelessWidget {
                         Text(
                           displayName,
                           style: TextStyle(
-                            fontSize: AppTheme.fontSectionTitle,
+                            fontSize: 16.0,
                             fontWeight: FontWeight.bold,
                             color: isClosed ? Colors.grey : null,
                           ),

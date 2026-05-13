@@ -139,7 +139,7 @@ class _ShowingRequestReceivedScreenState
           const Icon(Icons.inbox_outlined, size: 80, color: Colors.grey),
           const SizedBox(height: 16),
           Text(title,
-              style: const TextStyle(color: Colors.grey, fontSize: AppTheme.fontSectionTitle)),
+              style: const TextStyle(color: Colors.grey, fontSize: 16.0)),
         ],
       ),
     );
@@ -174,7 +174,7 @@ class _ReceivedRequestCard extends StatelessWidget {
                     child: Text(
                       '${snapshot['community']} ${snapshot['building']}-${snapshot['unit']}-${snapshot['room_no']}',
                       style: const TextStyle(
-                        fontSize: AppTheme.fontSectionTitle,
+                        fontSize: 16.0,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

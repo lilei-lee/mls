@@ -268,7 +268,7 @@ class _ShowingRequestCreateScreenState
                     Text(
                       '${s['community']} ${s['building']}号楼${s['unit']}单元${s['room_no']}',
                       style: const TextStyle(
-                        fontSize: AppTheme.fontSectionTitle,
+                        fontSize: 16.0,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -401,7 +401,7 @@ class _ShowingRequestCreateScreenState
                           color: Colors.white,
                         ),
                       )
-                    : const Text('提交申请', style: TextStyle(fontSize: AppTheme.fontSectionTitle)),
+                    : const Text('提交申请', style: TextStyle(fontSize: 16.0)),
               ),
             ),
           ],
@@ -468,7 +468,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
                   SizedBox(width: 8),
                   Text('选择客户',
                       style: TextStyle(
-                          fontSize: AppTheme.fontSectionTitle, fontWeight: FontWeight.bold)),
+                          fontSize: 16.0, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
