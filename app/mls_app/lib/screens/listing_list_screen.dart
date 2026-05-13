@@ -498,7 +498,7 @@ class _ListingCard extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 20.0,
                               fontWeight: FontWeight.bold,
-                              color: AppTheme.colorError,
+                              color: MlsColors.danger,
                             ),
                           ),
                           const SizedBox(width: 2),

@@ -133,8 +133,8 @@ class _TransactionPendingScreenState extends State<TransactionPendingScreen> {
         child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(color: AppTheme.info.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4.0)),
-              child: const Text('等待 LA 确认', style: TextStyle(color: AppTheme.info, fontSize: 11.0, fontWeight: FontWeight.bold))),
+              decoration: BoxDecoration(color: MlsColors.primary.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4.0)),
+              child: const Text('等待 LA 确认', style: TextStyle(color: MlsColors.primary, fontSize: 11.0, fontWeight: FontWeight.bold))),
             const Spacer(),
           ]),
           const SizedBox(height: 8),

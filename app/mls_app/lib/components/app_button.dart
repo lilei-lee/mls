@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_shadows.dart';
 import '../theme/mls_colors.dart';
 
 class AppButton extends StatelessWidget {
@@ -47,9 +48,9 @@ class AppButton extends StatelessWidget {
       case _ButtonVariant.primary:
         return BoxDecoration(
           borderRadius: BorderRadius.circular(12.0),
-          gradient: enabled ? AppTheme.gradientPrimary : null,
+          gradient: enabled ? MlsColors.heroBlue : null,
           color: enabled ? null : MlsColors.borderStrong,
-          boxShadow: enabled ? AppTheme.shadowBtn : null,
+          boxShadow: enabled ? MlsShadows.primaryButton : null,
         );
       case _ButtonVariant.secondary:
         return BoxDecoration(
@@ -68,7 +69,7 @@ class AppButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(12.0),
           gradient: enabled ? AppTheme.gradientGold : null,
           color: enabled ? null : MlsColors.borderStrong,
-          boxShadow: enabled ? AppTheme.shadowGold : null,
+          boxShadow: enabled ? MlsShadows.goldGlow : null,
         );
     }
   }

@@ -336,7 +336,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
                           width: 22,
                           height: 22,
                           decoration: const BoxDecoration(
-                            color: AppTheme.colorError,
+                            color: MlsColors.danger,
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(Icons.close,

@@ -532,7 +532,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
                       return ListTile(
                         leading: CircleAvatar(
                           backgroundColor: gender == 'male'
-                              ? AppTheme.colorDepositPaid.withValues(alpha: 0.15)
+                              ? MlsColors.primary.withValues(alpha: 0.15)
                               : Colors.pink.withValues(alpha: 0.15),
                           child: Icon(
                             gender == 'male' ? Icons.man : Icons.woman,

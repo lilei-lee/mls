@@ -507,7 +507,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: active ? Colors.blue.shade50 : MlsColors.borderLight,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+        borderRadius: BorderRadius.circular(16.0),
         border: active ? Border.all(color: Colors.blue.shade300) : null,
       ),
       child: Text(label, style: TextStyle(fontSize: 11.0, color: active ? Colors.blue : Colors.grey)),
@@ -689,7 +689,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   }
 
   Widget _askingPriceCard(Map<String, dynamic> item) => Card(
-    color: AppTheme.colorError.withValues(alpha: 0.05),
+    color: MlsColors.danger.withValues(alpha: 0.05),
     child: Padding(
       padding: const EdgeInsets.all(16),
       child: Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [

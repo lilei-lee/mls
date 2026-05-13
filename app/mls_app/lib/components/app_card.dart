@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_shadows.dart';
 
 class AppCard extends StatelessWidget {
   final Widget child;
@@ -37,11 +38,11 @@ class AppCard extends StatelessWidget {
   BoxDecoration _decoration() {
     switch (variant) {
       case _CardVariant.base:
-        return BoxDecoration(color: AppTheme.surface2, borderRadius: BorderRadius.circular(12.0), boxShadow: AppTheme.shadowCard);
+        return BoxDecoration(color: AppTheme.surface2, borderRadius: BorderRadius.circular(12.0), boxShadow: MlsShadows.md);
       case _CardVariant.hero:
-        return BoxDecoration(color: AppTheme.surface2, borderRadius: BorderRadius.circular(16.0), boxShadow: AppTheme.shadowHero);
+        return BoxDecoration(color: AppTheme.surface2, borderRadius: BorderRadius.circular(16.0), boxShadow: MlsShadows.heroBlue);
       case _CardVariant.gold:
-        return BoxDecoration(borderRadius: BorderRadius.circular(16.0), gradient: AppTheme.gradientGold, boxShadow: AppTheme.shadowGold);
+        return BoxDecoration(borderRadius: BorderRadius.circular(16.0), gradient: AppTheme.gradientGold, boxShadow: MlsShadows.goldGlow);
       case _CardVariant.flat:
         return BoxDecoration(color: AppTheme.surface1, borderRadius: BorderRadius.circular(12.0));
     }

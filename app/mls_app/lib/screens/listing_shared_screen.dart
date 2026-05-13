@@ -391,7 +391,7 @@ class _SharedListingCard extends StatelessWidget {
         break;
       case 'deposit_paid':
         label = '定金已付';
-        color = AppTheme.info;
+        color = MlsColors.primary;
         break;
       case 'transaction_ongoing':
         label = '成交进行中';
