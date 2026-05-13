@@ -28,7 +28,7 @@ class AppChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: variant == _ChipVariant.selected ? AppTheme.primary50 : AppTheme.n100,
-        borderRadius: BorderRadius.circular(AppTheme.radiusS),
+        borderRadius: BorderRadius.circular(6.0),
         border: variant == _ChipVariant.selected ? Border.all(color: AppTheme.primary500) : null,
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -37,7 +37,7 @@ class AppChip extends StatelessWidget {
         if (onDeleted != null) ...[const SizedBox(width: 4), GestureDetector(onTap: onDeleted, child: Icon(Icons.close, size: 12, color: _textColor))],
       ]),
     );
-    if (onTap != null) return Material(color: Colors.transparent, child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(AppTheme.radiusS), child: chip));
+    if (onTap != null) return Material(color: Colors.transparent, child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(6.0), child: chip));
     return chip;
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
@@ -393,7 +394,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
           priceYuan: maskBa ? null : doc['ba_deal_price_yuan'] as int?,
           dateStr: maskBa ? null : doc['ba_deal_date'] as String?,
           submittedAt: doc['ba_submitted_at'] as String?,
-          color: AppTheme.primaryBlue,
+          color: MlsColors.primary,
           masked: maskBa,
           hasSubmitted: baHasSubmitted,
         ),

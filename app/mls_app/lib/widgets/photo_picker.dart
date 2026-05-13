@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -306,7 +307,7 @@ class _PhotoPickerState extends State<PhotoPicker> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue,
+                  color: MlsColors.primary,
                   borderRadius: BorderRadius.circular(4.0),
                 ),
                 child: const Text(
@@ -340,7 +341,7 @@ class _PhotoPickerState extends State<PhotoPicker> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.add_a_photo_outlined,
-                size: 28, color: AppTheme.grey500),
+                size: 28, color: MlsColors.textSecondary),
             const SizedBox(height: 4),
             Text(
               '添加照片',

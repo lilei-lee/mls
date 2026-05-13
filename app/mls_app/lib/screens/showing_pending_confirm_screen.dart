@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import 'package:go_router/go_router.dart';
 import '../services/showing_service.dart';
 
@@ -116,7 +117,7 @@ class _ShowingPendingConfirmScreenState
                                 ),
                                 child: const Text('待确认',
                                     style: TextStyle(
-                                        color: AppTheme.colorPending,
+                                        color: MlsColors.warning,
                                         fontSize: 11.0,
                                         fontWeight: FontWeight.bold)),
                               ),

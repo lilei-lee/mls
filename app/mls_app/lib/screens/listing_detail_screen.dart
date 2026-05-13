@@ -995,7 +995,7 @@ class _PhotoCarouselState extends State<_PhotoCarousel> {
       return Container(height: 200, color: AppTheme.grey200, alignment: Alignment.center,
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         Icon(Icons.image_not_supported_outlined, color: AppTheme.grey400, size: 48),
-        const SizedBox(height: 8), Text('暂无照片', style: TextStyle(color: AppTheme.grey500, fontSize: 12.0)),
+        const SizedBox(height: 8), Text('暂无照片', style: TextStyle(color: MlsColors.textSecondary, fontSize: 12.0)),
       ]));
     }
     return AspectRatio(aspectRatio: 4/3, child: Stack(children: [

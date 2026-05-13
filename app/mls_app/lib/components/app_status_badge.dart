@@ -35,7 +35,7 @@ class AppStatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(AppTheme.radiusS)),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6.0)),
       child: Text(label, style: AppTheme.caption.copyWith(fontSize: fontSize, fontWeight: FontWeight.w700, color: color)),
     );
   }

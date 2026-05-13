@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import 'package:go_router/go_router.dart';
 import '../services/collaboration_service.dart';
 import '../widgets/progress_tracker.dart';
@@ -347,7 +348,7 @@ class _CollaborationCard extends StatelessWidget {
               Row(
                 children: [
                   Icon(Icons.access_time,
-                      size: 11, color: AppTheme.grey500),
+                      size: 11, color: MlsColors.textSecondary),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
@@ -361,7 +362,7 @@ class _CollaborationCard extends StatelessWidget {
                   Text(
                     _relativeTime(lastActionTime),
                     style: TextStyle(
-                        color: AppTheme.grey500, fontSize: 11.0),
+                        color: MlsColors.textSecondary, fontSize: 11.0),
                   ),
                 ],
               ),

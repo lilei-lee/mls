@@ -165,7 +165,7 @@ class _ListingListScreenState extends State<ListingListScreen>
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: AppTheme.colorPending,
+                      color: MlsColors.warning,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -279,7 +279,7 @@ class _ListingListScreenState extends State<ListingListScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(
-          color: AppTheme.colorPending.withValues(alpha: 0.15),
+          color: MlsColors.warning.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(4.0),
         ),
         child: Row(

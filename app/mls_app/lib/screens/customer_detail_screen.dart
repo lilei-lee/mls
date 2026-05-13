@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/customer_service.dart';
@@ -299,7 +300,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
         Expanded(
           child: _statBox(
             icon: Icons.description_outlined,
-            color: AppTheme.primaryBlue,
+            color: MlsColors.primary,
             label: '申请',
             count: (stats['requests_count'] ?? 0) as int,
           ),
@@ -308,7 +309,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
         Expanded(
           child: _statBox(
             icon: Icons.camera_alt_outlined,
-            color: AppTheme.colorPending,
+            color: MlsColors.warning,
             label: '带看',
             count: (stats['showings_count'] ?? 0) as int,
           ),

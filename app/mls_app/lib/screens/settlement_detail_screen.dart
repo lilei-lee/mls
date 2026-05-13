@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/settlement_service.dart';
@@ -175,7 +176,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
                               style: const TextStyle(
                                 fontSize: 20.0,
                                 fontWeight: FontWeight.bold,
-                                color: AppTheme.colorPending,
+                                color: MlsColors.warning,
                               ),
                             ),
                             const SizedBox(width: 4),
