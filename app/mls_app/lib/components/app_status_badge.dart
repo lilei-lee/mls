@@ -1,7 +1,25 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 import '../theme/mls_typography.dart';
 import '../theme/mls_colors.dart';
+
+const _listingStatusColor = <String, Color>{
+  'on_sale': MlsColors.success,
+  'deposit_paid': MlsColors.primary,
+  'transaction_ongoing': MlsColors.warning,
+  'sold': MlsColors.textSecondary,
+  'paused': MlsColors.warning,
+  'offline': MlsColors.textSecondary,
+};
+
+const _collabStatusColor = <String, Color>{
+  'pending': MlsColors.warning,
+  'approved': MlsColors.primary,
+  'showing_done': MlsColors.primary,
+  'transaction_initiated': MlsColors.warning,
+  'transaction_confirmed': MlsColors.success,
+  'rejected': MlsColors.textSecondary,
+  'canceled': MlsColors.textSecondary,
+};
 
 /// 房源 / 协作 状态徽标 — v2.0 统一 Pill 样式
 class AppStatusBadge extends StatelessWidget {
@@ -17,7 +35,7 @@ class AppStatusBadge extends StatelessWidget {
       'on_sale': '在售', 'deposit_paid': '定金已付', 'transaction_ongoing': '成交进行中',
       'sold': '已成交', 'paused': '暂停', 'offline': '已下架',
     }[status] ?? status;
-    final color = AppTheme.listingStatusColor[status] ?? MlsColors.textSecondary;
+    final color = _listingStatusColor[status] ?? MlsColors.textSecondary;
     return AppStatusBadge(label: label, color: color);
   }
 
@@ -28,7 +46,7 @@ class AppStatusBadge extends StatelessWidget {
       'transaction_initiated': '已发起成交', 'transaction_confirmed': '已成交',
       'rejected': '已拒绝', 'canceled': '已取消',
     }[status] ?? status;
-    final color = AppTheme.collabStatusColor[status] ?? MlsColors.textSecondary;
+    final color = _collabStatusColor[status] ?? MlsColors.textSecondary;
     return AppStatusBadge(label: label, color: color);
   }
 

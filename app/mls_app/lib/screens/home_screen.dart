@@ -96,7 +96,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     if (ok != true) return;
     await _storage.deleteAll();
-    if (mounted) context.go('/login');
+    if (!mounted) return;
+    context.go('/login');
   }
 
   @override
@@ -132,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text('${_greeting()}，${_myName.isNotEmpty ? _myName : '用户'}',
                               style: TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 15, fontWeight: MlsTypography.semibold, color: Colors.white)),
                           Text('工作台 · ${_todayLabel()}',
-                              style: TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 11, color: Colors.white.withOpacity(0.65))),
+                              style: TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 11, color: Colors.white.withValues(alpha: 0.65))),
                           const Spacer(),
                         ]),
                         const Spacer(),
