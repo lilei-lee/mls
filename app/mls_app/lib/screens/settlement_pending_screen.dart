@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import 'package:go_router/go_router.dart';
 import '../services/settlement_service.dart';
 
@@ -177,7 +178,7 @@ class _SettlementCard extends StatelessWidget {
                   ),
                   const Spacer(),
                   Icon(Icons.chevron_right,
-                      color: AppTheme.grey400, size: 20),
+                      color: MlsColors.textTertiary, size: 20),
                 ],
               ),
               const SizedBox(height: 10),

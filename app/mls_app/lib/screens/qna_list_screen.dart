@@ -52,9 +52,9 @@ class _QnaListScreenState extends State<QnaListScreen> {
           final data = snap.data;
           if (data == null || data.items.isEmpty) {
             return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(LucideIcons.helpCircle, size: 48, color: AppTheme.n300),
+              const Icon(LucideIcons.helpCircle, size: 48, color: MlsColors.borderStrong),
               const SizedBox(height: 16),
-              Text('暂无问答', style: AppTheme.titleS.copyWith(color: AppTheme.n700)),
+              Text('暂无问答', style: AppTheme.titleS.copyWith(color: MlsColors.textPrimary)),
             ]));
           }
           // Trigger scroll after build
@@ -70,7 +70,7 @@ class _QnaListScreenState extends State<QnaListScreen> {
               final isHL = i == _highlightIdx;
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 500),
-                decoration: isHL ? BoxDecoration(color: AppTheme.primary50, borderRadius: BorderRadius.circular(12)) : null,
+                decoration: isHL ? BoxDecoration(color: MlsColors.primaryBg, borderRadius: BorderRadius.circular(12)) : null,
                 padding: EdgeInsets.all(isHL ? 8 : 0),
                 child: _buildItem(t),
               );
@@ -89,22 +89,22 @@ class _QnaListScreenState extends State<QnaListScreen> {
           const Icon(LucideIcons.user, size: 16, color: MlsColors.textSecondary),
           const SizedBox(width: 4), Text(t.askerName, style: AppTheme.titleS),
           const Spacer(),
-          Text(_fmt(t.questionAt), style: AppTheme.caption.copyWith(color: AppTheme.n300)),
+          Text(_fmt(t.questionAt), style: AppTheme.caption.copyWith(color: MlsColors.borderStrong)),
         ]),
         const SizedBox(height: 6),
         Container(width: double.infinity, padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(color: AppTheme.n50, borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(color: MlsColors.bgPageStart, borderRadius: BorderRadius.circular(12)),
           child: Text(t.question, style: AppTheme.bodyM)),
         const SizedBox(height: 6),
         if (t.isAnswered)
           Container(width: double.infinity, padding: const EdgeInsets.all(14),
             margin: const EdgeInsets.only(left: 24),
-            decoration: BoxDecoration(color: AppTheme.primary50, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(color: MlsColors.primaryBg, borderRadius: BorderRadius.circular(12)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
-                Text(t.answererName ?? '', style: AppTheme.caption.copyWith(color: AppTheme.primary500)),
+                Text(t.answererName ?? '', style: AppTheme.caption.copyWith(color: MlsColors.primary)),
                 const Spacer(),
-                Text(_fmt(t.answeredAt), style: AppTheme.caption.copyWith(fontSize: 11.0, color: AppTheme.n300)),
+                Text(_fmt(t.answeredAt), style: AppTheme.caption.copyWith(fontSize: 11.0, color: MlsColors.borderStrong)),
               ]),
               const SizedBox(height: 6),
               Text(t.answer ?? '', style: AppTheme.bodyM),
@@ -112,7 +112,7 @@ class _QnaListScreenState extends State<QnaListScreen> {
           )
         else
           Padding(padding: const EdgeInsets.only(left: 24),
-            child: Text('等待回答...', style: AppTheme.bodyS.copyWith(color: AppTheme.n300, fontStyle: FontStyle.italic))),
+            child: Text('等待回答...', style: AppTheme.bodyS.copyWith(color: MlsColors.borderStrong, fontStyle: FontStyle.italic))),
         const Divider(height: 24),
       ]),
     );

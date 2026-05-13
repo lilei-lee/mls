@@ -141,7 +141,7 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
   /// V2.4: Pill 圆角 999 + Primary 50 底 + Lucide.x 关闭
   Widget _filterChip(String label, String dimension) {
     return Material(
-      color: AppTheme.primary50,
+      color: MlsColors.primaryBg,
       shape: const StadiumBorder(),
       child: InkWell(
         customBorder: const StadiumBorder(),
@@ -149,9 +149,9 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Text(label, style: TextStyle(fontSize: 11.0, color: AppTheme.primary500, fontWeight: FontWeight.w500)),
+            Text(label, style: TextStyle(fontSize: 11.0, color: MlsColors.primary, fontWeight: FontWeight.w500)),
             const SizedBox(width: 4),
-            Icon(LucideIcons.x, size: 12, color: AppTheme.primary500),
+            Icon(LucideIcons.x, size: 12, color: MlsColors.primary),
           ]),
         ),
       ),
@@ -298,8 +298,8 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
 
   Widget _anonymousBadge() => Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-        decoration: BoxDecoration(color: AppTheme.primary50, borderRadius: BorderRadius.circular(4.0)),
-        child: Text('匿名浏览', style: TextStyle(color: AppTheme.primary500, fontSize: 11.0)),
+        decoration: BoxDecoration(color: MlsColors.primaryBg, borderRadius: BorderRadius.circular(4.0)),
+        child: Text('匿名浏览', style: TextStyle(color: MlsColors.primary, fontSize: 11.0)),
       );
 
   PopupMenuItem<String> _sortMenuItem(String value, String label, IconData icon) {
@@ -307,9 +307,9 @@ class _ListingSharedScreenState extends State<ListingSharedScreen>
     return PopupMenuItem<String>(
       value: value,
       child: Row(children: [
-        Icon(icon, size: 18, color: sel ? AppTheme.primary500 : MlsColors.textSecondary),
+        Icon(icon, size: 18, color: sel ? MlsColors.primary : MlsColors.textSecondary),
         const SizedBox(width: 10),
-        Text(label, style: TextStyle(color: sel ? AppTheme.primary500 : AppTheme.n800, fontWeight: sel ? FontWeight.w600 : null)),
+        Text(label, style: TextStyle(color: sel ? MlsColors.primary : AppTheme.n800, fontWeight: sel ? FontWeight.w600 : null)),
       ]),
     );
   }
@@ -593,7 +593,7 @@ class _SharedListingCard extends StatelessWidget {
                    if (floor != null && totalFloor != null) '$floor/$totalFloor层',
                    if (orientation.isNotEmpty) orientation,
                   ].join(' | '),
-                  style: TextStyle(fontSize: 11.0, color: AppTheme.n700),
+                  style: TextStyle(fontSize: 11.0, color: MlsColors.textPrimary),
                 ),
                 const SizedBox(height: 4),
 
@@ -607,8 +607,8 @@ class _SharedListingCard extends StatelessWidget {
                       children: tags
                           .map((t) => Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                                decoration: BoxDecoration(color: AppTheme.n50, borderRadius: BorderRadius.circular(4.0)),
-                                child: Text(t, style: TextStyle(fontSize: 11.0, color: AppTheme.n700)),
+                                decoration: BoxDecoration(color: MlsColors.bgPageStart, borderRadius: BorderRadius.circular(4.0)),
+                                child: Text(t, style: TextStyle(fontSize: 11.0, color: MlsColors.textPrimary)),
                               ))
                           .toList(),
                     ),
@@ -668,7 +668,7 @@ class _SharedListingCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(4.0),
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(color: AppTheme.n50, borderRadius: BorderRadius.circular(4.0), border: Border.all(color: AppTheme.n150)),
+                            decoration: BoxDecoration(color: MlsColors.bgPageStart, borderRadius: BorderRadius.circular(4.0), border: Border.all(color: AppTheme.n150)),
                             child: Row(mainAxisSize: MainAxisSize.min, children: [
                               const Icon(LucideIcons.helpCircle, size: 12, color: MlsColors.textSecondary),
                               const SizedBox(width: 2),

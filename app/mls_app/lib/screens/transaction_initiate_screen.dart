@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
@@ -280,7 +281,7 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
               padding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
               decoration: BoxDecoration(
-                border: Border.all(color: AppTheme.grey400),
+                border: Border.all(color: MlsColors.textTertiary),
                 borderRadius: BorderRadius.circular(4.0),
               ),
               child: Row(

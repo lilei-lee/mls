@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
@@ -332,7 +333,7 @@ class _ShowingRequestDetailScreenState
               if (status == ShowingRequestStatus.rejected) ...[
                 _sectionTitle('拒绝理由'),
                 Card(
-                  color: AppTheme.grey200.withValues(alpha: 0.5),
+                  color: MlsColors.borderLight.withValues(alpha: 0.5),
                   child: Padding(
                     padding: const EdgeInsets.all(14),
                     child: Column(
@@ -501,7 +502,7 @@ class _ShowingRequestDetailScreenState
     if (showing == null) {
       if (isLA) {
         return Card(
-          color: AppTheme.grey200.withValues(alpha: 0.5),
+          color: MlsColors.borderLight.withValues(alpha: 0.5),
           child: const Padding(
             padding: EdgeInsets.all(14),
             child: Row(
@@ -712,7 +713,7 @@ class _ShowingRequestDetailScreenState
     if (tx == null) {
       if (isLA) {
         return Card(
-          color: AppTheme.grey100.withValues(alpha: 0.8),
+          color: MlsColors.borderLight.withValues(alpha: 0.8),
           child: const Padding(
             padding: EdgeInsets.all(14),
             child: Row(
@@ -770,7 +771,7 @@ class _ShowingRequestDetailScreenState
     if (tx['status'] == 'cancelled') {
       if (isLA) {
         return Card(
-          color: AppTheme.grey100.withValues(alpha: 0.8),
+          color: MlsColors.borderLight.withValues(alpha: 0.8),
           child: const Padding(
             padding: EdgeInsets.all(14),
             child: Row(

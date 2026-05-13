@@ -11,13 +11,13 @@ class AppAvatar extends StatelessWidget {
 
   const AppAvatar({super.key, required this.name, this.size = 40, this.showStatusDot = false, this.statusColor, this.onDark = false});
 
-  static const _colors = [AppTheme.primary500, AppTheme.gold500, AppTheme.accentCyan, AppTheme.accentPurple];
+  static const _colors = [MlsColors.primary, AppTheme.gold500, AppTheme.accentCyan, AppTheme.accentPurple];
 
-  Color _hashColor() => name.isNotEmpty ? _colors[name.codeUnitAt(0) % _colors.length] : AppTheme.primary500;
+  Color _hashColor() => name.isNotEmpty ? _colors[name.codeUnitAt(0) % _colors.length] : MlsColors.primary;
 
   @override
   Widget build(BuildContext context) {
-    final fallbackBg = onDark ? MlsColors.bgCardPrimary.withValues(alpha: 0.2) : AppTheme.n100;
+    final fallbackBg = onDark ? MlsColors.bgCardPrimary.withValues(alpha: 0.2) : MlsColors.borderLight;
     final fallbackIcon = onDark ? MlsColors.bgCardPrimary.withValues(alpha: 0.8) : MlsColors.textSecondary;
 
     return SizedBox(

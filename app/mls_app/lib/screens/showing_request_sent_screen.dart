@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import '../models/showing_request.dart';
 import '../services/showing_request_service.dart';
 import 'package:go_router/go_router.dart';
@@ -188,7 +189,7 @@ class _SentRequestCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppTheme.grey200.withValues(alpha: 0.5),
+                  color: MlsColors.borderLight.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(4.0),
                 ),
                 child: Row(

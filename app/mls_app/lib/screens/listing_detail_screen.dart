@@ -286,7 +286,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       return _sectionCard(title: '带看记录', children: [
                         Container(
                           padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(color: AppTheme.grey50, borderRadius: BorderRadius.circular(8.0)),
+                          decoration: BoxDecoration(color: MlsColors.bgPageStart, borderRadius: BorderRadius.circular(8.0)),
                           child: const Row(children: [
                             Icon(Icons.people_outline, size: 24, color: Colors.grey),
                             SizedBox(width: 12),
@@ -348,7 +348,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                   _sectionCard(children: [
                     Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(color: AppTheme.grey50, borderRadius: BorderRadius.circular(8.0)),
+                      decoration: BoxDecoration(color: MlsColors.bgPageStart, borderRadius: BorderRadius.circular(8.0)),
                       child: Row(children: [
                         const Icon(Icons.lock_outline, size: 24, color: Colors.grey),
                         const SizedBox(width: 12),
@@ -401,7 +401,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       if (isInTransaction)
                         Container(
                           padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(color: AppTheme.grey100.withValues(alpha: 0.8), borderRadius: BorderRadius.circular(4.0)),
+                          decoration: BoxDecoration(color: MlsColors.borderLight.withValues(alpha: 0.8), borderRadius: BorderRadius.circular(4.0)),
                           child: const Row(children: [
                             Icon(Icons.info_outline, color: Colors.grey, size: 18), SizedBox(width: 8),
                             Expanded(child: Text('交易状态下不能直接下架,请先回退到「在售」', style: TextStyle(color: Colors.grey, fontSize: 11.0))),
@@ -472,7 +472,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         Column(children: [
           Container(width: 10, height: 10, decoration: BoxDecoration(
             color: isFirst ? Colors.blue : Colors.grey, shape: BoxShape.circle)),
-          if (!isFirst) Container(width: 1, height: 20, color: AppTheme.grey400),
+          if (!isFirst) Container(width: 1, height: 20, color: MlsColors.textTertiary),
         ]),
         const SizedBox(width: 8),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -506,7 +506,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: active ? Colors.blue.shade50 : AppTheme.grey100,
+        color: active ? Colors.blue.shade50 : MlsColors.borderLight,
         borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
         border: active ? Border.all(color: Colors.blue.shade300) : null,
       ),
@@ -603,7 +603,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     if (cf is! Map || cf.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: AppTheme.grey50, borderRadius: BorderRadius.circular(8.0)),
+        decoration: BoxDecoration(color: MlsColors.bgPageStart, borderRadius: BorderRadius.circular(8.0)),
         child: const Row(children: [
           Icon(Icons.info_outline, size: 16, color: Colors.grey),
           SizedBox(width: 8),
@@ -652,7 +652,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     if (lines.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: AppTheme.grey50, borderRadius: BorderRadius.circular(8.0)),
+        decoration: BoxDecoration(color: MlsColors.bgPageStart, borderRadius: BorderRadius.circular(8.0)),
         child: const Row(children: [
           Icon(Icons.info_outline, size: 16, color: Colors.grey),
           SizedBox(width: 8),
@@ -735,7 +735,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   );
 
   Widget _offlineActionsSection() => Column(children: [
-    Card(color: AppTheme.grey200.withValues(alpha: 0.5), child: const Padding(padding: EdgeInsets.all(16), child: Row(children: [
+    Card(color: MlsColors.borderLight.withValues(alpha: 0.5), child: const Padding(padding: EdgeInsets.all(16), child: Row(children: [
       Icon(Icons.info_outline, color: Colors.grey, size: 20), SizedBox(width: 10),
       Expanded(child: Text('该房源已下架,在共享库不再展示', style: TextStyle(color: Colors.grey))),
     ]))),
@@ -757,7 +757,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         if (data == null || data.items.isEmpty) {
           return _sectionCard(title: '问答', children: [
             SizedBox(height: 80, child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(LucideIcons.helpCircle, size: 32, color: AppTheme.n300),
+              const Icon(LucideIcons.helpCircle, size: 32, color: MlsColors.borderStrong),
               const SizedBox(height: 8),
               Text(isOwner ? '等待 BA 提问中' : '看到这套房有疑问?第一个提问吧',
                   style: AppTheme.bodyS.copyWith(color: MlsColors.textSecondary)),
@@ -775,10 +775,10 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                 await _showAskSheet(context, item['community'] ?? '');
                 _reload();
               } : null,
-              icon: Icon(LucideIcons.helpCircle, size: 16, color: canAsk ? AppTheme.n700 : AppTheme.n300),
+              icon: Icon(LucideIcons.helpCircle, size: 16, color: canAsk ? MlsColors.textPrimary : MlsColors.borderStrong),
               label: Text(canAsk ? '发起提问' : '已有 $myPending 个问题待回答',
-                  style: TextStyle(color: canAsk ? AppTheme.n700 : AppTheme.n300)),
-              style: OutlinedButton.styleFrom(foregroundColor: canAsk ? AppTheme.n700 : AppTheme.n300, side: BorderSide(color: canAsk ? AppTheme.n200 : AppTheme.n150)),
+                  style: TextStyle(color: canAsk ? MlsColors.textPrimary : MlsColors.borderStrong)),
+              style: OutlinedButton.styleFrom(foregroundColor: canAsk ? MlsColors.textPrimary : MlsColors.borderStrong, side: BorderSide(color: canAsk ? MlsColors.borderStrong : AppTheme.n150)),
             )),
         ]);
       },
@@ -793,7 +793,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
           const Icon(LucideIcons.user, size: 14, color: MlsColors.textSecondary),
           const SizedBox(width: 4), Text(t.askerName, style: AppTheme.caption),
           const Spacer(),
-          Text(_fmtTime(t.questionAt), style: AppTheme.caption.copyWith(fontSize: 11.0, color: AppTheme.n300)),
+          Text(_fmtTime(t.questionAt), style: AppTheme.caption.copyWith(fontSize: 11.0, color: MlsColors.borderStrong)),
         ]),
         const SizedBox(height: 4),
         Text('问:${t.question}', style: AppTheme.bodyM),
@@ -802,12 +802,12 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
           Container(
             width: double.infinity, padding: const EdgeInsets.all(10),
             margin: const EdgeInsets.only(left: 24),
-            decoration: BoxDecoration(color: AppTheme.n50, borderRadius: BorderRadius.circular(8.0)),
+            decoration: BoxDecoration(color: MlsColors.bgPageStart, borderRadius: BorderRadius.circular(8.0)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
-                Text(t.answererName ?? '', style: AppTheme.caption.copyWith(color: AppTheme.primary500)),
+                Text(t.answererName ?? '', style: AppTheme.caption.copyWith(color: MlsColors.primary)),
                 const Spacer(),
-                Text(_fmtTime(t.answeredAt), style: AppTheme.caption.copyWith(fontSize: 11.0, color: AppTheme.n300)),
+                Text(_fmtTime(t.answeredAt), style: AppTheme.caption.copyWith(fontSize: 11.0, color: MlsColors.borderStrong)),
               ]),
               const SizedBox(height: 4),
               Text(t.answer ?? '', style: AppTheme.bodyM),
@@ -817,13 +817,13 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
           Padding(
             padding: const EdgeInsets.only(left: 24),
             child: Row(children: [
-              Expanded(child: Text('等待回答...', style: AppTheme.bodyS.copyWith(color: AppTheme.n300, fontStyle: FontStyle.italic))),
+              Expanded(child: Text('等待回答...', style: AppTheme.bodyS.copyWith(color: MlsColors.borderStrong, fontStyle: FontStyle.italic))),
               if (isOwner && t.answererSelf)
                 SizedBox(height: 32, child: TextButton.icon(
                   onPressed: () => _showAnswerSheet(context, t),
                   icon: const Icon(LucideIcons.pencil, size: 14),
                   label: const Text('回答', style: TextStyle(fontSize: 12)),
-                  style: TextButton.styleFrom(foregroundColor: AppTheme.primary500),
+                  style: TextButton.styleFrom(foregroundColor: MlsColors.primary),
                 )),
             ]),
           ),
@@ -837,7 +837,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       builder: (ctx) => Padding(padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
         child: SingleChildScrollView(child: Padding(padding: const EdgeInsets.all(20),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppTheme.n200, borderRadius: BorderRadius.circular(2)))),
+            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: MlsColors.borderStrong, borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 16), Text('对「$community」提问', style: AppTheme.titleM),
             const SizedBox(height: 8), Text('LA 收到后会尽快回复,问答公开可见', style: AppTheme.caption.copyWith(color: MlsColors.textSecondary)),
             const SizedBox(height: 16),
@@ -864,11 +864,11 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       builder: (ctx) => Padding(padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
         child: SingleChildScrollView(child: Padding(padding: const EdgeInsets.all(20),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppTheme.n200, borderRadius: BorderRadius.circular(2)))),
+            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: MlsColors.borderStrong, borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 16), Text('回答 ${t.askerName} 的提问', style: AppTheme.titleM),
             const SizedBox(height: 8),
-            Container(width: double.infinity, padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: AppTheme.n50, borderRadius: BorderRadius.circular(8)),
-              child: Text('问:${t.question}', style: AppTheme.bodyM.copyWith(color: AppTheme.n700))),
+            Container(width: double.infinity, padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: MlsColors.bgPageStart, borderRadius: BorderRadius.circular(8)),
+              child: Text('问:${t.question}', style: AppTheme.bodyM.copyWith(color: MlsColors.textPrimary))),
             const SizedBox(height: 16),
             TextField(controller: ctrl, maxLength: 300, minLines: 3, maxLines: 6,
               decoration: const InputDecoration(hintText: '请客观作答,避免泄露敏感信息', border: OutlineInputBorder())),
@@ -992,9 +992,9 @@ class _PhotoCarouselState extends State<_PhotoCarousel> {
   @override
   Widget build(BuildContext context) {
     if (widget.photos.isEmpty) {
-      return Container(height: 200, color: AppTheme.grey200, alignment: Alignment.center,
+      return Container(height: 200, color: MlsColors.borderLight, alignment: Alignment.center,
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Icon(Icons.image_not_supported_outlined, color: AppTheme.grey400, size: 48),
+        Icon(Icons.image_not_supported_outlined, color: MlsColors.textTertiary, size: 48),
         const SizedBox(height: 8), Text('暂无照片', style: TextStyle(color: MlsColors.textSecondary, fontSize: 12.0)),
       ]));
     }

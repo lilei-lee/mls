@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -218,7 +219,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
               decoration: BoxDecoration(
-                border: Border.all(color: AppTheme.grey400),
+                border: Border.all(color: MlsColors.textTertiary),
                 borderRadius: BorderRadius.circular(4.0),
               ),
               child: Row(
@@ -345,7 +346,7 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
       child: Container(
         width: size, height: size,
         decoration: BoxDecoration(
-          border: Border.all(color: AppTheme.grey400),
+          border: Border.all(color: MlsColors.textTertiary),
           borderRadius: BorderRadius.circular(4.0),
         ),
         child: Column(

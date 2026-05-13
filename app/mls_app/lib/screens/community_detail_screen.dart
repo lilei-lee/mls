@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import 'package:go_router/go_router.dart';
 import '../services/api_client.dart';
 import '../widgets/base64_image.dart';
@@ -69,7 +70,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: AppTheme.primary50),
+              decoration: BoxDecoration(color: MlsColors.primaryBg),
               child: Column(children: [
                 Text(name, style: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
@@ -195,7 +196,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 child: SizedBox(width: 72, height: 72,
                     child: cover != null && cover.isNotEmpty
                         ? Base64Image(dataUrl: cover, fit: BoxFit.cover)
-                        : Container(color: AppTheme.grey200, child: const Icon(Icons.image, color: Colors.grey))),
+                        : Container(color: MlsColors.borderLight, child: const Icon(Icons.image, color: Colors.grey))),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -266,7 +267,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
         _expTile('周边对比', Icons.compare_arrows_outlined, [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: AppTheme.grey100, borderRadius: BorderRadius.circular(4.0)),
+            decoration: BoxDecoration(color: MlsColors.borderLight, borderRadius: BorderRadius.circular(4.0)),
             child: const Row(children: [
               Icon(Icons.lock_outline, size: 14, color: Colors.grey),
               SizedBox(width: 8),

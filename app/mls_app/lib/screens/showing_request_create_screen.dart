@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/showing_request_service.dart';
@@ -321,7 +322,7 @@ class _ShowingRequestCreateScreenState
                 border: const OutlineInputBorder(),
                 filled: identityLocked,
                 fillColor: identityLocked
-                    ? AppTheme.grey200.withValues(alpha: 0.5)
+                    ? MlsColors.borderLight.withValues(alpha: 0.5)
                     : null,
               ),
               maxLength: 5,
@@ -456,7 +457,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppTheme.grey400,
+                color: MlsColors.textTertiary,
                 borderRadius: BorderRadius.circular(4.0),
               ),
             ),

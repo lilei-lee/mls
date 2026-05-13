@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 
 class AppChip extends StatelessWidget {
   final String label;
@@ -19,7 +20,7 @@ class AppChip extends StatelessWidget {
   const AppChip.status(String label, Color color, {IconData? icon, VoidCallback? onTap})
       : this._(label: label, variant: _ChipVariant.status, icon: icon, onTap: onTap, onDeleted: null);
 
-  Color? get _textColor => variant == _ChipVariant.selected ? AppTheme.primary500 : AppTheme.n700;
+  Color? get _textColor => variant == _ChipVariant.selected ? MlsColors.primary : MlsColors.textPrimary;
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +28,9 @@ class AppChip extends StatelessWidget {
       height: 28,
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: variant == _ChipVariant.selected ? AppTheme.primary50 : AppTheme.n100,
+        color: variant == _ChipVariant.selected ? MlsColors.primaryBg : MlsColors.borderLight,
         borderRadius: BorderRadius.circular(6.0),
-        border: variant == _ChipVariant.selected ? Border.all(color: AppTheme.primary500) : null,
+        border: variant == _ChipVariant.selected ? Border.all(color: MlsColors.primary) : null,
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         if (icon != null) ...[Icon(icon, size: 14, color: _textColor), const SizedBox(width: 4)],

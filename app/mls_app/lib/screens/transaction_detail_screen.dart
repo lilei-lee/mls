@@ -809,7 +809,7 @@ class _LaConfirmDialogState extends State<_LaConfirmDialog> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppTheme.grey400),
+                  border: Border.all(color: MlsColors.textTertiary),
                   borderRadius: BorderRadius.circular(4.0),
                 ),
                 child: Row(
@@ -1035,7 +1035,7 @@ class _LaUpdateDialogState extends State<_LaUpdateDialog> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppTheme.grey400),
+                  border: Border.all(color: MlsColors.textTertiary),
                   borderRadius: BorderRadius.circular(4.0),
                 ),
                 child: Row(
@@ -1186,7 +1186,7 @@ class _BaUpdateDialogState extends State<_BaUpdateDialog> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppTheme.grey400),
+                  border: Border.all(color: MlsColors.textTertiary),
                   borderRadius: BorderRadius.circular(4.0),
                 ),
                 child: Row(

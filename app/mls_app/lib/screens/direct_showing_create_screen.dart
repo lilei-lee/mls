@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
@@ -275,7 +276,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
             child: Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                border: Border.all(color: AppTheme.grey400),
+                border: Border.all(color: MlsColors.textTertiary),
                 borderRadius: BorderRadius.circular(8.0),
               ),
               child: Row(
@@ -354,7 +355,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
                     height: 80,
                     decoration: BoxDecoration(
                       border: Border.all(
-                          color: AppTheme.grey400,
+                          color: MlsColors.textTertiary,
                           style: BorderStyle.solid),
                       borderRadius: BorderRadius.circular(4.0),
                     ),

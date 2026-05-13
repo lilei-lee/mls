@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 
 /// 协作进度条组件 · Day 13 新建
 ///
@@ -97,7 +98,7 @@ class ProgressTracker extends StatelessWidget {
   }
 
   Color _dotColor(int idx) {
-    if (idx > stage) return AppTheme.grey400;
+    if (idx > stage) return MlsColors.textTertiary;
     if (idx == stage) {
       if (isFailed) return Colors.red;
       if (stageStatus == 'expired') return Colors.grey;
@@ -115,14 +116,14 @@ class ProgressTracker extends StatelessWidget {
     return Container(
       height: 2,
       margin: const EdgeInsets.symmetric(horizontal: 2),
-      color: isCompleted ? Colors.green : AppTheme.grey400,
+      color: isCompleted ? Colors.green : MlsColors.textTertiary,
     );
   }
 
   // ===== 标签颜色 =====
 
   Color _labelColor(int idx) {
-    if (idx > stage) return AppTheme.grey400;
+    if (idx > stage) return MlsColors.textTertiary;
     if (idx == stage) {
       if (isFailed) return Colors.red;
       if (stageStatus == 'expired') return Colors.grey;

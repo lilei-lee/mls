@@ -78,7 +78,7 @@ class _MyQuestionsScreenState extends State<MyQuestionsScreen> {
                 child: SizedBox(width: 40, height: 40,
                     child: info.coverPhoto != null && info.coverPhoto!.isNotEmpty
                         ? Base64Image(dataUrl: info.coverPhoto!, fit: BoxFit.cover)
-                        : Container(color: AppTheme.n100, child: const Icon(LucideIcons.building, size: 18, color: AppTheme.n300)))),
+                        : Container(color: MlsColors.borderLight, child: const Icon(LucideIcons.building, size: 18, color: MlsColors.borderStrong)))),
               const SizedBox(width: 8),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(info.title, style: AppTheme.titleS.copyWith(fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -92,10 +92,10 @@ class _MyQuestionsScreenState extends State<MyQuestionsScreen> {
           // Status + time
           Row(children: [
             Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-              decoration: BoxDecoration(color: isPending ? MlsColors.warning.withValues(alpha: 0.12) : AppTheme.n100, borderRadius: BorderRadius.circular(4)),
+              decoration: BoxDecoration(color: isPending ? MlsColors.warning.withValues(alpha: 0.12) : MlsColors.borderLight, borderRadius: BorderRadius.circular(4)),
               child: Text(isPending ? '等待回答' : '已回答', style: AppTheme.caption.copyWith(fontSize: 10, color: isPending ? MlsColors.warning : MlsColors.textSecondary))),
             const Spacer(),
-            Text(_fmt(t.questionAt), style: AppTheme.caption.copyWith(fontSize: 10, color: AppTheme.n300)),
+            Text(_fmt(t.questionAt), style: AppTheme.caption.copyWith(fontSize: 10, color: MlsColors.borderStrong)),
           ]),
         ]),
       ),

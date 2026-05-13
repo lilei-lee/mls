@@ -290,13 +290,13 @@ class _PhotoPickerState extends State<PhotoPicker> {
             height: 90,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(4.0),
-              border: Border.all(color: AppTheme.grey400),
+              border: Border.all(color: MlsColors.textTertiary),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(5),
               child: bytes != null
                   ? Image.memory(bytes, fit: BoxFit.cover)
-                  : Container(color: AppTheme.grey200),
+                  : Container(color: MlsColors.borderLight),
             ),
           ),
           if (index == 0)
@@ -334,7 +334,7 @@ class _PhotoPickerState extends State<PhotoPicker> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(4.0),
           border: Border.all(
-              color: AppTheme.grey400, style: BorderStyle.solid),
+              color: MlsColors.textTertiary, style: BorderStyle.solid),
           color: Colors.grey.withValues(alpha: 0.05),
         ),
         child: Column(

@@ -20,11 +20,11 @@ class AppEmpty extends StatelessWidget {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Container(
             width: 80, height: 80,
-            decoration: BoxDecoration(color: AppTheme.primary50, shape: BoxShape.circle),
-            child: Icon(icon, size: 40, color: AppTheme.primary500),
+            decoration: BoxDecoration(color: MlsColors.primaryBg, shape: BoxShape.circle),
+            child: Icon(icon, size: 40, color: MlsColors.primary),
           ),
           const SizedBox(height: 16),
-          Text(title, style: AppTheme.titleS.copyWith(color: AppTheme.n700)),
+          Text(title, style: AppTheme.titleS.copyWith(color: MlsColors.textPrimary)),
           if (subtitle != null) ...[const SizedBox(height: 8), Text(subtitle!, style: AppTheme.bodyM.copyWith(color: MlsColors.textSecondary), textAlign: TextAlign.center)],
           if (actionLabel != null && onAction != null) ...[const SizedBox(height: 16), AppButton.primary(actionLabel!, onPressed: onAction, height: 40)],
         ]),

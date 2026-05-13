@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 import 'package:go_router/go_router.dart';
 import '../services/customer_service.dart';
 
@@ -204,7 +205,7 @@ class _CustomerCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       elevation: isClosed ? 0 : 1,
-      color: isClosed ? AppTheme.grey100.withValues(alpha: 0.8) : null,
+      color: isClosed ? MlsColors.borderLight.withValues(alpha: 0.8) : null,
       child: InkWell(
         borderRadius: BorderRadius.circular(8.0),
         onTap: onTap,

@@ -347,7 +347,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
     required String subtitle,
     bool isLast = false,
   }) {
-    final dotColor = done ? Colors.green : AppTheme.grey400;
+    final dotColor = done ? Colors.green : MlsColors.textTertiary;
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -367,7 +367,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
                     width: 2,
                     color: done
                         ? Colors.green.withValues(alpha: 0.3)
-                        : AppTheme.grey400,
+                        : MlsColors.textTertiary,
                   ),
                 ),
             ],

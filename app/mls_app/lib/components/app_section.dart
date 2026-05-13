@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/mls_colors.dart';
 
 class AppSection extends StatelessWidget {
   final String title;
@@ -23,7 +24,7 @@ class AppSection extends StatelessWidget {
             if (actionLabel != null)
               GestureDetector(
                 onTap: onAction,
-                child: Text(actionLabel!, style: AppTheme.caption.copyWith(color: AppTheme.primary500, fontWeight: FontWeight.w600)),
+                child: Text(actionLabel!, style: AppTheme.caption.copyWith(color: MlsColors.primary, fontWeight: FontWeight.w600)),
               ),
           ]),
         ),
