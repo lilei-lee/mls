@@ -102,6 +102,7 @@ from settlements import (
     count_pending_for_me as count_pending_settlements_for_me,
 )
 from scheduler import start_scheduler, stop_scheduler
+from dashboard_v6 import get_dashboard_v6
 from customers import (
     CreateCustomerRequest,
     UpdateCustomerRequest,
@@ -999,6 +1000,13 @@ def dashboard_summary_api(agent: dict = Depends(get_current_agent)):
             "my_sent_recent_changes_count": my_sent_recent_changes,
         },
     }
+
+
+@app.get("/api/v1/dashboard/v6")
+def dashboard_v6_api(agent: dict = Depends(get_current_agent)):
+    """V6 数据大屏聚合接口 — 7 张卡全部数据"""
+    data = get_dashboard_v6(agent["_id"])
+    return {"success": True, "data": data}
 
 
 # ==================== 模块三补强:小区库 ====================
