@@ -111,20 +111,12 @@ class MlsMedalGrid extends StatelessWidget {
     final onDarkSubtle =
         dark ? Colors.white38 : MlsColors.textTertiary;
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount,
-        mainAxisSpacing: 14,
-        crossAxisSpacing: 10,
-        childAspectRatio: 0.85,
-      ),
-      itemCount: levels.length,
-      itemBuilder: (_, i) {
+    return LayoutBuilder(builder: (_, c) {
+      debugPrint('[medalGrid] maxWidth=${c.maxWidth}');
+
+      Widget cell(int i) {
         final level = levels[i];
         final isActive = i == currentLevel;
-        final isAchieved = i < currentLevel;
         final isLocked = i > currentLevel;
 
         final iconColor = isLocked
@@ -137,66 +129,80 @@ class MlsMedalGrid extends StatelessWidget {
                 : level.color.withValues(alpha: 0.25));
         final borderColor = isActive ? level.color : Colors.white10;
 
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // circle with icons
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: bgColor,
-                border: Border.all(
-                  color: borderColor,
-                  width: isActive ? 2 : 1,
-                ),
-                boxShadow: isActive
-                    ? [
-                        BoxShadow(
-                          color: level.color.withValues(alpha: 0.45),
-                          blurRadius: 10,
-                          spreadRadius: 1,
-                        )
-                      ]
-                    : null,
-              ),
-              child: isLocked
-                  ? Icon(level.iconData,
-                      size: 20, color: onDarkSubtle)
-                  : Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: List.generate(level.iconCount, (j) {
-                        return Padding(
-                          padding: EdgeInsets.only(
-                              left: j == 0 ? 0 : 1, right: 1),
-                          child: Icon(level.iconData,
-                              size: 14, color: iconColor),
-                        );
-                      }),
+        return Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: bgColor,
+                    border: Border.all(
+                      color: borderColor,
+                      width: 1,
                     ),
-            ),
-            const SizedBox(height: 4),
-            // label
-            Text(
-              level.label,
-              style: MlsTypography.caption1.copyWith(
-                color: isActive ? level.color : onDarkMuted,
-                fontWeight:
-                    isActive ? MlsTypography.semibold : MlsTypography.regular,
+                    boxShadow: null,
+                  ),
+                  child: isLocked
+                      ? Icon(level.iconData,
+                          size: 20, color: onDarkSubtle)
+                      : Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(level.iconCount, (j) {
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                  left: j == 0 ? 0 : 1, right: 1),
+                              child: Icon(level.iconData,
+                                  size: 14, color: iconColor),
+                            );
+                          }),
+                        ),
+                ),
               ),
-            ),
-            const SizedBox(height: 1),
-            // range text
-            Text(
-              level.rangeText,
-              style: MlsTypography.monoTinyLabel.copyWith(
-                color: onDarkSubtle,
+              const SizedBox(height: 4),
+              Text(
+                level.label,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: MlsTypography.caption1.copyWith(
+                  color: isActive ? level.color : onDarkMuted,
+                  fontWeight: isActive
+                      ? MlsTypography.semibold
+                      : MlsTypography.regular,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 1),
+              Text(
+                level.rangeText,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: MlsTypography.monoTinyLabel.copyWith(
+                  color: onDarkSubtle,
+                ),
+              ),
+            ],
+          ),
         );
-      },
-    );
+      }
+
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [cell(0), cell(1), cell(2), cell(3)],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [cell(4), cell(5), cell(6), cell(7)],
+          ),
+        ],
+      );
+    });
   }
 }

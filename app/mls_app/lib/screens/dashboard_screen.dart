@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../theme/mls_colors.dart';
 import '../theme/mls_typography.dart';
+import '../services/dashboard_service.dart';
 import '../widgets/mls/mls_card.dart';
 import '../widgets/mls/mls_progress_ring.dart';
 import '../widgets/mls/mls_dual_bar_chart.dart';
@@ -19,57 +20,48 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  int _funnelTab = 0; // 0=近90天, 1=累计
+  int _funnelTab = 0;
+  late Future<Map<String, dynamic>> _v6Future;
+  Map<String, dynamic>? _v6;
 
-  static const _yearlyTransactions = [
-    DualBarData(month: '1月', laValue: 2, baValue: 1),
-    DualBarData(month: '2月', laValue: 3, baValue: 2),
-    DualBarData(month: '3月', laValue: 5, baValue: 3),
-    DualBarData(month: '4月', laValue: 4, baValue: 2),
-    DualBarData(month: '5月', laValue: 6, baValue: 4),
-    DualBarData(month: '6月', laValue: 7, baValue: 5),
-    DualBarData(month: '7月', laValue: 6, baValue: 4),
-    DualBarData(month: '8月', laValue: 5, baValue: 3),
-    DualBarData(month: '9月', laValue: 5, baValue: 4),
-    DualBarData(month: '10月', laValue: 8, baValue: 6),
-    DualBarData(month: '11月', laValue: 6, baValue: 4),
-    DualBarData(month: '12月', laValue: 4, baValue: 3),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _v6Future = DashboardService.instance.v6();
+  }
 
-  static const _yearlyActivity = [
-    DualBarData(month: '1月', laValue: 10, baValue: 6),
-    DualBarData(month: '2月', laValue: 12, baValue: 8),
-    DualBarData(month: '3月', laValue: 18, baValue: 12),
-    DualBarData(month: '4月', laValue: 14, baValue: 10),
-    DualBarData(month: '5月', laValue: 20, baValue: 14),
-    DualBarData(month: '6月', laValue: 22, baValue: 14),
-    DualBarData(month: '7月', laValue: 18, baValue: 12),
-    DualBarData(month: '8月', laValue: 16, baValue: 10),
-    DualBarData(month: '9月', laValue: 18, baValue: 11),
-    DualBarData(month: '10月', laValue: 26, baValue: 16),
-    DualBarData(month: '11月', laValue: 20, baValue: 13),
-    DualBarData(month: '12月', laValue: 22, baValue: 15),
-  ];
+  // ── helpers ──
 
-  static const _funnelStages90 = [
-    FunnelStage(label: '新增', count: 24, betweenLabel: '75%'),
-    FunnelStage(label: '带看', count: 18, betweenLabel: '33%'),
-    FunnelStage(label: '成交', count: 6),
-  ];
+  Map<String, dynamic> _d(String key) =>
+      _v6![key] as Map<String, dynamic>;
 
-  static const _funnelStagesAll = [
-    FunnelStage(label: '新增', count: 85, betweenLabel: '65%'),
-    FunnelStage(label: '带看', count: 55, betweenLabel: '51%'),
-    FunnelStage(label: '成交', count: 28),
-  ];
+  num _n(Map m, String k) => (m[k] ?? 0) as num;
 
-  static const _donutSegments = [
-    DonutSegment(label: '已成交', value: 19, color: MlsColors.success),
-    DonutSegment(label: '在售', value: 12, color: MlsColors.primaryLight),
-    DonutSegment(label: '到期', value: 2, color: MlsColors.warning),
-    DonutSegment(label: '已下架', value: 3, color: MlsColors.textSecondary),
-    DonutSegment(label: '历史', value: 31, color: MlsColors.chartPurple),
-  ];
+  String _fmtInt(num n) => n.round().toString();
+
+  String _fmtYuan(num n) {
+    if (n == 0) return '¥0';
+    final s = n.round().toString();
+    final buf = StringBuffer('¥');
+    for (int i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
+      buf.write(s[i]);
+    }
+    return buf.toString();
+  }
+
+  String _pct(num n) => '${(n * 100).round()}%';
+
+  List<DualBarData> _parseMonths(Map card, String k1, String k2) {
+    final months = card['months'] as List;
+    return months.map((m) => DualBarData(
+      month: m['month'] as String,
+      laValue: (m[k1] as num).toDouble(),
+      baValue: (m[k2] as num).toDouble(),
+    )).toList();
+  }
+
+  // ── build ──
 
   @override
   Widget build(BuildContext context) {
@@ -92,30 +84,74 @@ class _DashboardScreenState extends State<DashboardScreen> {
         centerTitle: false,
       ),
       floatingActionButton: const SizedBox.shrink(),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _card1Bonus(),
-          const SizedBox(height: 12),
-          _card2YearlyTransactions(),
-          const SizedBox(height: 12),
-          _card3YearlyActivity(),
-          const SizedBox(height: 12),
-          _card4Funnel(),
-          const SizedBox(height: 12),
-          _card5Portfolio(),
-          const SizedBox(height: 12),
-          _card6Credit(),
-          const SizedBox(height: 12),
-          _card7Medals(),
-          const SizedBox(height: 24),
-        ],
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: _v6Future,
+        builder: (context, snap) {
+          if (snap.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snap.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.error_outline,
+                        size: 48, color: Colors.white38),
+                    const SizedBox(height: 16),
+                    Text('加载失败',
+                        style: MlsTypography.cardTitleLg
+                            .copyWith(color: Colors.white)),
+                    const SizedBox(height: 8),
+                    Text(snap.error.toString(),
+                        style: MlsTypography.caption1
+                            .copyWith(color: Colors.white38),
+                        textAlign: TextAlign.center),
+                    const SizedBox(height: 24),
+                    TextButton(
+                      onPressed: () => setState(() =>
+                          _v6Future = DashboardService.instance.v6()),
+                      child: const Text('重试'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+          _v6 = snap.data!;
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _card1Bonus(),
+              const SizedBox(height: 12),
+              _card2YearlyTransactions(),
+              const SizedBox(height: 12),
+              _card3YearlyActivity(),
+              const SizedBox(height: 12),
+              _card4Funnel(),
+              const SizedBox(height: 12),
+              _card5Portfolio(),
+              const SizedBox(height: 12),
+              _card6Credit(),
+              const SizedBox(height: 12),
+              _card7Medals(),
+              const SizedBox(height: 24),
+            ],
+          );
+        },
       ),
     );
   }
 
   // ── Card 1: 累计奖金 (gold) ──
+
   Widget _card1Bonus() {
+    final b = _d('bonus');
+    final recv = _fmtYuan(_n(b, 'cumulative_received'));
+    final recvMonth = _fmtYuan(_n(b, 'month_received'));
+    final paid = _fmtYuan(_n(b, 'cumulative_paid'));
+    final paidMonth = _fmtYuan(_n(b, 'month_paid'));
     return MlsCard(
       variant: MlsCardVariant.gold,
       child: Padding(
@@ -123,10 +159,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Row(
           children: [
             Expanded(
-                child: _bonusBlock('累计收到', '¥48,200', '本月 ¥8,400')),
+                child: _bonusBlock('累计收到', recv, '本月 $recvMonth')),
             Container(width: 1.5, height: 48, color: MlsColors.goldLight),
             Expanded(
-                child: _bonusBlock('累计发出', '¥12,600', '本月 ¥3,200')),
+                child: _bonusBlock('累计发出', paid, '本月 $paidMonth')),
           ],
         ),
       ),
@@ -153,43 +189,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // ── Card 2: 全年成交 (dark) ──
+
   Widget _card2YearlyTransactions() {
-    final laTotal =
-        _yearlyTransactions.fold<double>(0, (s, d) => s + d.laValue);
-    final baTotal =
-        _yearlyTransactions.fold<double>(0, (s, d) => s + d.baValue);
+    final card = _d('yearly_deals');
+    final months = _parseMonths(card, 'la', 'ba');
+    final totalLa = _fmtInt(_n(card, 'total_la'));
+    final totalBa = _fmtInt(_n(card, 'total_ba'));
+    final totalAll = _fmtInt(_n(card, 'total_all'));
     return _darkCard(
       title: '全年成交',
       child: Column(
         children: [
           MlsDualBarChart(
-            data: _yearlyTransactions,
+            data: months,
             height: 180,
             laColor: MlsColors.success,
             baColor: MlsColors.primaryLight,
             highlightHighLow: true,
           ),
           const SizedBox(height: 10),
-          _metricRow3('LA 累计', '${laTotal.round()}', 'BA 累计',
-              '${baTotal.round()}', '合计', '${(laTotal + baTotal).round()}'),
+          _metricRow3('LA 累计', totalLa, 'BA 累计', totalBa, '合计', totalAll),
         ],
       ),
     );
   }
 
   // ── Card 3: 全年活跃 (dark) ──
+
   Widget _card3YearlyActivity() {
-    final showings =
-        _yearlyActivity.fold<double>(0, (s, d) => s + d.laValue);
-    final clients =
-        _yearlyActivity.fold<double>(0, (s, d) => s + d.baValue);
-    final avg = showings / _yearlyActivity.length;
+    final card = _d('yearly_activity');
+    final months = _parseMonths(card, 'showings', 'customers');
+    final totalShowings = _fmtInt(_n(card, 'total_showings'));
+    final totalCustomers = _fmtInt(_n(card, 'total_customers'));
+    final monthlyAvg = _n(card, 'monthly_avg').toStringAsFixed(1);
     return _darkCard(
       title: '全年活跃',
       child: Column(
         children: [
           MlsDualLineChart(
-            data: _yearlyActivity,
+            data: months,
             height: 190,
             line1Color: MlsColors.chartPurple,
             line2Color: MlsColors.chartOrange,
@@ -198,16 +236,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
             highlightHighLow: true,
           ),
           const SizedBox(height: 10),
-          _metricRow3('累计带看', '${showings.round()}', '累计客户',
-              '${clients.round()}', '月均', avg.toStringAsFixed(1)),
+          _metricRow3('累计带看', totalShowings, '累计客户', totalCustomers,
+              '月均', monthlyAvg),
         ],
       ),
     );
   }
 
   // ── Card 4: 转化漏斗 (dark) ──
+
   Widget _card4Funnel() {
-    final stages = _funnelTab == 0 ? _funnelStages90 : _funnelStagesAll;
+    final f = _d('funnel');
+    if (f['ba_only'] == true) {
+      return _darkCard(
+        title: '转化漏斗',
+        child: const Padding(
+          padding: EdgeInsets.symmetric(vertical: 32),
+          child: Center(
+            child: Text('BA 视角漏斗 · 暂无 BA 协作数据',
+                style: TextStyle(color: Colors.white38)),
+          ),
+        ),
+      );
+    }
+    final tab = _funnelTab;
+    final data = (tab == 0
+        ? f['funnel_90days'] as Map
+        : f['funnel_total'] as Map);
+    final showingRate =
+        _pct(tab == 0 ? _n(f, 'showing_rate_90d') : _n(f, 'showing_rate_total'));
+    final dealRate =
+        _pct(tab == 0 ? _n(f, 'deal_rate_90d') : _n(f, 'deal_rate_total'));
+    final overallRate =
+        _pct(tab == 0 ? _n(f, 'overall_90d') : _n(f, 'overall_total'));
+
+    final stages = [
+      FunnelStage(
+          label: '新增',
+          count: _n(data, 'new').toInt(),
+          betweenLabel: showingRate),
+      FunnelStage(
+          label: '带看',
+          count: _n(data, 'showing').toInt(),
+          betweenLabel: dealRate),
+      FunnelStage(label: '成交', count: _n(data, 'deal').toInt()),
+    ];
+
     return _darkCard(
       title: '转化漏斗',
       trailing: Row(
@@ -223,7 +297,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 8),
           MlsFunnelChart(stages: stages, height: 200),
           const SizedBox(height: 8),
-          _metricRow3('带看率', '75%', '成交率', '33%', '整体', '25%'),
+          _metricRow3(
+              '带看率', showingRate, '成交率', dealRate, '整体', overallRate),
         ],
       ),
     );
@@ -251,14 +326,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // ── Card 5: 房源分布 (dark) ──
+
   Widget _card5Portfolio() {
+    final p = _d('portfolio');
+    final total = _n(p, 'total');
+    if (total == 0) {
+      return _darkCard(
+        title: '房源分布',
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 32),
+          child: Center(
+            child: Text('暂无房源数据',
+                style: MlsTypography.caption1
+                    .copyWith(color: Colors.white38)),
+          ),
+        ),
+      );
+    }
+
+    final segs = [
+      DonutSegment(
+          label: '已成交',
+          value: _n(p, 'sold').toDouble(),
+          color: MlsColors.success),
+      DonutSegment(
+          label: '在售',
+          value: _n(p, 'on_sale').toDouble(),
+          color: MlsColors.primaryLight),
+      DonutSegment(
+          label: '已下架',
+          value: _n(p, 'offline').toDouble(),
+          color: MlsColors.textSecondary),
+      DonutSegment(
+          label: '历史',
+          value: _n(p, 'history').toDouble(),
+          color: MlsColors.chartPurple),
+    ];
+
     return _darkCard(
       title: '房源分布',
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           MlsDonutChart(
-            segments: _donutSegments,
+            segments: segs,
             size: 130,
             strokeWidth: 14,
             showLegend: false,
@@ -267,7 +378,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: _donutSegments
+              children: segs
                   .map((seg) => Padding(
                         padding: const EdgeInsets.symmetric(vertical: 2),
                         child: Row(
@@ -294,62 +405,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // ── Card 6: 信誉与等级 (dark) ──
+
   Widget _card6Credit() {
     return _darkCard(
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: MlsMedalInline(
-              icon: LucideIcons.key,
-              iconCount: 3,
-              iconColor: MlsColors.primary,
-              label: '协作积分',
-              valueText: '247',
-              subtitle: '资深 · ↑12',
-              dark: true,
-            ),
+          // 上层: 协作积分 (整行)
+          MlsMedalInline(
+            icon: LucideIcons.key,
+            iconCount: 3,
+            iconColor: MlsColors.primary,
+            label: '协作积分',
+            valueText: '247',
+            subtitle: '资深 · ↑12',
+            dark: true,
           ),
-          Container(width: 1, height: 56, color: Colors.white10),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('信用评分',
-                    style: MlsTypography.monoLabel
-                        .copyWith(color: Colors.white38)),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Text('4.6',
-                        style: MlsTypography.monoLarge
-                            .copyWith(color: Colors.white)),
-                    const SizedBox(width: 8),
-                    MlsProgressRing(
-                      percent: 0.92,
-                      size: 36,
-                      strokeWidth: 4,
-                      valueColor: MlsColors.warning,
-                      animate: false,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    ...List.generate(
-                        5,
-                        (_) => const Icon(LucideIcons.star,
-                            size: 10, color: MlsColors.warning)),
-                    const SizedBox(width: 6),
-                    Text('12 次评价',
-                        style: MlsTypography.monoTinyLabel
-                            .copyWith(color: Colors.white38)),
-                  ],
-                ),
-              ],
-            ),
+          Divider(color: Colors.white10, height: 24),
+          // 下层: 信用评分 (整行)
+          Row(
+            children: [
+              Text('信用评分',
+                  style: MlsTypography.monoLabel
+                      .copyWith(color: Colors.white38)),
+              const SizedBox(width: 12),
+              const Text('4.6',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600)),
+              const SizedBox(width: 12),
+              MlsProgressRing(
+                percent: 0.92,
+                size: 36,
+                strokeWidth: 4,
+                valueColor: MlsColors.warning,
+                animate: false,
+              ),
+              const SizedBox(width: 12),
+              ...List.generate(
+                  5,
+                  (_) => const Icon(LucideIcons.star,
+                      size: 12, color: MlsColors.warning)),
+            ],
           ),
         ],
       ),
@@ -357,6 +455,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // ── Card 7: 8 级等级徽标 (dark) ──
+
   Widget _card7Medals() {
     return _darkCard(
       title: '荣誉等级',
@@ -368,7 +467,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ── helpers ──
+  // ── shared widgets ──
 
   Widget _darkCard(
       {String? title, Widget? trailing, required Widget child}) {
@@ -377,27 +476,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
       backgroundColor: MlsColors.bgCardDark,
       borderColor: MlsColors.borderCard,
       borderWidth: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (title != null || trailing != null)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (title != null)
-                    Text(title,
-                        style: MlsTypography.cardTitleLg
-                            .copyWith(color: Colors.white)),
-                  if (trailing != null) trailing,
-                ],
-              ),
-            if (title != null || trailing != null)
-              const SizedBox(height: 12),
-            child,
-          ],
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (title != null || trailing != null)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (title != null)
+                  Text(title,
+                      style: MlsTypography.cardTitleLg
+                          .copyWith(color: Colors.white)),
+                if (trailing != null) trailing,
+              ],
+            ),
+          if (title != null || trailing != null)
+            const SizedBox(height: 12),
+          child,
+        ],
       ),
     );
   }

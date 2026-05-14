@@ -27,4 +27,10 @@ class DashboardService {
     final resp = await _dio.get('/dashboard/recent-events');
     return Map<String, dynamic>.from(resp.data['data']);
   }
+
+  /// V6 数据大屏聚合接口 — 7 张卡全部数据
+  Future<Map<String, dynamic>> v6() async {
+    final resp = await _dio.get('/dashboard/v6');
+    return Map<String, dynamic>.from(resp.data['data']);
+  }
 }
