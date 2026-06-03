@@ -139,10 +139,19 @@ class MlsProgressStepper extends StatelessWidget {
           ),
         ),
       );
-      node = MlsPulse(
-        pulseColor: currentColor,
-        maxRadius: nodeSize + 8,
-        child: core,
+      node = SizedBox(
+        width: nodeSize, height: nodeSize,
+        child: ClipRect(
+          clipBehavior: Clip.none,
+          child: OverflowBox(
+            maxWidth: double.infinity, maxHeight: double.infinity,
+            child: MlsPulse(
+              pulseColor: currentColor,
+              maxRadius: nodeSize + 18,
+              child: core,
+            ),
+          ),
+        ),
       );
     } else {
       node = Container(

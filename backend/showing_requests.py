@@ -33,7 +33,7 @@ class CreateShowingRequestBody(BaseModel):
     customer_surname: str = Field(..., min_length=1, max_length=5, description="客户姓氏")
     customer_gender: str = Field(..., description="客户性别:male/female")
     requirements: str = Field(..., min_length=1, max_length=200, description="购房需求")
-    customer_id: str | None = Field(None, description="关联客户 ID(可选,老流程为 None 即纯扁平字段)")
+    customer_id: str = Field(..., description="必须关联客户档案(V2.1 起强制)")
 
 
 class RejectRequestBody(BaseModel):
@@ -110,18 +110,17 @@ def create_showing_request(req: CreateShowingRequestBody, buyer_agent: dict) -> 
     if req.customer_gender not in ("male", "female"):
         raise HTTPException(status_code=400, detail="性别参数错误")
 
-    # 3.5. 校验 customer_id(如果传了)
-    if req.customer_id:
-        from database import db
-        try:
-            customer_oid = ObjectId(req.customer_id)
-        except Exception:
-            raise HTTPException(status_code=400, detail="无效的客户 ID")
-        customer_doc = db["customers"].find_one({"_id": customer_oid})
-        if not customer_doc:
-            raise HTTPException(status_code=404, detail="客户不存在")
-        if customer_doc["owner_agent_id"] != buyer_agent["_id"]:
-            raise HTTPException(status_code=403, detail="不能用他人的客户发起申请")
+    # 3.5. 校验 customer_id: 必须真实存在,且 owner_agent_id == 当前 BA
+    try:
+        customer_oid = ObjectId(req.customer_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的客户 ID")
+    customer = db["customers"].find_one({
+        "_id": customer_oid,
+        "owner_agent_id": buyer_agent["_id"],
+    })
+    if not customer:
+        raise HTTPException(status_code=400, detail="客户不存在或不属于您")
 
     # 4. V2.1 #15: 尝试从辞典补物理字段到快照
     _enrich_snapshot_from_dict(listing)

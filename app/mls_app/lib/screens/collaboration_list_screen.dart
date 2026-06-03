@@ -3,6 +3,7 @@ import '../theme/mls_colors.dart';
 import 'package:go_router/go_router.dart';
 import '../services/collaboration_service.dart';
 import '../widgets/progress_tracker.dart';
+import '../widgets/mls/mls_progress_stepper.dart';
 import '../widgets/mls/mls_card.dart';
 
 /// 协作列表页 · Day 13 新建
@@ -338,10 +339,16 @@ class _CollaborationCard extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               // 进度条
-              ProgressTracker(
-                stage: stage,
-                stageStatus: stageStatus,
-                isFailed: isFailed,
+              MlsProgressStepper(
+                steps: const [
+                  MlsStepData(label: '申请'),
+                  MlsStepData(label: '已通过'),
+                  MlsStepData(label: '带看'),
+                  MlsStepData(label: '成交'),
+                  MlsStepData(label: '付款'),
+                  MlsStepData(label: '完成'),
+                ],
+                currentIndex: stage,
               ),
               const SizedBox(height: 10),
               // 底部:最近动作

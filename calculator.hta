@@ -1,0 +1,187 @@
+<hta:application
+  id="calc"
+  border="none"
+  innerBorder="no"
+  caption="yes"
+  contextMenu="no"
+  maximizeButton="no"
+  minimizeButton="no"
+  scroll="no"
+  showInTaskbar="yes"
+  singleInstance="yes"
+  sysMenu="yes"
+  windowState="normal"
+/>
+
+<html>
+<head>
+<meta charset="utf-8">
+<title>VBS Calculator</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:#1d1d26;
+    font-family:'Segoe UI','Microsoft YaHei',sans-serif;
+    user-select:none;
+    -webkit-user-select:none;
+    width:280px;
+    height:440px;
+  }
+  .calc {
+    width:280px;
+    padding:16px;
+    padding-top:20px;
+  }
+  .brand {
+    color:#5c5c6e;
+    font-size:10px;
+    letter-spacing:2px;
+    margin-bottom:6px;
+    text-align:center;
+  }
+  #display {
+    width:248px;
+    height:56px;
+    background:#1d1d26;
+    border:none;
+    color:#fff;
+    font-size:36px;
+    font-weight:300;
+    text-align:right;
+    padding:0 8px;
+    margin-bottom:14px;
+    outline:none;
+  }
+  .row { display:flex; gap:10px; margin-bottom:10px; }
+  button {
+    width:54px; height:54px;
+    border:none; border-radius:27px;
+    font-size:22px; font-weight:400;
+    cursor:pointer;
+    outline:none;
+    transition:0.1s;
+  }
+  button:active { transform:scale(0.93); filter:brightness(1.4); }
+
+  .digit  { background:#32323e; color:#fff; }
+  .digit:hover { background:#414156; }
+  .digit:active { background:#525270; }
+
+  .oper   { background:#e8830c; color:#fff; font-size:26px; }
+  .oper:hover { background:#f5983a; }
+  .oper:active { background:#ffb060; }
+
+  .topf   { background:#242430; color:#e8830c; font-size:18px; }
+  .topf:hover { background:#3a3a4a; }
+  .topf:active { background:#4e4e60; }
+
+  .zero   { width:118px; border-radius:27px; text-align:left; padding-left:22px; }
+</style>
+
+<script language="VBScript">
+  Dim cur, prev, op, fresh
+
+  Sub Window_OnLoad
+    window.resizeTo 296, 472
+    Call PressClear
+  End Sub
+
+  Sub PressClear
+    cur = "0" : prev = "" : op = "" : fresh = False
+    document.getElementById("display").value = "0"
+  End Sub
+
+  Sub PressNum(n)
+    If fresh Then cur = "" : fresh = False
+    If cur = "0" Then cur = n Else cur = cur & n
+    document.getElementById("display").value = cur
+  End Sub
+
+  Sub PressDot
+    If fresh Then cur = "0" : fresh = False
+    If InStr(cur, ".") = 0 Then cur = cur & "."
+    document.getElementById("display").value = cur
+  End Sub
+
+  Sub PressOp(o)
+    If op <> "" And Not fresh Then Call PressEquals
+    prev = cur : op = o : fresh = True
+  End Sub
+
+  Sub PressEquals
+    If prev = "" Or op = "" Then Exit Sub
+    Dim a, b, r
+    a = CDbl(prev) : b = CDbl(cur)
+    Select Case op
+      Case "+" : r = a + b
+      Case "-" : r = a - b
+      Case "x" : r = a * b
+      Case "/"
+        If b = 0 Then cur = "Error" : Call ShowErr : Exit Sub
+        r = a / b
+    End Select
+    cur = CStr(r) : prev = "" : op = "" : fresh = True
+    document.getElementById("display").value = cur
+  End Sub
+
+  Sub PressSign
+    If cur <> "0" And cur <> "" Then
+      If Left(cur,1) = "-" Then cur = Mid(cur,2) Else cur = "-" & cur
+    End If
+    document.getElementById("display").value = cur
+  End Sub
+
+  Sub PressPct
+    If cur <> "" And cur <> "0" Then
+      cur = CStr(CDbl(cur) / 100)
+      document.getElementById("display").value = cur
+    End If
+  End Sub
+
+  Sub ShowErr
+    document.getElementById("display").value = "Error"
+    prev = "" : op = "" : fresh = True
+  End Sub
+</script>
+</head>
+<body>
+<div class="calc">
+  <div class="brand">CALCULATOR</div>
+  <input type="text" id="display" readonly>
+
+  <div class="row">
+    <button class="topf" onClick="PressClear">C</button>
+    <button class="topf" onClick="PressSign">&plusmn;</button>
+    <button class="topf" onClick="PressPct">%</button>
+    <button class="oper" onClick="PressOp('/')">&divide;</button>
+  </div>
+
+  <div class="row">
+    <button class="digit" onClick="PressNum('7')">7</button>
+    <button class="digit" onClick="PressNum('8')">8</button>
+    <button class="digit" onClick="PressNum('9')">9</button>
+    <button class="oper" onClick="PressOp('x')">&times;</button>
+  </div>
+
+  <div class="row">
+    <button class="digit" onClick="PressNum('4')">4</button>
+    <button class="digit" onClick="PressNum('5')">5</button>
+    <button class="digit" onClick="PressNum('6')">6</button>
+    <button class="oper" onClick="PressOp('-')">&minus;</button>
+  </div>
+
+  <div class="row">
+    <button class="digit" onClick="PressNum('1')">1</button>
+    <button class="digit" onClick="PressNum('2')">2</button>
+    <button class="digit" onClick="PressNum('3')">3</button>
+    <button class="oper" onClick="PressOp('+')">+</button>
+  </div>
+
+  <div class="row">
+    <button class="digit zero" onClick="PressNum('0')">0</button>
+    <button class="digit" onClick="PressDot">.</button>
+    <button class="oper" onClick="PressEquals">=</button>
+  </div>
+</div>
+</body>
+</html>
