@@ -3,10 +3,10 @@ import 'package:go_router/go_router.dart';
 // ignore: unused_import — home_screen.dart 中的 MainShell 在此使用
 import '../screens/home_screen.dart';
 import '../widgets/bottom_nav.dart';
-import '../screens/customer_create_screen.dart';
+import '../screens/customer_new_screen.dart';
 import '../screens/customer_detail_screen.dart';
 import '../screens/direct_showing_create_screen.dart';
-import '../screens/listing_create_screen.dart';
+import '../screens/listing_new_screen.dart';
 import '../screens/listing_detail_screen.dart';
 import '../screens/listing_edit_screen.dart';
 import '../screens/listing_list_screen.dart';
@@ -32,6 +32,8 @@ import '../screens/settlement_detail_screen.dart';
 import '../screens/dashboard_screen.dart';
 import '../screens/trace_screen.dart';
 import '../screens/notification_screen.dart';
+import '../screens/profile_screen.dart';
+import '../screens/chat_screen.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -89,7 +91,7 @@ final GoRouter appRouter = GoRouter(
       }),
     GoRoute(
       path: '/listing/new',
-      builder: (context, state) => const ListingCreateScreen(),
+      builder: (context, state) => const ListingNewScreen(),
     ),
     GoRoute(
       path: '/community/:id',
@@ -205,7 +207,7 @@ final GoRouter appRouter = GoRouter(
     // 模块:客户管理(Day 12)
     GoRoute(
       path: '/customer/new',
-      builder: (context, state) => const CustomerCreateScreen(),
+      builder: (context, state) => const CustomerNewScreen(),
     ),
     GoRoute(
       path: '/customer/:id',
@@ -234,6 +236,24 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/notifications',
       builder: (context, state) => const NotificationScreen(),
+    ),
+
+    // ═══ 模块：我的 / 设置 ═══
+    GoRoute(
+      path: '/profile',
+      builder: (context, state) => const ProfileScreen(),
+    ),
+
+    // ═══ 模块：协作会话 IM ═══
+    GoRoute(
+      path: '/chat',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return ChatScreen(
+          partnerName: extra?['partnerName'] as String? ?? '',
+          listingName: extra?['listingName'] as String?,
+        );
+      },
     ),
   ],
 );

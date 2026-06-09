@@ -134,7 +134,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                       child: Row(children: [
                         GestureDetector(
-                          onTap: () => _showMyMenu(context),
+                          onTap: () => context.push('/profile'),
+                          onLongPress: () => _showMyMenu(context),
                           child: MlsAvatar(name: _myName, size: 32),
                         ),
                         const SizedBox(width: 10),
