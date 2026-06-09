@@ -68,8 +68,10 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   }
 
   void _reload() {
+    if (!mounted) return;
     setState(() {
       _future = _fetch();
+      _showingsFuture = _fetchShowingsSummary();
       _listChanged = true;
     });
   }

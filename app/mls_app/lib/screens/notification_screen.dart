@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../theme/mls_colors.dart';
 import '../theme/mls_typography.dart';
@@ -56,13 +57,9 @@ class NotificationScreen extends StatefulWidget {
   /// 可选外部提供的通知列表
   final List<NotifItem>? initialItems;
 
-  /// 打开留痕回调
-  final void Function(Map<String, dynamic> traceData)? onOpenTrace;
-
   const NotificationScreen({
     super.key,
     this.initialItems,
-    this.onOpenTrace,
   });
 
   @override
@@ -93,7 +90,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
           time: '15:06',
           unread: true,
           hasTraceLink: true,
-          traceData: {'listing': {'name': '万达华府 · 3室朝南'}, 'partner': '李红', 'role': 'BA', 'customer': '客户王先生', 'current': 3},
+          traceData: {'listingName': '万达华府 · 3室朝南', 'partnerName': '李红', 'partnerRole': 'BA', 'customerName': '客户王先生', 'currentStep': 3, 'laName': '张三'},
         ),
         NotifItem(
           id: 2,
@@ -106,7 +103,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
           time: '14:20',
           unread: true,
           hasTraceLink: true,
-          traceData: {'listing': {'name': '中央华府 · 2室'}, 'partner': '李红', 'role': 'BA', 'customer': '客户刘女士', 'current': 3},
+          traceData: {'listingName': '中央华府 · 2室', 'partnerName': '李红', 'partnerRole': 'BA', 'customerName': '客户刘女士', 'currentStep': 3, 'laName': '张三'},
         ),
         NotifItem(
           id: 3,
@@ -187,8 +184,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   void _handleTap(NotifItem item) {
     _markRead(item.id);
-    if (item.hasTraceLink && item.traceData != null && widget.onOpenTrace != null) {
-      widget.onOpenTrace!(item.traceData!);
+    if (item.hasTraceLink && item.traceData != null) {
+      context.push('/trace', extra: item.traceData);
     }
   }
 
