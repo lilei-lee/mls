@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+// ignore: unused_import — home_screen.dart 中的 MainShell 在此使用
 import '../screens/home_screen.dart';
 import '../widgets/bottom_nav.dart';
 import '../screens/customer_create_screen.dart';
@@ -29,6 +30,8 @@ import '../screens/splash_screen.dart';
 import '../screens/settlement_pending_screen.dart';
 import '../screens/settlement_detail_screen.dart';
 import '../screens/dashboard_screen.dart';
+import '../screens/trace_screen.dart';
+import '../screens/notification_screen.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -209,6 +212,28 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => CustomerDetailScreen(
         customerId: state.pathParameters['id']!,
       ),
+    ),
+
+    // ═══ 模块：留痕时间线 + 成交确认签字 ═══
+    GoRoute(
+      path: '/trace',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return TraceScreen(
+          listingName: extra?['listingName'] as String? ?? '',
+          partnerName: extra?['partnerName'] as String? ?? '',
+          partnerRole: extra?['partnerRole'] as String? ?? 'BA',
+          customerName: extra?['customerName'] as String? ?? '',
+          currentStep: extra?['currentStep'] as int? ?? 3,
+          laName: extra?['laName'] as String? ?? '张三',
+        );
+      },
+    ),
+
+    // ═══ 模块：消息通知中心 ═══
+    GoRoute(
+      path: '/notifications',
+      builder: (context, state) => const NotificationScreen(),
     ),
   ],
 );

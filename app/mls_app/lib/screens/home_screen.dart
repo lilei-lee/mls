@@ -147,17 +147,20 @@ class _HomeScreenState extends State<HomeScreen> {
                           const Spacer(),
                         ]),
                         const Spacer(),
-                        Stack(clipBehavior: Clip.none, children: [
-                          const Icon(LucideIcons.bell, size: 22, color: Colors.white),
-                          if (_unreadCount > 0)
-                            Positioned(right: -6, top: -4, child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                              decoration: const BoxDecoration(color: MlsColors.danger, shape: BoxShape.circle),
-                              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                              alignment: Alignment.center,
-                              child: Text('${_unreadCount > 99 ? '99+' : _unreadCount}', style: const TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 9, fontWeight: MlsTypography.bold, color: Colors.white)),
-                            )),
-                        ]),
+                        GestureDetector(
+                          onTap: () => context.push('/notifications'),
+                          child: Stack(clipBehavior: Clip.none, children: [
+                            const Icon(LucideIcons.bell, size: 22, color: Colors.white),
+                            if (_unreadCount > 0)
+                              Positioned(right: -6, top: -4, child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                decoration: const BoxDecoration(color: MlsColors.danger, shape: BoxShape.circle),
+                                constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                                alignment: Alignment.center,
+                                child: Text('${_unreadCount > 99 ? '99+' : _unreadCount}', style: const TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 9, fontWeight: MlsTypography.bold, color: Colors.white)),
+                              )),
+                          ]),
+                        ),
                       ]),
                     ),
                   ),
@@ -176,7 +179,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     description: '108㎡ · 客户王先生 · 已二次咨询',
                     collaborators: const ['李红', '王先生'],
                     ctaText: '立即准备',
-                    onCtaPressed: () {},
+                    onCtaPressed: () {
+                      context.push('/trace', extra: {
+                        'listingName': '万达华府 · 3室朝南',
+                        'partnerName': '李红',
+                        'partnerRole': 'BA',
+                        'customerName': '客户王先生',
+                        'currentStep': 3,
+                        'laName': '张三',
+                      });
+                    },
                   ),
                 ),
               ),

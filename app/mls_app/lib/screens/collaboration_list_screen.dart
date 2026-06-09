@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../theme/mls_colors.dart';
 import 'package:go_router/go_router.dart';
 import '../services/collaboration_service.dart';
-import '../widgets/progress_tracker.dart';
 import '../widgets/mls/mls_progress_stepper.dart';
 import '../widgets/mls/mls_card.dart';
 
@@ -137,26 +136,30 @@ class _CollaborationListScreenState extends State<CollaborationListScreen>
     // 根据当前阶段决定跳转哪个详情页
     final stage = data['stage'] as int;
     final settlementId = data['settlement_id'] as String?;
-    final transactionId = data['transaction_id'] as String?;
-    final requestId = data['request_id'] as String?;
 
-    // 优先级:有结算 → 结算详情;有成交 → 成交详情(cancelled 除外);否则 → 申请详情
-    final txStatus = data['transaction_status'] as String?;
+    // 已结单 (stage >= 4) → 维持现有庆祝/结算详情
     if (stage >= 4 && settlementId != null) {
       await context.push('/settlements/$settlementId');
-    } else if (stage >= 3 && transactionId != null) {
-      if (txStatus == 'cancelled') {
-        // cancelled 的 transaction 详情页无操作按钮(SizedBox.shrink),
-        // 跳到申请详情页找"重新发起成交确认"入口
-        await context.push('/showing-request/$requestId');
-      } else {
-        // pending_la_confirm / rejected / confirmed 直跳成交详情
-        await context.push('/transaction/$transactionId');
+    } else {
+      // 非已结单 → 推入 TraceScreen (留痕时间线)
+      final partnerName = (data['partner_name'] ?? data['ba_name'] ?? '').toString();
+      final partnerRole = (data['partner_role'] ?? 'BA').toString();
+      final customerName = (data['customer_name'] ?? '').toString();
+      final listingName = (data['listing_name'] ?? '').toString();
+      final currentStep = (data['current_step'] as int?) ?? (stage.clamp(0, 4));
+
+      if (mounted) {
+        await context.push('/trace', extra: {
+          'listingName': listingName,
+          'partnerName': partnerName,
+          'partnerRole': partnerRole,
+          'customerName': customerName,
+          'currentStep': currentStep,
+          'laName': data['la_name'] ?? '张三',
+        });
       }
-    } else if (requestId != null) {
-      await context.push('/showing-request/$requestId');
     }
-    // 详情页 pop 回来自动刷新列表(防止 LA 通过/驳回后 BA 端列表数据陈旧)
+    // 详情页 pop 回来自动刷新列表
     if (mounted) _refresh();
   }
 
