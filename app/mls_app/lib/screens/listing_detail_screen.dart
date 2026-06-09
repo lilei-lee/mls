@@ -225,7 +225,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         ),
 
         // ═══ sticky 底部操作栏 ═══
-        _buildBottomBar(listingFullName, ownerName),
+        _buildBottomBar(listingFullName, ownerName, _userRole),
       ],
     );
   }
@@ -1021,7 +1021,11 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   }
 
   // ──── sticky 底部操作栏 ────
-  Widget _buildBottomBar(String listingName, String laName) {
+  Widget _buildBottomBar(String listingName, String laName, String myRole) {
+    // 当前用户是 BA 则伙伴是 LA，反之亦然
+    final isBA = myRole == 'BA';
+    final partnerRole = isBA ? 'LA' : 'BA';
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -1052,7 +1056,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                   context.push('/trace', extra: {
                     'listingName': listingName,
                     'partnerName': laName.isNotEmpty ? laName : '协作伙伴',
-                    'partnerRole': 'BA',
+                    'partnerRole': partnerRole,
                     'customerName': '',
                     'currentStep': 3,
                     'laName': laName.isNotEmpty ? laName : 'LA',
