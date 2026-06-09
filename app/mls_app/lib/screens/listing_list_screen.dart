@@ -237,7 +237,7 @@ class _ListingListScreenState extends State<ListingListScreen>
                         Text(
                           _headerText(processed.length, allItems.length),
                           style: const TextStyle(
-                              color: Colors.grey, fontSize: 12.0),
+                              color: MlsColors.textTertiary, fontSize: 12.0),
                         ),
                         if (_filters.isActive) ...[
                           const SizedBox(width: 8),
@@ -304,12 +304,12 @@ class _ListingListScreenState extends State<ListingListScreen>
       value: value,
       child: Row(
         children: [
-          Icon(icon, size: 18, color: selected ? Colors.blue : Colors.grey),
+          Icon(icon, size: 18, color: selected ? MlsColors.primary : MlsColors.textTertiary),
           const SizedBox(width: 10),
           Text(
             label,
             style: TextStyle(
-              color: selected ? Colors.blue : null,
+              color: selected ? MlsColors.primary : null,
               fontWeight: selected ? FontWeight.bold : null,
             ),
           ),
@@ -423,7 +423,7 @@ class _ListingCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.5),
+                            color: const Color(0x800F172A),
                             borderRadius: BorderRadius.circular(4.0),
                           ),
                           child: Row(
@@ -481,13 +481,13 @@ class _ListingCard extends StatelessWidget {
                               return p.join(' · ');
                             }(),
                             style: const TextStyle(
-                                color: Colors.grey, fontSize: 11.0),
+                                color: MlsColors.textTertiary, fontSize: 11.0),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             '朝向:${item['orientation']}',
                             style: const TextStyle(
-                                color: Colors.grey, fontSize: 11.0),
+                                color: MlsColors.textTertiary, fontSize: 11.0),
                           ),
                         ],
                       ),
@@ -504,10 +504,10 @@ class _ListingCard extends StatelessWidget {
                           const SizedBox(width: 2),
                           const Text('万',
                               style: TextStyle(
-                                  color: Colors.red, fontSize: 11.0)),
+                                  color: MlsColors.danger, fontSize: 11.0)),
                           const Spacer(),
                           const Icon(Icons.chevron_right,
-                              color: Colors.grey, size: 18),
+                              color: MlsColors.textTertiary, size: 18),
                         ],
                       ),
                     ],

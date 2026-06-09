@@ -74,7 +74,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
               child: Column(children: [
                 Text(name, style: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                Text(data['district'] ?? '', style: const TextStyle(color: Colors.grey, fontSize: 12.0)),
+                Text(data['district'] ?? '', style: const TextStyle(color: MlsColors.textTertiary, fontSize: 12.0)),
                 const SizedBox(height: 12),
                 Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
                   _statCol('在售均价', avgPrice != null ? '${avgPrice ~/ 100}万/平' : '-'),
@@ -82,11 +82,11 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 ]),
                 const SizedBox(height: 8),
                 Text('在售 $activeListings 套 · 月新增 $monthlyNew',
-                    style: const TextStyle(fontSize: 12.0, color: Colors.black54)),
+                    style: const TextStyle(fontSize: 12.0, color: MlsColors.textSecondary)),
                 if (bldStart != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
-                    child: Text(buildInfoLine(data), style: const TextStyle(fontSize: 11.0, color: Colors.black54)),
+                    child: Text(buildInfoLine(data), style: const TextStyle(fontSize: 11.0, color: MlsColors.textSecondary)),
                   ),
               ]),
             ),
@@ -95,7 +95,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
             TabBar(
               controller: _tabController,
               labelColor: Theme.of(context).colorScheme.primary,
-              unselectedLabelColor: Colors.grey,
+              unselectedLabelColor: MlsColors.textTertiary,
               tabs: const [
                 Tab(text: '在售房源'),
                 Tab(text: '成交记录'),
@@ -131,7 +131,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
 
   Widget _statCol(String label, String value) {
     return Column(children: [
-      Text(value, style: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold, color: Colors.red)),
+      Text(value, style: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold, color: MlsColors.danger)),
       Text(label, style: const TextStyle(fontSize: 11.0, color: Colors.grey)),
     ]);
   }

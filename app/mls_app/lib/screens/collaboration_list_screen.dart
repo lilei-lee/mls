@@ -67,7 +67,7 @@ class _CollaborationListScreenState extends State<CollaborationListScreen>
         bottom: TabBar(
           controller: _tabController,
           labelColor: Theme.of(context).colorScheme.primary,
-          unselectedLabelColor: Colors.grey,
+          unselectedLabelColor: MlsColors.textTertiary,
           indicatorColor: Theme.of(context).colorScheme.primary,
           tabs: const [
             Tab(text: '买方协作'),
@@ -117,7 +117,7 @@ class _CollaborationListScreenState extends State<CollaborationListScreen>
                       const EdgeInsets.only(bottom: 8, left: 4, right: 4),
                   child: Text(
                     '共 ${items.length} 条协作',
-                    style: const TextStyle(color: Colors.grey, fontSize: 12.0),
+                    style: const TextStyle(color: MlsColors.textTertiary, fontSize: 12.0),
                   ),
                 );
               }
@@ -177,14 +177,14 @@ class _CollaborationListScreenState extends State<CollaborationListScreen>
                 ? Icons.luggage_outlined
                 : Icons.storefront_outlined,
             size: 80,
-            color: Colors.grey,
+            color: MlsColors.textTertiary,
           ),
           const SizedBox(height: 16),
           Text(tip,
-              style: const TextStyle(color: Colors.grey, fontSize: 16.0)),
+              style: const TextStyle(color: MlsColors.textTertiary, fontSize: 16.0)),
           const SizedBox(height: 6),
           Text(hint,
-              style: const TextStyle(color: Colors.grey, fontSize: 11.0)),
+              style: const TextStyle(color: MlsColors.textTertiary, fontSize: 11.0)),
         ],
       ),
     );
@@ -198,7 +198,7 @@ class _CollaborationListScreenState extends State<CollaborationListScreen>
           const Icon(Icons.error_outline, size: 60, color: Colors.red),
           const SizedBox(height: 16),
           Text('加载失败:$err',
-              style: const TextStyle(color: Colors.red),
+              style: const TextStyle(color: MlsColors.danger),
               textAlign: TextAlign.center),
           const SizedBox(height: 16),
           ElevatedButton(onPressed: _refresh, child: const Text('重试')),
@@ -255,10 +255,10 @@ class _CollaborationCard extends StatelessWidget {
     final counterpartyLabel = role == 'buyer' ? '挂牌:' : '带客:';
 
     Color stageColor() {
-      if (isFailed) return Colors.red;
-      if (stageStatus == 'expired') return Colors.grey;
-      if (stage == 5 && stageStatus == 'done') return Colors.green;
-      return Colors.blue;
+      if (isFailed) return MlsColors.danger;
+      if (stageStatus == 'expired') return MlsColors.textTertiary;
+      if (stage == 5 && stageStatus == 'done') return MlsColors.success;
+      return MlsColors.primary;
     }
 
     return MlsCard(
@@ -276,7 +276,7 @@ class _CollaborationCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Icon(Icons.home_work_outlined,
-                      size: 16, color: Colors.grey),
+                      size: 16, color: MlsColors.textTertiary),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
@@ -315,12 +315,12 @@ class _CollaborationCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.person_outline,
-                          size: 12, color: Colors.grey),
+                          size: 12, color: MlsColors.textTertiary),
                       const SizedBox(width: 3),
                       Text(
                         '客户:$customerSurname${customerGender == 'male' ? '先生' : '女士'}',
                         style: const TextStyle(
-                            color: Colors.grey, fontSize: 11.0),
+                            color: MlsColors.textTertiary, fontSize: 11.0),
                       ),
                     ],
                   ),
@@ -329,12 +329,12 @@ class _CollaborationCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(Icons.handshake_outlined,
-                            size: 12, color: Colors.grey),
+                            size: 12, color: MlsColors.textTertiary),
                         const SizedBox(width: 3),
                         Text(
                           '$counterpartyLabel$counterparty',
                           style: const TextStyle(
-                              color: Colors.grey, fontSize: 11.0),
+                              color: MlsColors.textTertiary, fontSize: 11.0),
                         ),
                       ],
                     ),

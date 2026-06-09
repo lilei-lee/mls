@@ -138,15 +138,15 @@ class _SettlementCard extends StatelessWidget {
     String tagText;
     String actionHint;
     if (isLaPending) {
-      tagColor = Colors.orange;
+      tagColor = MlsColors.warning;
       tagText = '待我付款';
       actionHint = '点击标记已付款';
     } else if (isBaPending) {
-      tagColor = Colors.blue;
+      tagColor = MlsColors.primary;
       tagText = '待我确认收款';
       actionHint = '(收款确认功能即将开放)';
     } else {
-      tagColor = Colors.grey;
+      tagColor = MlsColors.textTertiary;
       tagText = status;
       actionHint = '';
     }
@@ -213,7 +213,7 @@ class _SettlementCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text('≈ ${(bonus / 10000).toStringAsFixed(2)} 万',
                       style: const TextStyle(
-                          fontSize: 11.0, color: Colors.grey)),
+                          fontSize: 11.0, color: MlsColors.textTertiary)),
                 ],
               ),
               if (actionHint.isNotEmpty) ...[

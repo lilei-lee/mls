@@ -84,7 +84,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                     padding: const EdgeInsets.only(bottom: 8, left: 4),
                     child: Text(
                       '共 ${items.length} 位客户',
-                      style: const TextStyle(color: Colors.grey, fontSize: 12.0),
+                      style: const TextStyle(color: MlsColors.textTertiary, fontSize: 12.0),
                     ),
                   );
                 }
@@ -114,7 +114,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
           const SizedBox(height: 120),
           const Center(
             child: Icon(Icons.people_outline,
-                size: 80, color: Colors.grey),
+                size: 80, color: MlsColors.borderStrong),
           ),
           const SizedBox(height: 16),
           const Center(
@@ -148,10 +148,10 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline, size: 60, color: Colors.red),
+          const Icon(Icons.error_outline, size: 60, color: MlsColors.danger),
           const SizedBox(height: 16),
           Text('加载失败:$err',
-              style: const TextStyle(color: Colors.red),
+              style: const TextStyle(color: MlsColors.danger),
               textAlign: TextAlign.center),
           const SizedBox(height: 16),
           ElevatedButton(onPressed: _refresh, child: const Text('重试')),
@@ -200,7 +200,7 @@ class _CustomerCard extends StatelessWidget {
     final memoCount = memoEntries.length;
     final isClosed = status == 'closed';
 
-    final avatarColor = gender == 'male' ? Colors.blue : Colors.pink;
+    final avatarColor = gender == 'male' ? MlsColors.primary : MlsColors.avatarPink;
 
     return MlsCard(
       margin: const EdgeInsets.only(bottom: 10),
@@ -215,11 +215,11 @@ class _CustomerCard extends StatelessWidget {
               CircleAvatar(
                 radius: 22,
                 backgroundColor: isClosed
-                    ? Colors.grey.withValues(alpha: 0.3)
+                    ? MlsColors.textTertiary.withValues(alpha: 0.3)
                     : avatarColor.withValues(alpha: 0.15),
                 child: Icon(
                   gender == 'male' ? Icons.person : Icons.person_2,
-                  color: isClosed ? Colors.grey : avatarColor,
+                  color: isClosed ? MlsColors.textTertiary : avatarColor,
                   size: 22,
                 ),
               ),
@@ -235,7 +235,7 @@ class _CustomerCard extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 16.0,
                             fontWeight: FontWeight.bold,
-                            color: isClosed ? Colors.grey : null,
+                            color: isClosed ? MlsColors.textTertiary : null,
                           ),
                         ),
                         const SizedBox(width: 6),
@@ -244,7 +244,7 @@ class _CustomerCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 5, vertical: 1),
                             decoration: BoxDecoration(
-                              color: Colors.grey.withValues(alpha: 0.2),
+                              color: MlsColors.textTertiary.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(4.0),
                             ),
                             child: const Text('已结单',
@@ -260,7 +260,7 @@ class _CustomerCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12.0,
                           color: isClosed
-                              ? Colors.grey
+                              ? MlsColors.textTertiary
                               : MlsColors.textPrimary,
                         ),
                         maxLines: 2,
@@ -269,7 +269,7 @@ class _CustomerCard extends StatelessWidget {
                     else
                       const Text(
                         '暂无需求描述',
-                        style: TextStyle(color: Colors.grey, fontSize: 11.0),
+                        style: TextStyle(color: MlsColors.textTertiary, fontSize: 11.0),
                       ),
                     const SizedBox(height: 6),
                     Row(
@@ -301,7 +301,7 @@ class _CustomerCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
+              const Icon(Icons.chevron_right, color: MlsColors.textTertiary, size: 20),
             ],
           ),
         ),

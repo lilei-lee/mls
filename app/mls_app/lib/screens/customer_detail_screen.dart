@@ -163,7 +163,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
     final requirements = (c['requirements'] ?? '') as String;
     final status = (c['status'] ?? 'active') as String;
     final isClosed = status == 'closed';
-    final avatarColor = gender == 'male' ? Colors.blue : Colors.pink;
+    final avatarColor = gender == 'male' ? MlsColors.primary : MlsColors.avatarPink;
 
     return MlsCard(
       child: Padding(
@@ -202,12 +202,12 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: Colors.grey.withValues(alpha: 0.2),
+                                color: MlsColors.textTertiary.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(4.0),
                               ),
                               child: const Text('已结单',
                                   style: TextStyle(
-                                      color: Colors.grey, fontSize: 11.0)),
+                                      color: MlsColors.textTertiary, fontSize: 11.0)),
                             ),
                         ],
                       ),
@@ -240,14 +240,14 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.05),
+                  color: MlsColors.primaryBg,
                   borderRadius: BorderRadius.circular(4.0),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Icon(Icons.notes_outlined,
-                        size: 14, color: Colors.blue),
+                        size: 14, color: MlsColors.primary),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
@@ -274,7 +274,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.check_circle_outline,
-                  color: Colors.orange),
+                  color: MlsColors.warning),
               title: const Text('标记为已结单'),
               onTap: () {
                 Navigator.of(ctx).pop();
@@ -369,7 +369,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
             padding: const EdgeInsets.symmetric(vertical: 18),
             alignment: Alignment.center,
             child: const Text('还没有协作事件',
-                style: TextStyle(color: Colors.grey, fontSize: 12.0)),
+                style: TextStyle(color: MlsColors.textTertiary, fontSize: 12.0)),
           )
         else
           ...events.map((e) => _timelineRow(e)),
@@ -391,22 +391,22 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
     switch (type) {
       case 'request':
         icon = Icons.description_outlined;
-        color = Colors.blue;
+        color = MlsColors.primary;
         label = _requestStatusText(status);
         break;
       case 'showing':
         icon = Icons.camera_alt_outlined;
-        color = Colors.orange;
+        color = MlsColors.warning;
         label = _showingStatusText(status);
         break;
       case 'transaction':
         icon = Icons.gavel_outlined;
-        color = Colors.green;
+        color = MlsColors.success;
         label = _txStatusText(status);
         break;
       default:
         icon = Icons.circle_outlined;
-        color = Colors.grey;
+        color = MlsColors.textTertiary;
         label = status;
     }
 
@@ -439,7 +439,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                   const SizedBox(height: 2),
                   Text(_formatTime(time),
                       style: const TextStyle(
-                          color: Colors.grey, fontSize: 11.0)),
+                          color: MlsColors.textTertiary, fontSize: 11.0)),
                 ],
                 // 带看事件额外显示备忘
                 if (type == 'showing' &&
@@ -537,7 +537,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                     fontSize: 16.0, fontWeight: FontWeight.bold)),
             const SizedBox(width: 6),
             Text('(${memos.length})',
-                style: const TextStyle(color: Colors.grey, fontSize: 12.0)),
+                style: const TextStyle(color: MlsColors.textTertiary, fontSize: 12.0)),
             const Spacer(),
             TextButton.icon(
               onPressed: _addMemo,
@@ -553,7 +553,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
             alignment: Alignment.center,
             child: const Text(
               '点击右上角「添加」记录每次跟进',
-              style: TextStyle(color: Colors.grey, fontSize: 11.0),
+              style: TextStyle(color: MlsColors.textTertiary, fontSize: 11.0),
             ),
           )
         else
@@ -563,7 +563,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.05),
+                color: MlsColors.primaryBg,
                 borderRadius: BorderRadius.circular(4.0),
               ),
               child: Column(
@@ -575,7 +575,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                   Text(
                     _formatTime((map['created_at'] ?? '') as String),
                     style: const TextStyle(
-                        color: Colors.grey, fontSize: 11.0),
+                        color: MlsColors.textTertiary, fontSize: 11.0),
                   ),
                 ],
               ),

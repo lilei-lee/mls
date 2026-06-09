@@ -529,7 +529,7 @@ class _SharedListingCard extends StatelessWidget {
                   bottom: 4,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(4.0)),
+                    decoration: BoxDecoration(color: const Color(0x800F172A), borderRadius: BorderRadius.circular(4.0)),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       const Icon(LucideIcons.image, size: 10, color: Colors.white),
                       const SizedBox(width: 2),
@@ -563,7 +563,7 @@ class _SharedListingCard extends StatelessWidget {
                   if (isHot) ...[
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                      decoration: BoxDecoration(color: const Color(0xFFDC1414), borderRadius: BorderRadius.circular(4.0)),
+                      decoration: BoxDecoration(color: MlsColors.danger, borderRadius: BorderRadius.circular(4.0)),
                       child: const Text('必看好房', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
                     ),
                     const SizedBox(width: 4),
@@ -641,7 +641,7 @@ class _SharedListingCard extends StatelessWidget {
                               '¥${priceWan.toStringAsFixed(priceWan == priceWan.roundToDouble() ? 0 : 1)}',
                               style: const TextStyle(
                                 fontSize: 20, fontWeight: FontWeight.w800,
-                                color: Color(0xFFDC1414),
+                                color: MlsColors.danger,
                                 fontFeatures: [FontFeature.tabularFigures()],
                                 height: 1.0,
                               ),
@@ -682,7 +682,7 @@ class _SharedListingCard extends StatelessWidget {
                           ? MlsColors.warning
                           : _myRequestStatus == 'approved'
                               ? MlsColors.success
-                              : const Color(0xFF2B7FFF),
+                              : MlsColors.primary,
                       borderRadius: BorderRadius.circular(16),
                       child: InkWell(
                         onTap: () => _onTapApply(context, snapshot),

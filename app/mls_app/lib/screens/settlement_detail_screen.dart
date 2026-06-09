@@ -96,7 +96,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(Icons.error_outline,
-                        size: 60, color: Colors.red),
+                        size: 60, color: MlsColors.danger),
                     const SizedBox(height: 16),
                     Text('加载失败:${snap.error}',
                         style: const TextStyle(color: Colors.red)),
@@ -138,7 +138,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
                         Text(
                           '${sp['layout'] ?? ''} · ${sp['area_sqm'] ?? '-'}㎡',
                           style: const TextStyle(
-                              fontSize: 11.0, color: Colors.grey),
+                              fontSize: 11.0, color: MlsColors.textTertiary),
                         ),
                       ],
                     ),
@@ -169,7 +169,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
                           children: [
                             const Text('合作奖金',
                                 style: TextStyle(
-                                    fontSize: 12.0, color: Colors.grey)),
+                                    fontSize: 12.0, color: MlsColors.textTertiary)),
                             const SizedBox(width: 12),
                             Text(
                               '¥${(doc['bonus_yuan'] as num?)?.toInt() ?? 0}',
@@ -182,19 +182,19 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
                             const SizedBox(width: 4),
                             const Text('元',
                                 style: TextStyle(
-                                    fontSize: 11.0, color: Colors.grey)),
+                                    fontSize: 11.0, color: MlsColors.textTertiary)),
                             const SizedBox(width: 10),
                             Text(
                               '≈ ${(((doc['bonus_yuan'] as num?)?.toInt() ?? 0) / 10000).toStringAsFixed(2)} 万',
                               style: const TextStyle(
-                                  fontSize: 11.0, color: Colors.grey),
+                                  fontSize: 11.0, color: MlsColors.textTertiary),
                             ),
                           ],
                         ),
                         const SizedBox(height: 6),
                         const Text(
                           '金额锁定 = BA 提交成交确认时 LA 设定的奖金值',
-                          style: TextStyle(fontSize: 11.0, color: Colors.grey),
+                          style: TextStyle(fontSize: 11.0, color: MlsColors.textTertiary),
                         ),
                       ],
                     ),
@@ -221,7 +221,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
       padding: const EdgeInsets.only(bottom: 8, left: 4),
       child: Text(text,
           style: const TextStyle(
-              color: Colors.grey,
+              color: MlsColors.textTertiary,
               fontSize: 12.0,
               fontWeight: FontWeight.bold)),
     );
@@ -234,7 +234,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
         SizedBox(
           width: 90,
           child: Text(k,
-              style: const TextStyle(fontSize: 12.0, color: Colors.grey)),
+              style: const TextStyle(fontSize: 12.0, color: MlsColors.textTertiary)),
         ),
         Expanded(
             child: Text(v,
@@ -250,27 +250,27 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
     late String text;
     switch (status) {
       case 'pending_payment':
-        color = Colors.orange;
+        color = MlsColors.warning;
         icon = Icons.hourglass_empty;
         text = '待 LA 付款';
         break;
       case 'pending_receipt':
-        color = Colors.blue;
+        color = MlsColors.primary;
         icon = Icons.access_time;
         text = 'LA 已付款,等待 BA 确认收款';
         break;
       case 'settled':
-        color = Colors.green;
+        color = MlsColors.success;
         icon = Icons.verified;
         text = '已结清';
         break;
       case 'disputed':
-        color = Colors.red;
+        color = MlsColors.danger;
         icon = Icons.error_outline;
         text = '有异议,待人工处理';
         break;
       default:
-        color = Colors.grey;
+        color = MlsColors.textTertiary;
         icon = Icons.info_outline;
         text = status;
     }
@@ -366,7 +366,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
                   child: Container(
                     width: 2,
                     color: done
-                        ? Colors.green.withValues(alpha: 0.3)
+                        ? MlsColors.success.withValues(alpha: 0.3)
                         : MlsColors.textTertiary,
                   ),
                 ),
@@ -384,11 +384,11 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
                       style: TextStyle(
                           fontSize: 12.0,
                           fontWeight: FontWeight.w600,
-                          color: done ? Colors.black87 : Colors.grey)),
+                          color: done ? MlsColors.textPrimary : MlsColors.textTertiary)),
                   const SizedBox(height: 2),
                   Text(subtitle,
                       style: const TextStyle(
-                          fontSize: 11.0, color: Colors.grey)),
+                          fontSize: 11.0, color: MlsColors.textTertiary)),
                 ],
               ),
             ),
@@ -434,7 +434,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
           icon: const Icon(Icons.payment),
           label: const Text('我已付款'),
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
+            backgroundColor: MlsColors.success,
             foregroundColor: Colors.white,
           ),
         ),
@@ -446,9 +446,9 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
       return Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.blue.withValues(alpha: 0.06),
+          color: MlsColors.primaryBg,
           borderRadius: BorderRadius.circular(8.0),
-          border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
+          border: Border.all(color: MlsColors.primary.withValues(alpha: 0.2)),
         ),
         child: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -461,7 +461,7 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
                     style: TextStyle(
                         fontSize: 12.0,
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue)),
+                        color: MlsColors.primary)),
               ],
             ),
             SizedBox(height: 6),
