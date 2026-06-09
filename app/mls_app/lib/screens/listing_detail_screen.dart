@@ -108,20 +108,27 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     final photos = ((item['photos'] as List?) ?? []).cast<Map<String, dynamic>>();
     final community = (item['community'] ?? '').toString();
     final building = (item['building'] ?? '').toString();
-    final layout = (item['layout'] ?? '3室2厅2卫').toString();
-    final areaSqm = (item['area_sqm'] ?? 108).toString();
-    final orientation = (item['orientation'] ?? '南北通透').toString();
-    final floor = (item['floor'] ?? '中').toString();
-    final totalFloor = (item['totalFloor'] ?? '18层').toString();
-    final decoration = (item['decoration'] ?? '精装修').toString();
-    final buildYear = (item['build_year'] ?? '2015').toString();
-    final property = (item['property_rights'] ?? '满五唯一').toString();
-    final code = (item['house_code'] ?? item['listing_code'] ?? 'WD-2031').toString();
+    final layout = (item['layout'] ?? '').toString();
+    final areaSqm = item['area_sqm']?.toString() ?? '';
+    final orientation = (item['orientation'] ?? '').toString();
+    final floor = (item['floor'] ?? '').toString();
+    final totalFloor = (item['total_floor'] ?? '').toString();
+    final decoration = (item['decoration'] ?? '').toString();
+    final buildYear = (item['build_year'] ?? '').toString();
+    final property = (item['property_rights'] ?? '').toString();
+    final code = (item['house_code'] ?? item['listing_code'] ?? '').toString();
     final status = (item['status'] ?? 'on_sale').toString();
-    final priceWan = item['price_wan']?.toString() ?? '218';
+    final priceWan = item['price_wan']?.toString() ?? '0';
     final statusLabel = _statusLabel(status);
     final statusVariant = _statusVariant(status);
-    final ownerName = (item['owner_agent_name'] ?? '张三').toString();
+    final ownerName = (item['owner_agent_name'] ?? '').toString();
+
+    // 房源全名
+    final listingFullName = building.isNotEmpty
+        ? '$community · $building'
+        : community.isNotEmpty
+            ? community
+            : (item['listing_name'] ?? '').toString();
 
     // 照片占位文本
     final photoLabels = ['客厅', '主卧', '次卧', '厨房', '卫生间', '阳台'];
@@ -132,21 +139,23 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         ? '照片 ${_currentPhoto + 1}'
         : photoLabels[_currentPhoto.clamp(0, 5)];
 
-    // 单价计算
-    final area = double.tryParse(areaSqm) ?? 108;
-    final price = double.tryParse(priceWan) ?? 218;
-    final unitPrice = area > 0 ? (price * 10000 / area).round() : 20185;
+    // 单价计算 (仅当面积和总价都有有效值时显示)
+    final area = double.tryParse(areaSqm);
+    final price = double.tryParse(priceWan);
+    final unitPrice = (area != null && price != null && area > 0)
+        ? (price * 10000 / area).round()
+        : null;
 
-    // SPEC 数据
-    final specs = [
-      (k: '户型', v: layout),
-      (k: '建筑面积', v: '${areaSqm}㎡'),
-      (k: '朝向', v: orientation),
-      (k: '楼层', v: '$floor / $totalFloor'),
-      (k: '装修', v: decoration),
-      (k: '建成年代', v: buildYear),
-      (k: '产权', v: property),
-      (k: '挂牌编号', v: code),
+    // SPEC 数据（过滤空值）
+    final specs = <({String k, String v})>[
+      if (layout.isNotEmpty) (k: '户型', v: layout),
+      if (areaSqm.isNotEmpty) (k: '建筑面积', v: '${areaSqm}㎡'),
+      if (orientation.isNotEmpty) (k: '朝向', v: orientation),
+      if (floor.isNotEmpty && totalFloor.isNotEmpty) (k: '楼层', v: '$floor / $totalFloor'),
+      if (decoration.isNotEmpty) (k: '装修', v: decoration),
+      if (buildYear.isNotEmpty) (k: '建成年代', v: buildYear),
+      if (property.isNotEmpty) (k: '产权', v: property),
+      if (code.isNotEmpty) (k: '挂牌编号', v: code),
     ];
 
     return Column(
@@ -181,7 +190,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               // ═══ ③ 标题/价格块 ═══
               SliverToBoxAdapter(child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: _buildTitlePrice(community, building, priceWan, unitPrice),
+                child: _buildTitlePrice(listingFullName, priceWan, unitPrice, item),
               )),
 
               // ═══ ④ SPEC 规格网格 ═══
@@ -199,7 +208,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               // ═══ ⑥ 协作 · 带看记录 ═══
               SliverToBoxAdapter(child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: _buildShowingSection(),
+                child: _buildShowingSection(listingFullName, ownerName),
               )),
 
               // ═══ ⑦ Q&A ═══
@@ -214,7 +223,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         ),
 
         // ═══ sticky 底部操作栏 ═══
-        _buildBottomBar(),
+        _buildBottomBar(listingFullName, ownerName),
       ],
     );
   }
@@ -357,13 +366,18 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   }
 
   // ──── 标题/价格块 ────
-  Widget _buildTitlePrice(String community, String building, String priceWan, int unitPrice) {
-    final name = building.isNotEmpty ? '$community · $building' : community;
+  Widget _buildTitlePrice(String name, String priceWan, int? unitPrice, Map<String, dynamic> item) {
+    // 从真实数据中提取特征标签
+    final salePoints = (item['sale_points'] as List?)?.cast<String>() ?? [];
+    final objectiveFeatures = (item['objective_features'] as List?)?.cast<String>() ?? [];
+    final chips = <String>[...salePoints, ...objectiveFeatures];
+    // 构造全名
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          name,
+          name.isNotEmpty ? name : '房源',
           style: TextStyle(
             fontFamilyFallback: MlsTypography.sansFallback,
             fontSize: 18,
@@ -399,42 +413,46 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                 color: MlsColors.primary,
               ),
             ),
-            const SizedBox(width: 10),
-            Text(
-              '单价 ¥$unitPrice/㎡',
-              style: MlsTypography.body2,
-            ),
+            if (unitPrice != null) ...[
+              const SizedBox(width: 10),
+              Text(
+                '单价 ¥$unitPrice/㎡',
+                style: MlsTypography.body2,
+              ),
+            ],
           ],
         ),
-        const SizedBox(height: 12),
-        // ── 特征 chips ──
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: ['满五唯一', '南北通透', '精装', '近地铁'].map((t) {
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0x0D0F172A),
-                borderRadius: BorderRadius.circular(MlsRadius.sm),
-              ),
-              child: Text(
-                t,
-                style: TextStyle(
-                  fontFamilyFallback: MlsTypography.sansFallback,
-                  fontSize: 11,
-                  color: MlsColors.textSecondary,
+        if (chips.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: chips.take(6).map((t) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0x0D0F172A),
+                  borderRadius: BorderRadius.circular(MlsRadius.sm),
                 ),
-              ),
-            );
-          }).toList(),
-        ),
+                child: Text(
+                  t,
+                  style: TextStyle(
+                    fontFamilyFallback: MlsTypography.sansFallback,
+                    fontSize: 11,
+                    color: MlsColors.textSecondary,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
       ],
     );
   }
 
   // ──── SPEC 规格网格 ────
   Widget _buildSpecSection(List<({String k, String v})> specs) {
+    if (specs.isEmpty) return const SizedBox.shrink();
     return MlsCard(
       variant: MlsCardVariant.elevated,
       child: Column(
@@ -521,7 +539,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   }
 
   // ──── 协作 · 带看记录 ────
-  Widget _buildShowingSection() {
+  Widget _buildShowingSection(String listingName, String laName) {
     return FutureBuilder<List<ListingShowingSummary>?>(
       future: _showingsFuture,
       builder: (ctx, snap) {
@@ -561,14 +579,14 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               title: '协作 · 带看记录',
               trailingLabel: '${summaries.length} 条',
             ),
-            ...summaries.map((s) => _buildShowingCard(s)),
+            ...summaries.map((s) => _buildShowingCard(s, listingName, laName)),
           ],
         );
       },
     );
   }
 
-  Widget _buildShowingCard(ListingShowingSummary summary) {
+  Widget _buildShowingCard(ListingShowingSummary summary, String listingName, String laName) {
     const statusLabels = {
       'pending': ('进行中', MlsBadgeVariant.info),
       'approved': ('已通过', MlsBadgeVariant.success),
@@ -586,12 +604,12 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       child: MlsCard(
         onTap: () {
           context.push('/trace', extra: {
-            'listingName': '万达华府 · 3室朝南',
+            'listingName': listingName,
             'partnerName': summary.baName,
             'partnerRole': 'BA',
             'customerName': summary.customerName,
             'currentStep': 3,
-            'laName': '张三',
+            'laName': laName.isNotEmpty ? laName : 'LA',
           });
         },
         child: Row(
@@ -1001,7 +1019,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   }
 
   // ──── sticky 底部操作栏 ────
-  Widget _buildBottomBar() {
+  Widget _buildBottomBar(String listingName, String laName) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -1030,12 +1048,12 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                 fullWidth: true,
                 onPressed: () {
                   context.push('/trace', extra: {
-                    'listingName': '万达华府 · 3室朝南',
-                    'partnerName': '李红',
+                    'listingName': listingName,
+                    'partnerName': laName.isNotEmpty ? laName : '协作伙伴',
                     'partnerRole': 'BA',
-                    'customerName': '客户王先生',
+                    'customerName': '',
                     'currentStep': 3,
-                    'laName': '张三',
+                    'laName': laName.isNotEmpty ? laName : 'LA',
                   });
                 },
               ),
