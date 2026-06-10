@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -34,6 +35,34 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
 
   Future<Map<String, dynamic>> _load() =>
       CustomerService.instance.detail(widget.customerId);
+
+  void _reload() {
+    if (!mounted) return;
+    setState(() { _future = _load(); _dirty = true; });
+  }
+
+  Future<void> _addMemo() async {
+    final ctrl = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('记一次跟进'),
+        content: TextField(controller: ctrl, maxLines: 3, decoration: const InputDecoration(hintText: '跟进内容...', border: OutlineInputBorder())),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.pop(ctx, ctrl.text.trim()), child: const Text('保存')),
+        ],
+      ),
+    );
+    if (result != null && result.isNotEmpty) {
+      try {
+        await CustomerService.instance.addMemo(widget.customerId, result);
+        if (mounted) _reload();
+      } on DioException catch (e) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('保存失败:${e.message}')));
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +114,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
     return Column(children: [
       Expanded(
         child: CustomScrollView(slivers: [
-          SliverToBoxAdapter(child: MlsNavBar(title: '客户详情', right: IconButton(icon: Icon(Icons.edit, size: 20, color: MlsColors.textSecondary), onPressed: () {}))),
+          SliverToBoxAdapter(child: MlsNavBar(title: '客户详情', right: IconButton(icon: Icon(Icons.edit, size: 20, color: MlsColors.textSecondary), onPressed: _addMemo))),
           // 身份卡
           SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.fromLTRB(16, 8, 16, 0), child: MlsCard(variant: MlsCardVariant.elevated, child: Column(children: [
             Row(children: [
@@ -111,9 +140,13 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
             ]),
             const SizedBox(height: 16),
             Row(children: [
-              Expanded(child: MlsPrimaryButton(text: '拨打电话', leadingIcon: LucideIcons.phone, fullWidth: true, onPressed: () {})),
+              Expanded(child: MlsPrimaryButton(text: '拨打电话', leadingIcon: LucideIcons.phone, fullWidth: true, onPressed: () {
+                if (phone.isNotEmpty) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('拨号 $phone')));
+              })),
               const SizedBox(width: 10),
-              Expanded(child: MlsPrimaryButton(text: '微信', variant: MlsButtonVariant.secondary, fullWidth: true, onPressed: () {})),
+              Expanded(child: MlsPrimaryButton(text: '微信', variant: MlsButtonVariant.secondary, fullWidth: true, onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已复制微信号')));
+              })),
             ]),
           ])))),
           // 意向网格
@@ -151,7 +184,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
     // TODO: API integration for matching listings
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       MlsSectionHeader(title: '匹配房源', trailingLabel: '3 套'),
-      MlsCard(variant: MlsCardVariant.flat, onTap: () {}, child: Row(children: [
+      MlsCard(variant: MlsCardVariant.flat, onTap: () => context.push('/listing/sample'), child: Row(children: [
         Container(width: 52, height: 52, decoration: BoxDecoration(color: const Color(0xFFE8EDF5), borderRadius: BorderRadius.circular(6)), alignment: Alignment.center, child: const Icon(Icons.image, size: 20, color: Color(0x3D0F172A))),
         const SizedBox(width: 10),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -226,9 +259,11 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(color: MlsColors.bgPageEnd.withValues(alpha: 0.88), border: const Border(top: BorderSide(color: MlsColors.borderLight, width: 0.5))),
       child: SafeArea(top: false, child: Row(children: [
-        Expanded(child: MlsPrimaryButton(text: '约带看', leadingIcon: Icons.event, variant: MlsButtonVariant.secondary, fullWidth: true, onPressed: () {})),
+        Expanded(child: MlsPrimaryButton(text: '约带看', leadingIcon: Icons.event, variant: MlsButtonVariant.secondary, fullWidth: true, onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请在房源详情页发起带看')));
+        })),
         const SizedBox(width: 10),
-        Expanded(child: MlsPrimaryButton(text: '记一次跟进', leadingIcon: Icons.add, variant: MlsButtonVariant.primary, fullWidth: true, onPressed: () {})),
+        Expanded(child: MlsPrimaryButton(text: '记一次跟进', leadingIcon: Icons.add, variant: MlsButtonVariant.primary, fullWidth: true, onPressed: _addMemo)),
       ])),
     );
   }

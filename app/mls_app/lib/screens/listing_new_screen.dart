@@ -1,5 +1,7 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../services/api_client.dart';
 import '../theme/mls_colors.dart';
 import '../theme/mls_typography.dart';
 import '../widgets/mls/mls_nav_bar.dart';
@@ -83,11 +85,50 @@ class _ListingNewScreenState extends State<ListingNewScreen> {
 
   void _prev() => setState(() => _step = (_step - 1).clamp(0, 3));
 
-  void _submit() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('房源已提交挂牌')),
-    );
-    Navigator.maybePop(context);
+  bool _submitting = false;
+
+  Future<void> _submit() async {
+    setState(() => _submitting = true);
+    try {
+      final area = double.tryParse(_areaCtrl.text) ?? 0;
+      final floor = int.tryParse(_floorCtrl.text) ?? 1;
+      final totalFloor = int.tryParse(_totalFloorCtrl.text) ?? 1;
+      final price = double.tryParse(_priceCtrl.text) ?? 0;
+      final year = int.tryParse(_yearCtrl.text);
+
+      await ApiClient.instance.dio.post('/listings', data: {
+        'community': _communityCtrl.text.trim(),
+        'building': _buildingCtrl.text.trim(),
+        'unit': _unitCtrl.text.trim(),
+        'room_no': _roomCtrl.text.trim(),
+        'orientation': _orientation,
+        'area_sqm': area,
+        'floor': floor,
+        'total_floor': totalFloor,
+        'price_wan': price,
+        'rooms': 3,
+        'bathrooms': 2,
+        if (year != null) 'build_year': year,
+        'sale_points': _tags,
+        'public_remarks': _descCtrl.text.trim(),
+        'decoration': _decoration,
+        'layout': _layout,
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('房源已提交挂牌')),
+        );
+        Navigator.maybePop(context);
+      }
+    } on DioException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('提交失败:${e.message}')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   @override
@@ -233,10 +274,12 @@ class _ListingNewScreenState extends State<ListingNewScreen> {
           ],
           Expanded(
             child: MlsPrimaryButton(
-              text: isLast ? '提交挂牌' : '下一步',
+              text: isLast ? (_submitting ? '提交中...' : '提交挂牌') : '下一步',
               variant: MlsButtonVariant.primary,
               leadingIcon: isLast ? Icons.check : Icons.arrow_forward,
-              fullWidth: true, onPressed: _next,
+              fullWidth: true,
+              loading: isLast && _submitting,
+              onPressed: isLast && _submitting ? null : _next,
             ),
           ),
         ]),

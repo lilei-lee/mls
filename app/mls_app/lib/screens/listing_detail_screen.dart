@@ -172,9 +172,13 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                   right: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _navIconButton(LucideIcons.share2, 20),
+                      _navIconButton(LucideIcons.share2, 20, onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已分享到协作圈')));
+                      }),
                       const SizedBox(width: 2),
-                      _navIconButton(LucideIcons.bookmark, 20),
+                      _navIconButton(LucideIcons.bookmark, 20, onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已收藏')));
+                      }),
                     ],
                   ),
                 ),
@@ -204,7 +208,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               // ═══ ⑤ LA 经纪人卡 ═══
               SliverToBoxAdapter(child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: _buildAgentCard(ownerName),
+                child: _buildAgentCard(ownerName, item),
               )),
 
               // ═══ ⑥ 协作 · 带看记录 ═══
@@ -231,9 +235,9 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   }
 
   // ──── NavBar 图标按钮 ────
-  Widget _navIconButton(IconData icon, double size) {
+  Widget _navIconButton(IconData icon, double size, {VoidCallback? onTap}) {
     return GestureDetector(
-      onTap: () {},
+      onTap: onTap ?? () {},
       child: Container(
         width: 40,
         height: 40,
@@ -472,7 +476,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   }
 
   // ──── LA 经纪人卡 ────
-  Widget _buildAgentCard(String ownerName) {
+  Widget _buildAgentCard(String ownerName, Map<String, dynamic> item) {
     return MlsCard(
       child: Row(
         children: [
@@ -523,7 +527,12 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
             ),
           ),
           GestureDetector(
-            onTap: () {},
+            onTap: () {
+              final phone = (item['owner_agent_phone'] ?? '').toString();
+              if (phone.isNotEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('拨号 $phone')));
+              }
+            },
             child: Container(
               width: 38,
               height: 38,
@@ -1042,7 +1051,9 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                 variant: MlsButtonVariant.secondary,
                 leadingIcon: LucideIcons.share2,
                 fullWidth: true,
-                onPressed: () {},
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('房源已共享到协作库')));
+                },
               ),
             ),
             const SizedBox(width: 10),

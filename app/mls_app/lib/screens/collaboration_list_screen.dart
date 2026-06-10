@@ -303,6 +303,23 @@ class _CollaborationCard extends StatelessWidget {
                           fontWeight: FontWeight.bold),
                     ),
                   ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () {
+                      final partnerName = (data['ba_name'] ?? data['la_name'] ?? '').toString();
+                      final listingName = '$community $building-$unit-$roomNo';
+                      context.push('/chat', extra: {
+                        'partnerName': partnerName,
+                        'listingName': listingName,
+                      });
+                    },
+                    child: Container(
+                      width: 28, height: 28,
+                      decoration: BoxDecoration(color: MlsColors.primaryBg, borderRadius: BorderRadius.circular(6)),
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.chat_bubble_outline, size: 15, color: MlsColors.primary),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 6),

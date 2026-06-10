@@ -180,9 +180,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _divider(),
           MlsSettingTile.switchTile(icon: LucideIcons.bell, iconBg: MlsColors.primaryBg, iconFg: MlsColors.primary, title: '消息通知', value: _notif, onChanged: (v) => setState(() => _notif = v)),
           _divider(),
-          MlsSettingTile.link(icon: LucideIcons.lock, iconBg: const Color(0x0D0F172A), iconFg: MlsColors.textSecondary, title: '隐私与安全', onTap: () {}),
+          MlsSettingTile.link(icon: LucideIcons.lock, iconBg: const Color(0x0D0F172A), iconFg: MlsColors.textSecondary, title: '隐私与安全', onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('隐私与安全设置')));
+          }),
           _divider(),
-          MlsSettingTile.link(icon: LucideIcons.helpCircle, iconBg: const Color(0x0D0F172A), iconFg: MlsColors.textSecondary, title: '帮助与反馈', onTap: () {}),
+          MlsSettingTile.link(icon: LucideIcons.helpCircle, iconBg: const Color(0x0D0F172A), iconFg: MlsColors.textSecondary, title: '帮助与反馈', onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('帮助与反馈')));
+          }),
         ])),
         const SizedBox(height: 20),
         // 退出登录
