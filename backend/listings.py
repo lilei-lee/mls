@@ -17,7 +17,7 @@ Day 16 增量:
 import hashlib
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from const.sale_points import validate_sale_points
 from bson import ObjectId
 from fastapi import HTTPException
@@ -83,10 +83,17 @@ STATUS_LABELS = {
 # ==================== 数据模型 ====================
 
 class PhotoItem(BaseModel):
-    data: str = Field(..., description="base64 数据(含 data:image/jpeg;base64, 前缀)")
+    data: Optional[str] = Field(None, description="base64 数据(含 data:image/jpeg;base64, 前缀)")
+    photo_key: Optional[str] = Field(None, description="MinIO object key (新上传走此字段)")
     width: Optional[int] = None
     height: Optional[int] = None
     size_kb: Optional[int] = None
+
+    @model_validator(mode='after')
+    def check_at_least_one(self):
+        if not self.data and not self.photo_key:
+            raise ValueError('data 和 photo_key 至少需要一个')
+        return self
 
 
 class CreateListingRequest(BaseModel):
@@ -173,6 +180,20 @@ class RollbackStatusBody(BaseModel):
 
 
 # ==================== 业务函数 ====================
+
+def _derive_cover_thumbnail(photos_list: list) -> Optional[str]:
+    """从照片列表推导封面 URL。
+
+    首图若有 photo_key → 返回 API 路径；否则返回 None（前端/旧 base64 兜底）。
+    """
+    if not photos_list:
+        return None
+    first = photos_list[0]
+    pk = first.get("photo_key") if isinstance(first, dict) else getattr(first, "photo_key", None)
+    if pk:
+        return f"/api/v1/photos/{pk}"
+    return None
+
 
 def _layout_text(rooms: int, bathrooms: int) -> str:
     """V2.2 #2: 删 halls, layout 仅 rooms + bathrooms。"""
@@ -290,7 +311,7 @@ def create_listing(req, physical_attrs: dict, agent: dict) -> dict:
         "price_wan": req.price_wan,
         "bonus_yuan": int(req.bonus_yuan or 0),
         "status": "on_sale",
-        "cover_thumbnail": req.cover_thumbnail,
+        "cover_thumbnail": req.cover_thumbnail or _derive_cover_thumbnail(photos_list),
         "photos": photos_list,
         "photo_count": len(photos_list),
         # V2.2 #1: remark 拆为 agent_remarks(私有) + public_remarks(公开)
@@ -805,6 +826,11 @@ def update_listing(
                 detail=f"最多上传 {MAX_PHOTOS} 张照片"
             )
         clean_fields["photo_count"] = len(photos)
+        # 更新照片时如未同时传 cover_thumbnail，从首图自动推导
+        if "cover_thumbnail" not in clean_fields:
+            derived = _derive_cover_thumbnail(photos)
+            if derived:
+                clean_fields["cover_thumbnail"] = derived
 
     # V2.2 #4: 价格变更 hook — 检测 price_wan 变化时自动记录历史
     if "price_wan" in clean_fields:

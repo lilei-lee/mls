@@ -126,6 +126,7 @@ def submit_showing(body: CreateShowingBody, ba_agent: dict) -> dict:
         "la_agent_id": req["listing_agent_id"],
         "la_agent_name": req["listing_agent_name"],
         "showing_time": showing_time,
+        # TODO: showing 照片后续迁移到 MinIO (photo_key)，当前仍为 base64
         "photos": body.photos,
         "photo_count": len(body.photos),
         "notes": (body.notes or "").strip(),

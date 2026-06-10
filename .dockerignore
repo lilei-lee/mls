@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# 虚拟环境
+venv/
+.venv/
+
+# 环境变量（通过 docker run -e 或 --env-file 注入）
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Git
+.git/
+.gitignore
+
+# 前端（本镜像只含后端）
+app/
+
+# 文档 / 设计稿
+docs/
+handoff/
+_incoming/
+*.md
+
+# Windows
+*.bat
+*.cmd
+*.ps1
+*.lnk
+
+# 临时文件
+*.tmp
+*.log

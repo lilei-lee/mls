@@ -10,6 +10,7 @@ from fastapi import FastAPI, HTTPException, Depends, status, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 import fakeredis
+from config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_HOURS, REFRESH_TOKEN_EXPIRE_DAYS, DEV_SMS_CODE
 from database import agents_collection, ping, db
 from bson import ObjectId
 from jose import jwt, JWTError
@@ -102,6 +103,7 @@ from settlements import (
     count_pending_for_me as count_pending_settlements_for_me,
 )
 from scheduler import start_scheduler, stop_scheduler
+from storage import ensure_bucket
 from dashboard_v6 import get_dashboard_v6
 from customers import (
     CreateCustomerRequest,
@@ -133,6 +135,10 @@ app = FastAPI(
 from qna import qna_router as _qna_router
 app.include_router(_qna_router)
 
+# 照片上传 / 读取接口
+from photos import photos_router
+app.include_router(photos_router)
+
 @app.on_event("startup")
 def startup_check():
     if ping():
@@ -153,6 +159,7 @@ def startup_check():
     print("[OK] 奖金结算索引已建立")
     ensure_customers_indexes()
     print("[OK] 客户档案索引已建立")
+    ensure_bucket()
     start_scheduler()
 
 
@@ -164,11 +171,8 @@ def shutdown_hook():
 redis_client = fakeredis.FakeStrictRedis(decode_responses=True)
 
 # ==================== JWT 配置 ====================
-
-SECRET_KEY = "3Qy1db3aKPG4cVCk3132qtE-m9w0OSb7W-BUbnM3RZs"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_HOURS = 2
-REFRESH_TOKEN_EXPIRE_DAYS = 30
+# SECRET_KEY / ALGORITHM / token 过期时间 从 config 统一读取
+# 生产环境必须通过环境变量 SECRET_KEY 覆盖默认值
 
 
 def create_access_token(agent_id: str) -> str:
@@ -257,7 +261,7 @@ def send_sms_code(req: SendSmsRequest):
     rate_limit_key = f"sms:ratelimit:{req.phone}"
     if redis_client.exists(rate_limit_key):
         raise HTTPException(status_code=429, detail="请求过于频繁,请60秒后再试")
-    code = "123456"  # 开发期固定，方便测试。生产前必须改回 random.randint(100000, 999999)
+    code = DEV_SMS_CODE  # 开发期固定值，方便测试。生产环境通过 DEV_SMS_CODE 环境变量覆盖
     redis_client.setex(f"sms:code:{req.phone}", 300, code)
     redis_client.setex(rate_limit_key, 60, "1")
     print(f"\n{'=' * 50}")
