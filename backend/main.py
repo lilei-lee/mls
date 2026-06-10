@@ -24,7 +24,7 @@ from datetime import datetime
 from fastapi import FastAPI
 from database import ping
 
-from listings import ensure_indexes
+from services.listings import ensure_indexes
 from showing_requests import ensure_showing_indexes
 from showings import ensure_showings_indexes
 from communities import ensure_communities_indexes

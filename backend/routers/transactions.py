@@ -38,11 +38,8 @@ def list_pending_tx_api(
     filter: str | None = Query(None, description="la(默认)=LA视角待确认 / ba=BA视角等待LA"),
     agent: dict = Depends(get_current_agent),
 ):
-    """成交待办列表:filter=la→LA确认, filter=ba→BA等待"""
-    if filter == "ba":
-        from transactions import get_waiting_la_listings
-        total, docs = get_waiting_la_listings(agent["_id"], skip=skip, limit=limit)
-        return {"success": True, "total": total, "items": [_format_transaction_lite(d) for d in docs]}
+    """成交待办列表:LA视角待确认列表"""
+    # filter=ba 分支因 get_waiting_la_listings 未实现而暂时移除（原 main.py 中即存在此死代码）
     items, total = list_pending_for_la(agent["_id"], skip=skip, limit=limit)
     return {"success": True, "total": total, "items": items}
 

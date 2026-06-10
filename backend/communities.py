@@ -224,7 +224,7 @@ def get_community_detail(community_id: str) -> dict:
     }
 
     # 前 3 条预览
-    from listings import _format_listing_anonymous_lite
+    from services.listings import _format_listing_anonymous_lite
     preview = [_format_listing_anonymous_lite(l) for l in active_listings[:3]]
     result["listings_preview"] = preview
 
@@ -251,7 +251,7 @@ def get_community_listings(community_id: str, room: Optional[int] = None,
     skip = (page - 1) * page_size
     docs = list(mls_db["listings"].find(query).sort("created_at", -1).skip(skip).limit(page_size))
 
-    from listings import _format_listing_anonymous_lite
+    from services.listings import _format_listing_anonymous_lite
     return {
         "items": [_format_listing_anonymous_lite(d) for d in docs],
         "total": total,

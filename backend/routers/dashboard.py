@@ -13,7 +13,7 @@ from transactions import (
     _count_ba_waiting_transactions,
 )
 from settlements import count_pending_for_me as count_pending_settlements_for_me
-from listings import count_shared_listings
+from services.listings import count_shared_listings
 
 dashboard_router = APIRouter(prefix="/api/v1", tags=["dashboard"])
 

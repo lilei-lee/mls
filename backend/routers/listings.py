@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel
 from database import db
 from auth import get_current_agent
-from listings import (
+from services.listings import (
     CreateListingRequest, PostListingRequest, _extract_physical_attrs,
     SyncPhysicalBody, CreateListingResponse, MarkDepositPaidBody,
     MarkTransactionOngoingBody, RollbackStatusBody,
