@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/transaction_service.dart';
+import '../utils/price_validation.dart';
 import '../widgets/mls/mls_card.dart';
 
 class TransactionInitiateScreen extends StatefulWidget {
@@ -68,18 +69,8 @@ class _TransactionInitiateScreenState extends State<TransactionInitiateScreen> {
     return wan.toStringAsFixed(1);
   }
 
-  /// 单位防错提示
-  String? get _priceWarning {
-    final p = _priceYuan;
-    if (p == null || p <= 0) return null;
-    // 如果 < 10000,可能误填万元数值
-    if (p < 10000) {
-      return '金额过低,您是否误把"万元"填成"元"?请核对后重试';
-    }
-    // 如果 > 5 亿,明显错误
-    if (p > 500_000_000) return '金额超出合理范围';
-    return null;
-  }
+  /// 单位防错提示（委托 price_validation.priceWarning）
+  String? get _priceWarning => priceWarning(_priceYuan);
 
   Future<void> _submit() async {
     final price = _priceYuan;
