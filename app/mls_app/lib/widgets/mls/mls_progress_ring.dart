@@ -14,7 +14,7 @@ import '../../theme/mls_colors.dart';
 ///   size: 84,
 ///   strokeWidth: 8,
 ///   valueColor: MlsColors.gold,
-///   trackColor: MlsColors.gold.withOpacity(0.12),
+///   trackColor: MlsColors.gold.withValues(alpha: 0.12),
 ///   center: Column(...),  // 56% / 已达成
 /// )
 /// ```
@@ -31,7 +31,7 @@ class MlsProgressRing extends StatefulWidget {
   /// 进度条颜色 (默认 primary)
   final Color valueColor;
 
-  /// 底色环颜色 (默认 valueColor.withOpacity(0.12))
+  /// 底色环颜色 (默认 valueColor.withValues(alpha: 0.12))
   final Color? trackColor;
 
   /// 中心 widget (一般是百分比 + 副标)
@@ -113,7 +113,7 @@ class _MlsProgressRingState extends State<MlsProgressRing>
 
   @override
   Widget build(BuildContext context) {
-    final track = widget.trackColor ?? widget.valueColor.withOpacity(0.12);
+    final track = widget.trackColor ?? widget.valueColor.withValues(alpha: 0.12);
     return SizedBox(
       width: widget.size,
       height: widget.size,

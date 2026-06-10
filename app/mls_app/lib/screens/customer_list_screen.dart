@@ -3,6 +3,7 @@ import '../theme/mls_colors.dart';
 import 'package:go_router/go_router.dart';
 import '../services/customer_service.dart';
 import '../widgets/mls/mls_card.dart';
+import '../utils/time_format.dart';
 
 /// 客户列表页 · Day 12 新建
 ///
@@ -169,21 +170,6 @@ class _CustomerCard extends StatelessWidget {
 
   const _CustomerCard({required this.data, required this.onTap});
 
-  String _relativeTime(String? iso) {
-    if (iso == null) return '';
-    try {
-      final t = DateTime.parse(iso);
-      final diff = DateTime.now().difference(t);
-      if (diff.inMinutes < 1) return '刚刚';
-      if (diff.inMinutes < 60) return '${diff.inMinutes} 分钟前';
-      if (diff.inHours < 24) return '${diff.inHours} 小时前';
-      if (diff.inDays < 30) return '${diff.inDays} 天前';
-      return '${(diff.inDays / 30).floor()} 个月前';
-    } catch (_) {
-      return '';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final surname = (data['surname'] ?? '') as String;
@@ -293,7 +279,7 @@ class _CustomerCard extends StatelessWidget {
                           const SizedBox(width: 10),
                         ],
                         if (updatedAt != null)
-                          Text(_relativeTime(updatedAt),
+                          Text(relativeTime(updatedAt),
                               style: const TextStyle(
                                   fontSize: 11.0, color: Colors.grey)),
                       ],

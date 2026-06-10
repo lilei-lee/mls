@@ -151,7 +151,7 @@ class MlsProgressBar extends StatelessWidget {
   /// 进度色 (默认 primary)
   final Color color;
 
-  /// 底色 (默认 color.withOpacity(0.12))
+  /// 底色 (默认 color.withValues(alpha: 0.12))
   final Color? trackColor;
 
   /// 高度 (默认 4)
@@ -176,7 +176,7 @@ class MlsProgressBar extends StatelessWidget {
             Container(
               height: height,
               decoration: BoxDecoration(
-                color: trackColor ?? color.withOpacity(0.12),
+                color: trackColor ?? color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(height / 2),
               ),
             ),
@@ -263,7 +263,7 @@ class MlsMiniBars extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: highlightLast && i == values.length - 1
                         ? color
-                        : color.withOpacity(dimOpacity),
+                        : color.withValues(alpha: dimOpacity),
                     borderRadius: BorderRadius.circular(radius),
                   ),
                 ),
@@ -377,8 +377,8 @@ class _SparklinePainter extends CustomPainter {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            color.withOpacity(0.25),
-            color.withOpacity(0.02),
+            color.withValues(alpha: 0.25),
+            color.withValues(alpha: 0.02),
           ],
         ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
       canvas.drawPath(fillPath, fillPaint);

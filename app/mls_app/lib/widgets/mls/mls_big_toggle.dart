@@ -44,9 +44,9 @@ class MlsBigToggle extends StatelessWidget {
     required bool selected,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Expanded(
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
           decoration: BoxDecoration(

@@ -48,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final summaryF = DashboardService.instance.summary();
     final results = await Future.wait([todosF, eventsF, summaryF]);
     final todosData = results[0];
-    if (mounted) setState(() => _unreadCount = 3); // mock
+    if (mounted) setState(() => _unreadCount = 3); // TODO(prod): remove mock
     // V2.5: 我的提问 pending 数
     try { final c = await QnaService.instance.getMyPendingCount(); if (mounted) setState(() => _pendingQnaCount = c); } catch (_) {}
     Map<String, dynamic> summary;

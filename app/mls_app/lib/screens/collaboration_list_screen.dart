@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../services/collaboration_service.dart';
 import '../widgets/mls/mls_progress_stepper.dart';
 import '../widgets/mls/mls_card.dart';
+import '../utils/time_format.dart';
 
 /// 协作列表页 · Day 13 新建
 ///
@@ -216,21 +217,6 @@ class _CollaborationCard extends StatelessWidget {
 
   const _CollaborationCard({required this.data, required this.onTap});
 
-  String _relativeTime(String? iso) {
-    if (iso == null) return '';
-    try {
-      final t = DateTime.parse(iso);
-      final diff = DateTime.now().difference(t);
-      if (diff.inMinutes < 1) return '刚刚';
-      if (diff.inMinutes < 60) return '${diff.inMinutes} 分钟前';
-      if (diff.inHours < 24) return '${diff.inHours} 小时前';
-      if (diff.inDays < 30) return '${diff.inDays} 天前';
-      return '${(diff.inDays / 30).floor()} 个月前';
-    } catch (_) {
-      return '';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final snapshot = Map<String, dynamic>.from(data['listing_snapshot']);
@@ -387,7 +373,7 @@ class _CollaborationCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    _relativeTime(lastActionTime),
+                    relativeTime(lastActionTime),
                     style: const TextStyle(
                         color: MlsColors.textSecondary, fontSize: 11.0),
                   ),

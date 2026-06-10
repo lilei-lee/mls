@@ -159,12 +159,12 @@ class _MlsMoneyInputState extends State<MlsMoneyInput> {
 
     final fieldFg = isDark ? Colors.white : MlsColors.textPrimary;
     final fieldBg = isDark
-        ? Colors.white.withOpacity(0.05)
+        ? Colors.white.withValues(alpha: 0.05)
         : MlsColors.bgCardPrimary;
     final borderColor = hasWarning
         ? MlsColors.danger
         : (isDark
-            ? Colors.white.withOpacity(0.12)
+            ? Colors.white.withValues(alpha: 0.12)
             : MlsColors.borderStrong);
 
     return Column(
@@ -209,7 +209,7 @@ class _MlsMoneyInputState extends State<MlsMoneyInput> {
                       fontSize: 18,
                       fontWeight: MlsTypography.medium,
                       color: isDark
-                          ? Colors.white.withOpacity(0.7)
+                          ? Colors.white.withValues(alpha: 0.7)
                           : MlsColors.textTertiary,
                     ),
                   ),
@@ -243,7 +243,7 @@ class _MlsMoneyInputState extends State<MlsMoneyInput> {
                           fontSize: 18,
                           fontWeight: MlsTypography.regular,
                           color: isDark
-                              ? Colors.white.withOpacity(0.3)
+                              ? Colors.white.withValues(alpha: 0.3)
                               : MlsColors.textTertiary,
                         ),
                       ),
@@ -256,7 +256,7 @@ class _MlsMoneyInputState extends State<MlsMoneyInput> {
                           horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: isDark
-                            ? MlsColors.primary.withOpacity(0.18)
+                            ? MlsColors.primary.withValues(alpha: 0.18)
                             : MlsColors.primaryBg,
                         borderRadius: BorderRadius.circular(6),
                       ),

@@ -209,7 +209,7 @@ class _MlsPrimaryButtonState extends State<MlsPrimaryButton>
     final style = _resolveStyle();
     final sz = _resolveSize();
     final disabled = !_enabled;
-    final fg = disabled ? style.fg.withOpacity(0.5) : style.fg;
+    final fg = disabled ? style.fg.withValues(alpha: 0.5) : style.fg;
 
     final children = <Widget>[];
     if (widget.loading) {

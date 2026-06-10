@@ -97,8 +97,8 @@ class MlsHeroToday extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.white.withOpacity(0.12),
-                      Colors.white.withOpacity(0),
+                      Colors.white.withValues(alpha: 0.12),
+                      Colors.white.withValues(alpha: 0),
                     ],
                   ),
                 ),
@@ -122,7 +122,7 @@ class MlsHeroToday extends StatelessWidget {
                             Text(
                               topLabel,
                               style: MlsTypography.monoLabel.copyWith(
-                                color: Colors.white.withOpacity(0.7),
+                                color: Colors.white.withValues(alpha: 0.7),
                               ),
                             ),
                             const SizedBox(height: 2),
@@ -131,7 +131,7 @@ class MlsHeroToday extends StatelessWidget {
                               style: TextStyle(
                                 fontFamilyFallback: MlsTypography.sansFallback,
                                 fontSize: 11,
-                                color: Colors.white.withOpacity(0.85),
+                                color: Colors.white.withValues(alpha: 0.85),
                                 letterSpacing: 0.5,
                               ),
                             ),
@@ -149,7 +149,7 @@ class MlsHeroToday extends StatelessWidget {
                                 fontFamily: MlsTypography.monoFamily,
                                 fontFamilyFallback: MlsTypography.monoFallback,
                                 fontSize: 9,
-                                color: Colors.white.withOpacity(0.6),
+                                color: Colors.white.withValues(alpha: 0.6),
                                 letterSpacing: 2,
                               ),
                             ),
@@ -162,7 +162,7 @@ class MlsHeroToday extends StatelessWidget {
                               ),
                               secondsStyle:
                                   MlsTypography.countdown.copyWith(
-                                color: Colors.white.withOpacity(0.7),
+                                color: Colors.white.withValues(alpha: 0.7),
                               ),
                             ),
                           ],
@@ -174,7 +174,7 @@ class MlsHeroToday extends StatelessWidget {
                   // 分割线
                   Container(
                     height: 1,
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.15),
                   ),
                   const SizedBox(height: 11),
                   // 主标题
@@ -194,7 +194,7 @@ class MlsHeroToday extends StatelessWidget {
                     style: TextStyle(
                       fontFamilyFallback: MlsTypography.sansFallback,
                       fontSize: 12,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                       height: 1.4,
                     ),
                   ),

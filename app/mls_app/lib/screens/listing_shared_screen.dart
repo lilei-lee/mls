@@ -9,6 +9,7 @@ import '../widgets/base64_image.dart';
 import '../widgets/filter_sheet.dart';
 import '../components/app_empty.dart';
 import '../widgets/mls/mls_card.dart';
+import '../utils/time_format.dart';
 
 /// 共享房源库 V2.4: 5 行卡片 + 5 类筛选 + v2.0 设计系统
 class ListingSharedScreen extends StatefulWidget {
@@ -363,20 +364,6 @@ class _SharedListingCard extends StatelessWidget {
   final VoidCallback? onAfterApply;
   const _SharedListingCard({required this.item, this.onAfterApply});
 
-  String _relativeTime(String? iso) {
-    if (iso == null) return '';
-    try {
-      final t = DateTime.parse(iso);
-      final diff = DateTime.now().difference(t);
-      if (diff.inDays > 30) return '${(diff.inDays / 30).floor()} 个月前';
-      if (diff.inDays > 0) return '${diff.inDays} 天前';
-      if (diff.inHours > 0) return '${diff.inHours} 小时前';
-      if (diff.inMinutes > 0) return '${diff.inMinutes} 分钟前';
-      return '刚刚';
-    } catch (_) {
-      return '';
-    }
-  }
 
   String? get _myRequestStatus => item['my_request_status'] as String?;
 
@@ -656,7 +643,7 @@ class _SharedListingCard extends StatelessWidget {
                     ),
                     if (createdAt != null) ...[
                       const SizedBox(width: 8),
-                      Text(_relativeTime(createdAt), style: const TextStyle(color: MlsColors.textSecondary, fontSize: 11.0)),
+                      Text(relativeTime(createdAt), style: const TextStyle(color: MlsColors.textSecondary, fontSize: 11.0)),
                     ],
                     const Spacer(),
                     // V2.5: Q&A 计数角标

@@ -27,6 +27,7 @@ class _CustomerNewScreenState extends State<CustomerNewScreen> {
 
   final _surnameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
+  String _gender = 'male'; // 'male'=先生 'female'=女士
   List<String> _layout = ['3室2厅'];
   List<String> _areas = ['桥东', '经开区'];
   final _budgetMinCtrl = TextEditingController();
@@ -55,7 +56,7 @@ class _CustomerNewScreenState extends State<CustomerNewScreen> {
     try {
       await CustomerService.instance.create(
         surname: _surnameCtrl.text.trim(),
-        gender: _isBuyer ? 'male' : 'female',
+        gender: _gender,
         phone: _phoneCtrl.text.trim(),
         requirements: _isBuyer
             ? '意向户型:${_layout.join('/')} 区域:${_areas.join('/')} 预算:${_budgetMinCtrl.text}-${_budgetMaxCtrl.text}万 意向:$_intent'
@@ -102,6 +103,7 @@ class _CustomerNewScreenState extends State<CustomerNewScreen> {
                   MlsFormSection(title: 'CONTACT', children: [
                     MlsField(label: '客户称呼', required: true, child: MlsTextInput(controller: _surnameCtrl, hint: '如 王先生', leading: LucideIcons.user)),
                     MlsField(label: '手机号', required: true, child: MlsTextInput(controller: _phoneCtrl, hint: '13800000000', leading: LucideIcons.phone, mono: true, type: TextInputType.phone)),
+                    MlsField(label: '性别', child: MlsChipSelect<String>(options: const ['先生', '女士'], selected: _gender == 'male' ? '先生' : '女士', onChanged: (v) => setState(() => _gender = v == '先生' ? 'male' : 'female'))),
                   ]),
                   const SizedBox(height: 24),
                   MlsFormSection(title: _isBuyer ? 'DEMAND · 需求' : 'PROPERTY · 委托', children: [

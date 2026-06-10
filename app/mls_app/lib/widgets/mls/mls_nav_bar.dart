@@ -71,7 +71,7 @@ class MlsNavBar extends StatelessWidget {
       dark ? const Color(0x99FFFFFF) : MlsColors.textTertiary; // rgba(255,255,255,.6)
   Color get _bg => dark
       ? Colors.transparent
-      : MlsColors.bgPageStart.withOpacity(0.86);
+      : MlsColors.bgPageStart.withValues(alpha: 0.86);
 
   @override
   Widget build(BuildContext context) {

@@ -112,8 +112,8 @@ class MlsTraceItem extends StatelessWidget {
     }
   }
 
-  Color get _sideBg => _sideColor.withOpacity(0.14);
-  Color get _sideTagBg => _sideColor.withOpacity(0.10);
+  Color get _sideBg => _sideColor.withValues(alpha: 0.14);
+  Color get _sideTagBg => _sideColor.withValues(alpha: 0.10);
 
   @override
   Widget build(BuildContext context) {
@@ -151,7 +151,7 @@ class MlsTraceItem extends StatelessWidget {
         height: 28,
         margin: const EdgeInsets.symmetric(vertical: 4),
         decoration: done
-            ? BoxDecoration(color: _sideColor.withOpacity(0.35))
+            ? BoxDecoration(color: _sideColor.withValues(alpha: 0.35))
             : null,
         child: done
             ? null

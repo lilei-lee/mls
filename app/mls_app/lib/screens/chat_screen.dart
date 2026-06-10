@@ -19,6 +19,7 @@ class ChatMessage {
   final String? avatarName;
   final Widget? child;
   final bool isDateSep;
+  final bool isShowingInvite;
 
   const ChatMessage({
     required this.id,
@@ -28,6 +29,7 @@ class ChatMessage {
     this.avatarName,
     this.child,
     this.isDateSep = false,
+    this.isShowingInvite = false,
   });
 }
 
@@ -46,27 +48,35 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen>
+    with SingleTickerProviderStateMixin {
   final _textCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
   final List<ChatMessage> _msgs = [];
   bool _typing = false;
   bool _accepted = false;
   int _msgId = 0;
+  late AnimationController _dotController;
 
   @override
   void initState() {
     super.initState();
+    _dotController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    )..repeat();
     _seedMessages();
   }
 
   @override
   void dispose() {
+    _dotController.dispose();
     _textCtrl.dispose();
     _scrollCtrl.dispose();
     super.dispose();
   }
 
+  // TODO(prod): remove mock — replace _seedMessages with real chat messages from API
   void _seedMessages() {
     final now = DateTime.now();
     final t = (int h, int m) => '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}';
@@ -76,7 +86,7 @@ class _ChatScreenState extends State<ChatScreen> {
       ChatMessage(id: 'o1', type: ChatBubbleType.other, text: '你好，我这边有一位客户对「${widget.listingName ?? "万达华府"}」有兴趣', time: t(9, 30), avatarName: widget.partnerName),
       ChatMessage(id: 'm1', type: ChatBubbleType.mine, text: '好的，房子随时可看，有钥匙', time: t(9, 32)),
       ChatMessage(id: 'o2', type: ChatBubbleType.other, text: '客户想了解下户型和装修情况', time: t(9, 35), avatarName: widget.partnerName),
-      ChatMessage(id: 'm2', type: ChatBubbleType.mine, child: MlsChatBubble.showingInvite(accepted: _accepted, onAccept: () => setState(() => _accepted = true), onReschedule: () {}, time: t(9, 38)).child, time: t(9, 38)),
+      ChatMessage(id: 'm2', type: ChatBubbleType.mine, isShowingInvite: true, time: t(9, 38)),
     ]);
   }
 
@@ -94,13 +104,15 @@ class _ChatScreenState extends State<ChatScreen> {
     // 自动回复
     Timer(const Duration(milliseconds: 1800), () {
       if (!mounted) return;
+      final replyTime = DateTime.now();
+      final replyTimeStr = '${replyTime.hour.toString().padLeft(2, '0')}:${replyTime.minute.toString().padLeft(2, '0')}';
       setState(() {
         _typing = false;
         _msgs.add(ChatMessage(
           id: 'o${_msgId++}',
           type: ChatBubbleType.other,
-          text: '好的，收到👍',
-          time: '${now.hour.toString().padLeft(2, '0')}:${(now.minute + 1).clamp(0, 59).toString().padLeft(2, '0')}',
+          text: '好的，收到👍', // TODO(prod): remove mock auto-reply
+          time: replyTimeStr,
           avatarName: widget.partnerName,
         ));
       });
@@ -189,6 +201,14 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ),
                   );
+                }
+                if (m.isShowingInvite) {
+                  return MlsChatBubble.showingInvite(
+                    accepted: _accepted,
+                    onAccept: () => setState(() => _accepted = true),
+                    onReschedule: () {},
+                    time: m.time ?? '',
+                  ).child;
                 }
                 return MlsChatBubble(type: m.type, text: m.text, time: m.time, avatarName: m.avatarName, child: m.child);
               },
@@ -282,12 +302,23 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _typingDot(int delay) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.4, end: 1.0),
-      duration: const Duration(milliseconds: 800),
-      curve: const Interval(0, 0.66, curve: Curves.easeInOut),
-      builder: (_, v, __) => Opacity(opacity: v, child: Container(width: 7, height: 7, decoration: const BoxDecoration(shape: BoxShape.circle, color: MlsColors.textTertiary))),
+  Widget _typingDot(int index) {
+    return AnimatedBuilder(
+      animation: _dotController,
+      builder: (_, __) {
+        // 三个点错开相位: 0, 0.33, 0.66
+        final phase = index / 3.0;
+        final t = ((_dotController.value + phase) % 1.0);
+        // 简化: 用正弦波产生循环闪烁 (peak at 0.5)
+        final opacity = 0.3 + 0.7 * (1.0 - (t - 0.5).abs() * 2.0);
+        return Opacity(
+          opacity: opacity.clamp(0.3, 1.0),
+          child: Container(
+            width: 7, height: 7,
+            decoration: const BoxDecoration(shape: BoxShape.circle, color: MlsColors.textTertiary),
+          ),
+        );
+      },
     );
   }
 }

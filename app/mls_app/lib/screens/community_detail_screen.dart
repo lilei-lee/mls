@@ -16,6 +16,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late Future<Map<String, dynamic>> _detailFuture;
+  late Future<Map<String, dynamic>> _listingsFuture;
   int? _selectedRoom;
 
   @override
@@ -23,6 +24,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _detailFuture = _fetchDetail();
+    _listingsFuture = _fetchListings();
   }
 
   @override
@@ -139,7 +141,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
   // ── Tab 1: 在售房源 ──
   Widget _tabListings() {
     return FutureBuilder<Map<String, dynamic>>(
-      future: _fetchListings(room: _selectedRoom),
+      future: _listingsFuture,
       builder: (ctx, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -152,13 +154,19 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
             child: Wrap(spacing: 8, children: [
               ChoiceChip(
                 label: const Text('不限'), selected: _selectedRoom == null,
-                onSelected: (_) => setState(() => _selectedRoom = null),
+                onSelected: (_) => setState(() {
+                  _selectedRoom = null;
+                  _listingsFuture = _fetchListings();
+                }),
               ),
               for (final r in [1, 2, 3, 4])
                 ChoiceChip(
                   label: Text(r == 4 ? '4室+' : '$r室'),
                   selected: _selectedRoom == r,
-                  onSelected: (_) => setState(() => _selectedRoom = _selectedRoom == r ? null : r),
+                  onSelected: (_) => setState(() {
+                    _selectedRoom = _selectedRoom == r ? null : r;
+                    _listingsFuture = _fetchListings(room: _selectedRoom);
+                  }),
                 ),
             ]),
           ),

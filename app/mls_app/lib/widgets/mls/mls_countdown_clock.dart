@@ -89,7 +89,7 @@ class _MlsCountdownClockState extends State<MlsCountdownClock> {
     final mainStyle = widget.textStyle ?? MlsTypography.countdown;
     final secStyle = widget.secondsStyle ??
         mainStyle.copyWith(
-          color: (mainStyle.color ?? MlsColors.textPrimary).withOpacity(0.7),
+          color: (mainStyle.color ?? MlsColors.textPrimary).withValues(alpha: 0.7),
         );
 
     if (widget.compact) {

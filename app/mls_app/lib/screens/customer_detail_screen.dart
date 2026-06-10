@@ -180,8 +180,8 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
     ]));
   }
 
+  // TODO(prod): remove mock — replace with real API integration for matching listings
   Widget _buildMatchingListings() {
-    // TODO: API integration for matching listings
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       MlsSectionHeader(title: '匹配房源', trailingLabel: '3 套'),
       MlsCard(variant: MlsCardVariant.flat, onTap: () => context.push('/listing/sample'), child: Row(children: [
@@ -247,6 +247,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
     return '客户档案建立，初始跟进记录';
   }
 
+  // TODO(prod): remove mock — replace with real followup data from API
   List<Map<String, dynamic>> get _defaultFollowups => [
     {'type': '电话回访', 'content': '', 'created_at': 'TODAY · 14:30', 'agent_name': '张三'},
     {'type': '完成带看', 'content': '', 'created_at': 'TODAY · 10:15', 'agent_name': '张三'},

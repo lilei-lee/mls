@@ -81,7 +81,7 @@ class MlsNotificationTile extends StatelessWidget {
               height: 40,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: accentColor.withOpacity(0.12),
+                color: accentColor.withValues(alpha: 0.12),
               ),
               alignment: Alignment.center,
               child: Icon(icon, size: 20, color: accentColor),

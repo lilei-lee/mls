@@ -71,11 +71,8 @@ class _SettlementDetailScreenState extends State<SettlementDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: true,
-      onPopInvoked: (didPop) {
-        // 返回时把 dirty 带回列表页触发刷新
-        // (PopScope 无法改已 pop 的结果,这里留给 pop 前手动 pop(dirty))
-      },
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) { if (didPop) return; context.pop(_dirty); },
       child: Scaffold(
         appBar: AppBar(
           title: const Text('奖金结算详情'),

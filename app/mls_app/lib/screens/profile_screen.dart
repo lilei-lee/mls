@@ -48,7 +48,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
     if (ok != true) return;
-    const FlutterSecureStorage().deleteAll();
+    await const FlutterSecureStorage().deleteAll();
     if (mounted) context.go('/login');
   }
 

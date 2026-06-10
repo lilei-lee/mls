@@ -219,7 +219,7 @@ class _MlsPulseState extends State<MlsPulse>
               height: size,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: widget.pulseColor.withOpacity(opacity),
+                color: widget.pulseColor.withValues(alpha: opacity),
               ),
             );
           },

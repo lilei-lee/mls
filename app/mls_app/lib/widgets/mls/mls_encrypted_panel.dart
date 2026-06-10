@@ -159,7 +159,7 @@ class _MlsEncryptedPanelState extends State<MlsEncryptedPanel>
                                       end: Alignment.centerRight,
                                       colors: [
                                         Colors.transparent,
-                                        MlsColors.primary.withOpacity(0.15),
+                                        MlsColors.primary.withValues(alpha: 0.15),
                                         Colors.transparent,
                                       ],
                                     ),
@@ -214,10 +214,10 @@ class _MlsEncryptedPanelState extends State<MlsEncryptedPanel>
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.04),
+                      color: Colors.white.withValues(alpha: 0.04),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.08),
+                        color: Colors.white.withValues(alpha: 0.08),
                         width: 0.5,
                       ),
                     ),
@@ -270,7 +270,7 @@ class _MlsEncryptedPanelState extends State<MlsEncryptedPanel>
                     decoration: BoxDecoration(
                       border: Border(
                         top: BorderSide(
-                          color: Colors.white.withOpacity(0.08),
+                          color: Colors.white.withValues(alpha: 0.08),
                           width: 0.5,
                         ),
                       ),

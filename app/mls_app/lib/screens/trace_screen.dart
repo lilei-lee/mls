@@ -474,7 +474,7 @@ class _TraceScreenState extends State<TraceScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: MlsColors.bgPageEnd.withOpacity(0.88),
+        color: MlsColors.bgPageEnd.withValues(alpha: 0.88),
         border: const Border(top: BorderSide(color: MlsColors.borderLight, width: 0.5)),
       ),
       child: SafeArea(

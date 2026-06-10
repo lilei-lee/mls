@@ -520,7 +520,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  '本房源由我挂牌 · 信誉 A · 成交 23',
+                  '本房源由我挂牌 · 信誉 A · 成交 23', // TODO(prod): remove mock
                   style: MlsTypography.body2,
                 ),
               ],
@@ -1038,7 +1038,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: MlsColors.bgPageEnd.withOpacity(0.88),
+        color: MlsColors.bgPageEnd.withValues(alpha: 0.88),
         border: const Border(top: BorderSide(color: MlsColors.borderLight, width: 0.5)),
       ),
       child: SafeArea(
