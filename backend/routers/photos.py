@@ -21,10 +21,10 @@ ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png"}
 def _get_current_agent_dep():
     """延迟导入 get_current_agent，避免循环依赖。
 
-    photos_router 通过 Depends(_get_current_agent_dep) 间接引用 main 中定义的
+    photos_router 通过 Depends(_get_current_agent_dep) 间接引用 auth 中定义的
     get_current_agent，两个模块不需要互相 import。
     """
-    from main import get_current_agent
+    from auth import get_current_agent
     return get_current_agent
 
 
