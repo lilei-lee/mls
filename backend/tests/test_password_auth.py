@@ -8,8 +8,17 @@ from pydantic import ValidationError
 from auth import (
     hash_password, verify_password, validate_password_strength,
     is_password_locked, register_password_fail, clear_password_fails,
-    PWD_MAX_FAILS, SetPasswordRequest, ResetPasswordRequest,
+    PWD_MAX_FAILS, SetPasswordRequest, ResetPasswordRequest, RegisterRequest,
 )
+
+
+def _reg_kwargs(**override):
+    base = dict(
+        phone="13912345678", code="123456", name="张三",
+        id_card="13070219840821081X", store_name="新概念房产", password="abc123",
+    )
+    base.update(override)
+    return base
 
 
 # ── bcrypt 哈希 / 校验 ───────────────────────────────────────
@@ -103,3 +112,22 @@ def test_clear_resets_counter():
     assert is_password_locked(phone) is True
     clear_password_fails(phone)
     assert is_password_locked(phone) is False
+
+
+# ── 注册请求体:必须带合规密码 ───────────────────────────────
+
+def test_register_request_accepts_valid():
+    m = RegisterRequest(**_reg_kwargs())
+    assert m.password == "abc123"
+
+
+def test_register_request_requires_password():
+    kw = _reg_kwargs()
+    del kw["password"]
+    with pytest.raises(ValidationError):
+        RegisterRequest(**kw)
+
+
+def test_register_request_rejects_weak_password():
+    with pytest.raises(ValidationError):
+        RegisterRequest(**_reg_kwargs(password="123456"))  # 无字母

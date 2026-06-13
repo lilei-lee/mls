@@ -199,6 +199,13 @@ class RegisterRequest(BaseModel):
     name: str = Field(..., min_length=2, max_length=20)
     id_card: str = Field(..., pattern=r"^\d{17}[\dX]$")
     store_name: str = Field(..., min_length=2, max_length=100)
+    password: str = Field(..., min_length=PASSWORD_MIN, max_length=PASSWORD_MAX,
+                          description="登录密码,6-32 位含字母+数字")
+
+    @field_validator("password")
+    @classmethod
+    def _check_strength(cls, v):
+        return validate_password_strength(v)
 
 
 class RegisterResponse(BaseModel):
@@ -228,6 +235,7 @@ def register(req: RegisterRequest):
         "phone": req.phone,
         "name": req.name,
         "id_card": req.id_card,
+        "password_hash": hash_password(req.password),
         "avatar_url": "",
         "store_id": "",
         "store_name": req.store_name,

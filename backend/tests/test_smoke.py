@@ -188,7 +188,7 @@ class TestAuth:
         r = _post("/api/v1/auth/register", {
             "phone": phone, "code": "123456", "name": "SmokeTester",
             "id_card": f"1307012000{SUFFIX}0000",
-            "store_name": "Smoke Agency",
+            "store_name": "Smoke Agency", "password": "smoke123",
         })
         assert r.status_code in (200, 400, 409)
 
