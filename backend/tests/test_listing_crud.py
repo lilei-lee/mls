@@ -5,7 +5,7 @@ sys.path.insert(0, r"C:\projects\mls\backend")
 import pytest
 from unittest.mock import patch, MagicMock
 from bson import ObjectId
-from listings import (
+from services.listings import (
     PostListingRequest, _extract_physical_attrs, create_listing,
     get_listing_by_id, DICT_PHYSICAL_FIELDS,
 )
@@ -154,7 +154,7 @@ def test_list_my_listings_batch_enriched(mock_client_class, agent, physical):
     mock_client.submit_claim.return_value = {"total_claims_after": 1}
     mock_client_class.return_value = mock_client
 
-    from listings import list_my_listings
+    from services.listings import list_my_listings
     req = FakeReq()
     r = create_listing(req, physical, agent)
 
@@ -188,7 +188,7 @@ def test_list_my_listings_dict_unavailable_graceful(mock_client_class, agent, ph
     mock_client2.batch_get_properties.side_effect = Exception("down")
     mock_client_class.return_value = mock_client2
 
-    from listings import list_my_listings
+    from services.listings import list_my_listings
     results = list_my_listings(agent["_id"])
     assert len(results) >= 1
     for item in results:
@@ -204,7 +204,7 @@ def test_list_listings_no_property_code_skipped(mock_client_class):
     mock_client = MagicMock()
     mock_client_class.return_value = mock_client
 
-    from listings import _batch_fetch_props
+    from services.listings import _batch_fetch_props
     result = _batch_fetch_props([{"property_code": None}, {"property_code": ""}])
     assert result == {}
     mock_client.batch_get_properties.assert_not_called()
@@ -233,7 +233,7 @@ def test_get_listing_my_last_claim_la_view(mock_client_class, agent, physical):
     }
     mock_client_class.return_value = mock_client2
 
-    from listings import get_listing_by_id
+    from services.listings import get_listing_by_id
     detail = get_listing_by_id(lid, viewer_id=agent["_id"])
     mc = detail["my_last_claim"]
     assert mc["area_sqm"] == 105   # latest wins
@@ -266,7 +266,7 @@ def test_get_listing_no_my_last_claim_ba_view(mock_client_class, agent, physical
     }
     mock_client_class.return_value = mock_client2
 
-    from listings import get_listing_by_id
+    from services.listings import get_listing_by_id
     ba_id = ObjectId()  # different agent
     detail = get_listing_by_id(lid, viewer_id=ba_id)
     assert "my_last_claim" not in detail
@@ -297,7 +297,7 @@ def test_get_listing_my_last_claim_filter_only_self(mock_client_class, agent, ph
     }
     mock_client_class.return_value = mock_client2
 
-    from listings import get_listing_by_id
+    from services.listings import get_listing_by_id
     detail = get_listing_by_id(lid, viewer_id=agent["_id"])
     mc = detail["my_last_claim"]
     assert mc["area_sqm"] == 99  # only self, not 110 from other LA

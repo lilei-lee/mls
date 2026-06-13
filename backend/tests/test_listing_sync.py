@@ -5,7 +5,7 @@ sys.path.insert(0, r"C:\projects\mls\backend")
 import pytest
 from unittest.mock import patch, MagicMock
 from bson import ObjectId
-from listings import DICT_PHYSICAL_FIELDS
+from services.listings import DICT_PHYSICAL_FIELDS
 
 
 @pytest.fixture
@@ -38,7 +38,7 @@ def test_sync_physical_happy(mock_cls, agent):
     mock.submit_claim.return_value = {"total_claims_after": 2}
     mock_cls.return_value = mock
 
-    from listings import sync_physical_to_dict, SyncPhysicalBody
+    from services.listings import sync_physical_to_dict, SyncPhysicalBody
     body = SyncPhysicalBody()
     r = sync_physical_to_dict(str(lid), body, agent["_id"])
     assert r["synced_fields"] == ["area_sqm", "floor", "rooms"]
@@ -57,7 +57,7 @@ def test_sync_physical_not_owner(mock_cls, agent):
     lid = _seed_listing(agent["_id"])
     other = ObjectId()
 
-    from listings import sync_physical_to_dict, SyncPhysicalBody
+    from services.listings import sync_physical_to_dict, SyncPhysicalBody
     from fastapi import HTTPException
     body = SyncPhysicalBody()
     with pytest.raises(HTTPException) as exc:
@@ -73,7 +73,7 @@ def test_sync_physical_no_property_code(mock_cls, agent):
     """listing.property_code=None → 400"""
     lid = _seed_listing(agent["_id"], property_code=None)
 
-    from listings import sync_physical_to_dict, SyncPhysicalBody
+    from services.listings import sync_physical_to_dict, SyncPhysicalBody
     from fastapi import HTTPException
     body = SyncPhysicalBody()
     with pytest.raises(HTTPException) as exc:
@@ -92,7 +92,7 @@ def test_sync_physical_no_authoritative(mock_cls, agent):
     mock.get_property.return_value = {"authoritative_attrs": {}}
     mock_cls.return_value = mock
 
-    from listings import sync_physical_to_dict, SyncPhysicalBody
+    from services.listings import sync_physical_to_dict, SyncPhysicalBody
     from fastapi import HTTPException
     body = SyncPhysicalBody()
     with pytest.raises(HTTPException) as exc:
@@ -115,7 +115,7 @@ def test_sync_physical_dict_unavailable(mock_cls, agent):
     mock.submit_claim.side_effect = DictionaryUnavailableError("down")
     mock_cls.return_value = mock
 
-    from listings import sync_physical_to_dict, SyncPhysicalBody
+    from services.listings import sync_physical_to_dict, SyncPhysicalBody
     from fastapi import HTTPException
     body = SyncPhysicalBody()
     with pytest.raises(HTTPException) as exc:
