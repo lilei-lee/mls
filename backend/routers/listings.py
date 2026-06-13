@@ -1,6 +1,6 @@
 """房源路由 — 拆自 main.py L515-707"""
 from fastapi import APIRouter, HTTPException, Depends, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from database import db
 from auth import get_current_agent
 from services.listings import (
@@ -93,15 +93,17 @@ def get_shared_listings_api(
 
 
 class UpdateListingRequest(BaseModel):
-    orientation: str | None = None
-    price_wan: float | None = None
-    bonus_yuan: int | None = None
+    # 校验约束与 CreateListingRequest 对齐 — PATCH 路径同样是用户可编辑字段,
+    # 不能允许 price_wan 负数 / bonus_yuan 超界 / 备注超长绕过创建时的闸门。
+    orientation: str | None = Field(None, max_length=20)
+    price_wan: float | None = Field(None, gt=0)
+    bonus_yuan: int | None = Field(None, ge=0, le=500_000)
     cover_thumbnail: str | None = None
     photos: list | None = None
-    public_remarks: str | None = None
-    agent_remarks: str | None = None
-    showing_instructions: str | None = None
-    sale_points: list | None = None
+    public_remarks: str | None = Field(None, max_length=2000)
+    agent_remarks: str | None = Field(None, max_length=1000)
+    showing_instructions: str | None = Field(None, max_length=500)
+    sale_points: list | None = None  # 内容校验在 update_listing 业务层 validate_sale_points
 
 
 @listings_router.get("/listings/meta/districts")
