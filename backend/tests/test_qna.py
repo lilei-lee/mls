@@ -47,7 +47,7 @@ def test_anonymize_name():
 
 def test_ba_can_ask(listing, ba_agent):
     """BA 对他人房源发问 → 200,返回 thread_id"""
-    from qna import ask_qna, AskQnaBody
+    from routers.qna import ask_qna, AskQnaBody
     tid = str(listing)
     result = ask_qna(tid, AskQnaBody(question="满五唯一吗?"), ba_agent)
     assert result["success"]
@@ -61,7 +61,7 @@ def test_ba_can_ask(listing, ba_agent):
 
 def test_la_can_answer(listing, la_agent, ba_agent):
     """LA 回答自己房源的问题 → 200,状态变 answered"""
-    from qna import ask_qna, answer_qna, AskQnaBody, AnswerQnaBody
+    from routers.qna import ask_qna, answer_qna, AskQnaBody, AnswerQnaBody
     r1 = ask_qna(str(listing), AskQnaBody(question="户型怎么样?"), ba_agent)
     tid = r1["data"]["thread_id"]
 
@@ -75,7 +75,7 @@ def test_la_can_answer(listing, la_agent, ba_agent):
 
 def test_ba_pending_limit(listing, ba_agent):
     """BA 对同房源 4 个 pending → 第4个 400"""
-    from qna import ask_qna, AskQnaBody
+    from routers.qna import ask_qna, AskQnaBody
     from fastapi import HTTPException
     tid = str(listing)
     for i in range(3):
@@ -88,7 +88,7 @@ def test_ba_pending_limit(listing, ba_agent):
 
 def test_anonymous_name_in_list(listing, la_agent, ba_agent):
     """BA 自看全名'李红', LA 看全名'李红', 其他 BA 看脱敏'李*' """
-    from qna import ask_qna, list_qna, AskQnaBody
+    from routers.qna import ask_qna, list_qna, AskQnaBody
     ask_qna(str(listing), AskQnaBody(question="采光好吗?"), ba_agent)
 
     # BA 自己看 → 全名
@@ -107,7 +107,7 @@ def test_anonymous_name_in_list(listing, la_agent, ba_agent):
 
 def test_ba2_sees_anonymized_name(listing, la_agent, ba_agent):
     """BA1 提问,BA2 查看 → asker_name='李*' """
-    from qna import ask_qna, list_qna, AskQnaBody
+    from routers.qna import ask_qna, list_qna, AskQnaBody
     ask_qna(str(listing), AskQnaBody(question="能看房吗?"), ba_agent)
 
     ba2 = {"_id": str(ObjectId()), "name": "王芳", "phone": "13300000000"}
@@ -117,7 +117,7 @@ def test_ba2_sees_anonymized_name(listing, la_agent, ba_agent):
 
 def test_asker_sees_own_full_name(listing, la_agent, ba_agent):
     """BA1 提问后自己看 → asker_name='李红'(全名,不脱敏自己)"""
-    from qna import ask_qna, list_qna, AskQnaBody
+    from routers.qna import ask_qna, list_qna, AskQnaBody
     ask_qna(str(listing), AskQnaBody(question="户型怎么样?"), ba_agent)
 
     r = list_qna(str(listing), agent=ba_agent)  # type: ignore
@@ -126,7 +126,7 @@ def test_asker_sees_own_full_name(listing, la_agent, ba_agent):
 
 def test_pending_limit_boundary(listing, ba_agent):
     """3 次成功,第 4 次 400"""
-    from qna import ask_qna, AskQnaBody
+    from routers.qna import ask_qna, AskQnaBody
     from fastapi import HTTPException
     for i in range(3):
         ask_qna(str(listing), AskQnaBody(question=f"边界问题{i}"), ba_agent)
@@ -139,7 +139,7 @@ def test_pending_limit_boundary(listing, ba_agent):
 
 def test_pending_limit_3rd_accepted(listing, ba_agent):
     """第 3 次 accept(边界),总数 3"""
-    from qna import ask_qna, AskQnaBody
+    from routers.qna import ask_qna, AskQnaBody
     for i in range(2):
         ask_qna(str(listing), AskQnaBody(question=f"前{i}"), ba_agent)
 
@@ -152,7 +152,7 @@ def test_pending_limit_3rd_accepted(listing, ba_agent):
 
 def test_my_qna_ba_returns_own(listing, ba_agent):
     """BA 调用 /qna/my 返回自己的提问"""
-    from qna import ask_qna, list_my_qna, AskQnaBody
+    from routers.qna import ask_qna, list_my_qna, AskQnaBody
     ask_qna(str(listing), AskQnaBody(question="我的提问测试"), ba_agent)
 
     r = list_my_qna(agent=ba_agent)  # type: ignore
@@ -163,14 +163,14 @@ def test_my_qna_ba_returns_own(listing, ba_agent):
 
 def test_my_qna_la_returns_empty(listing, la_agent):
     """LA 调用 /qna/my 返回空数组"""
-    from qna import list_my_qna
+    from routers.qna import list_my_qna
     r = list_my_qna(agent=la_agent)  # type: ignore
     assert r["data"]["items"] == []
 
 
 def test_my_qna_sorting(listing, ba_agent, la_agent):
     """pending 在前,组内时间倒序"""
-    from qna import ask_qna, answer_qna, list_my_qna, AskQnaBody, AnswerQnaBody
+    from routers.qna import ask_qna, answer_qna, list_my_qna, AskQnaBody, AnswerQnaBody
     ask_qna(str(listing), AskQnaBody(question="新问题"), ba_agent)
     r1 = ask_qna(str(listing), AskQnaBody(question="早问题"), ba_agent)
 
@@ -186,7 +186,7 @@ def test_my_qna_sorting(listing, ba_agent, la_agent):
 
 def test_my_qna_deleted_not_included(listing, ba_agent):
     """软删 thread 不出现在列表中"""
-    from qna import ask_qna, delete_qna, list_my_qna, AskQnaBody
+    from routers.qna import ask_qna, delete_qna, list_my_qna, AskQnaBody
     r = ask_qna(str(listing), AskQnaBody(question="待删"), ba_agent)
     delete_qna(r["data"]["thread_id"], agent=ba_agent)  # type: ignore
 
@@ -197,7 +197,7 @@ def test_my_qna_deleted_not_included(listing, ba_agent):
 
 def test_pending_count_consistency(listing, ba_agent):
     """两个接口(pending-count / dashboard)返回相同 pending 数"""
-    from qna import ask_qna, my_pending_count, _count_ba_pending_questions, AskQnaBody
+    from routers.qna import ask_qna, my_pending_count, _count_ba_pending_questions, AskQnaBody
     for i in range(2):
         ask_qna(str(listing), AskQnaBody(question=f"一致性{i}"), ba_agent)
 
