@@ -21,9 +21,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _name = TextEditingController();
   final _idCard = TextEditingController();
   final _storeName = TextEditingController();
+  final _password = TextEditingController();
 
   bool _sendingSms = false;
   bool _submitting = false;
+  bool _obscurePassword = true;
 
   int _countdown = 0;
   Timer? _timer;
@@ -35,6 +37,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _name.dispose();
     _idCard.dispose();
     _storeName.dispose();
+    _password.dispose();
     _timer?.cancel();
     super.dispose();
   }
@@ -92,6 +95,7 @@ Future<void> _submit() async {
           'name': _name.text.trim(),
           'id_card': _idCard.text.trim(),
           'store_name': _storeName.text.trim(),
+          'password': _password.text.trim(),
         },
       );
 
@@ -153,6 +157,17 @@ Future<void> _submit() async {
   String? _validateCode(String? v) {
     if (v == null || v.trim().isEmpty) return '请输入验证码';
     if (v.trim().length != 6) return '验证码应为 6 位数字';
+    return null;
+  }
+
+  String? _validatePassword(String? v) {
+    final s = v?.trim() ?? '';
+    if (s.isEmpty) return '请设置登录密码';
+    if (s.length < 6 || s.length > 32) return '密码需 6-32 位';
+    if (s.contains(RegExp(r'\s'))) return '密码不能包含空格';
+    if (!s.contains(RegExp(r'[A-Za-z]')) || !s.contains(RegExp(r'\d'))) {
+      return '密码需同时含字母和数字';
+    }
     return null;
   }
 
@@ -301,6 +316,29 @@ Future<void> _submit() async {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 16),
+
+            // 登录密码
+            TextFormField(
+              controller: _password,
+              obscureText: _obscurePassword,
+              maxLength: 32,
+              decoration: InputDecoration(
+                labelText: '登录密码',
+                hintText: '6-32 位,含字母和数字',
+                prefixIcon: const Icon(Icons.lock_outline),
+                border: const OutlineInputBorder(),
+                counterText: '',
+                suffixIcon: IconButton(
+                  icon: Icon(_obscurePassword
+                      ? Icons.visibility_off
+                      : Icons.visibility),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
+                ),
+              ),
+              validator: _validatePassword,
             ),
             const SizedBox(height: 28),
 

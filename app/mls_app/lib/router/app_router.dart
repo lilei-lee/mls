@@ -16,6 +16,8 @@ import '../screens/qna_list_screen.dart';
 import '../screens/my_questions_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/register_screen.dart';
+import '../screens/change_password_screen.dart';
+import '../screens/reset_password_screen.dart';
 import '../screens/showing_request_create_screen.dart';
 import '../screens/showing_request_sent_screen.dart';
 import '../screens/showing_request_received_screen.dart';
@@ -52,6 +54,14 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/register',
       builder: (context, state) => const RegisterScreen(),
+    ),
+    GoRoute(
+      path: '/reset-password',
+      builder: (context, state) => const ResetPasswordScreen(),
+    ),
+    GoRoute(
+      path: '/change-password',
+      builder: (context, state) => const ChangePasswordScreen(),
     ),
     GoRoute(
       path: '/home',
