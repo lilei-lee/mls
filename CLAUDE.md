@@ -546,9 +546,9 @@ PLAN:
 
 - 直接带看 listing 状态守卫过严（`transaction_ongoing` 该入白名单）
 - 房源表单缺奖金输入字段
-- 成交日期 vs 带看时间严格比较 bug
-- `initiate_transaction` 未给 `bonus_yuan` 拍快照
-- 带客申请 7 天过期定时任务
+- ~~成交日期 vs 带看时间严格比较 bug~~ ✅ **已修**（按天截断比较，transactions.py:197-202；回归测试 `test_transaction_initiate.py`）
+- ~~`initiate_transaction` 未给 `bonus_yuan` 拍快照~~ ✅ **已实现**（`bonus_yuan_snapshot` 锁定 BA 提交时点，transactions.py:236；回归测试同上）
+- ~~带客申请 7 天过期定时任务~~ ✅ **已实现**（`scheduler.expire_stale_showing_requests` 每天 03:00；回归测试 `test_scheduler.py`）
 - 协作详情页实时推送（Day 17 详情页 pop 后自动刷新只是部分修，真正实时推送登 V8.4）
 
 ### 🟢 低优先级（50 户以内不做）
