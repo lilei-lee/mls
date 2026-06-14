@@ -1,0 +1,60 @@
+{% extends "admin/base.html" %}
+{% block title %}争议详情 · MLS 管理后台{% endblock %}
+{% block content %}
+<p style="margin:0 0 12px;"><a href="/admin/disputes" style="color:#64748b; font-size:13px;">← 返回争议列表</a></p>
+<h1>争议详情 <span style="font-size:13px; color:#64748b;">{{ d.status_label }}</span></h1>
+
+<div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:18px; margin-bottom:16px; max-width:640px;">
+  <p style="margin:0 0 8px;"><b>举报人：</b>{{ d.reporter }} · {{ d.created_at }}</p>
+  <p style="margin:0 0 8px;"><b>对象：</b>{{ '成交' if d.target_type=='transaction' else '经纪人' }} {{ d.target_id }}</p>
+  <p style="margin:0 0 8px;"><b>类别：</b>{{ d.reason }}</p>
+  <p style="margin:0;"><b>描述：</b>{{ d.description }}</p>
+</div>
+
+{% if related %}
+<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:16px; margin-bottom:16px; max-width:640px;">
+  <div class="label" style="margin-bottom:8px;">关联留痕</div>
+  {% if related.kind == 'transaction' %}
+  <p style="margin:0; font-size:13px;">成交 · {{ related.community }} · BA {{ related.ba }} / LA {{ related.la }} · 状态 {{ related.status }} · 成交价 {{ related.price }}</p>
+  {% else %}
+  <p style="margin:0; font-size:13px;">经纪人 · {{ related.name }} {{ related.phone }} · 账号状态 {{ related.status }}</p>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if d.status in ['pending', 'accepted'] %}
+<div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:18px; max-width:640px;">
+  {% if d.can_accept %}
+  <form method="post" action="/admin/disputes/{{ d.id }}/accept" style="margin:0 0 18px;">
+    <button type="submit">受理（进入审理）</button>
+  </form>
+  <hr style="border:none; border-top:1px solid #f1f5f9; margin:0 0 16px;">
+  {% endif %}
+  <div class="label" style="margin-bottom:10px;">出具裁决</div>
+  <form method="post" action="/admin/disputes/{{ d.id }}/rule" style="margin:0 0 14px;">
+    <textarea name="ruling" rows="3" placeholder="事实认定 + 违规判定 + 处罚决定" required
+              style="width:100%; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; box-sizing:border-box;"></textarea>
+    <div style="display:flex; gap:10px; align-items:center; margin-top:10px;">
+      <label style="margin:0;">处罚：</label>
+      <select name="penalty" style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px;">
+        <option value="none">无处罚</option>
+        <option value="warn">警告</option>
+        <option value="ban">踢出（仅对经纪人对象生效）</option>
+      </select>
+      <button type="submit">出具裁决</button>
+    </div>
+  </form>
+  <form method="post" action="/admin/disputes/{{ d.id }}/reject" style="margin:0;">
+    <input name="ruling" placeholder="驳回理由" required
+           style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; width:300px;">
+    <button type="submit" style="background:#64748b;">驳回</button>
+  </form>
+</div>
+{% else %}
+<div style="background:#ecfdf5; border:1px solid #a7f3d0; border-radius:10px; padding:16px; max-width:640px;">
+  <p style="margin:0 0 6px;"><b>裁决结果（{{ d.status_label }}）：</b></p>
+  <p style="margin:0 0 6px;">{{ d.ruling }}</p>
+  <p style="margin:0; color:#475569;">处罚：{{ d.penalty }}</p>
+</div>
+{% endif %}
+{% endblock %}

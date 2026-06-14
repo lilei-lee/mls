@@ -659,3 +659,139 @@ def admin_community_merge(community_id: str, _: bool = Depends(require_admin), t
                 {"into": str(bid), "into_name": B["name"], "affected": res.modified_count})
     msg = quote(f"已将「{A['name']}」并入「{B['name']}」,迁移 {res.modified_count} 套房源")
     return RedirectResponse(url=f"/admin/communities?msg={msg}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+# ── 争议仲裁(模块六 §7) ──
+
+@admin_router.get("/disputes", response_class=HTMLResponse)
+def admin_disputes(request: Request, _: bool = Depends(require_admin), status_f: str = ""):
+    from disputes import DISPUTE_STATUS_LABEL
+    query: dict = {}
+    if status_f:
+        query["status"] = status_f
+    rows = []
+    for d in db["disputes"].find(query).sort("created_at", -1).limit(300):
+        rows.append({
+            "id": str(d["_id"]),
+            "reporter": d.get("reporter_name", ""),
+            "target_type": d.get("target_type", ""),
+            "reason": d.get("reason", ""),
+            "status": d.get("status", ""),
+            "status_label": DISPUTE_STATUS_LABEL.get(d.get("status", ""), d.get("status", "")),
+            "created_at": d["created_at"].strftime("%Y-%m-%d %H:%M") if isinstance(d.get("created_at"), datetime) else "-",
+        })
+    return templates.TemplateResponse(request, "admin/disputes.html",
+                                      {"rows": rows, "status_f": status_f,
+                                       "status_labels": DISPUTE_STATUS_LABEL})
+
+
+@admin_router.get("/disputes/{dispute_id}", response_class=HTMLResponse)
+def admin_dispute_detail(dispute_id: str, request: Request, _: bool = Depends(require_admin)):
+    from disputes import DISPUTE_STATUS_LABEL, PENALTY_LABEL
+    try:
+        did = ObjectId(dispute_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的争议 ID")
+    d = db["disputes"].find_one({"_id": did})
+    if not d:
+        raise HTTPException(status_code=404, detail="争议不存在")
+    # 关联留痕:目标是成交则取成交记录摘要
+    related = None
+    if d.get("target_type") == "transaction":
+        try:
+            t = db["transactions"].find_one({"_id": ObjectId(d["target_id"])})
+        except Exception:
+            t = None
+        if t:
+            snap = t.get("listing_snapshot", {})
+            related = {
+                "kind": "transaction", "community": snap.get("community", ""),
+                "ba": t.get("ba_agent_name", ""), "la": t.get("la_agent_name", ""),
+                "status": t.get("status", ""),
+                "price": t.get("ba_deal_price_yuan", ""),
+            }
+    elif d.get("target_type") == "agent":
+        try:
+            ta = db["agents"].find_one({"_id": ObjectId(d["target_id"])})
+        except Exception:
+            ta = None
+        if ta:
+            related = {"kind": "agent", "name": ta.get("name", ""),
+                       "phone": ta.get("phone", ""), "status": ta.get("status", "")}
+    dispute = {
+        "id": str(did),
+        "reporter": d.get("reporter_name", ""),
+        "target_type": d.get("target_type", ""),
+        "target_id": d.get("target_id", ""),
+        "reason": d.get("reason", ""),
+        "description": d.get("description", ""),
+        "status": d.get("status", ""),
+        "status_label": DISPUTE_STATUS_LABEL.get(d.get("status", ""), d.get("status", "")),
+        "ruling": d.get("ruling") or "",
+        "penalty": PENALTY_LABEL.get(d.get("penalty"), d.get("penalty") or "-"),
+        "created_at": d["created_at"].strftime("%Y-%m-%d %H:%M") if isinstance(d.get("created_at"), datetime) else "-",
+        "can_accept": d.get("status") == "pending",
+        "can_close": d.get("status") in ("pending", "accepted"),
+    }
+    return templates.TemplateResponse(request, "admin/dispute_detail.html",
+                                      {"d": dispute, "related": related})
+
+
+def _get_dispute(dispute_id: str) -> tuple:
+    try:
+        did = ObjectId(dispute_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的争议 ID")
+    d = db["disputes"].find_one({"_id": did})
+    if not d:
+        raise HTTPException(status_code=404, detail="争议不存在")
+    return did, d
+
+
+@admin_router.post("/disputes/{dispute_id}/accept")
+def admin_dispute_accept(dispute_id: str, _: bool = Depends(require_admin)):
+    did, d = _get_dispute(dispute_id)
+    if d.get("status") == "pending":
+        db["disputes"].update_one({"_id": did}, {"$set": {"status": "accepted", "updated_at": datetime.now()}})
+        write_audit("dispute_accept", "dispute", dispute_id, {})
+    return RedirectResponse(url=f"/admin/disputes/{dispute_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@admin_router.post("/disputes/{dispute_id}/rule")
+def admin_dispute_rule(dispute_id: str, _: bool = Depends(require_admin),
+                       ruling: str = Form(...), penalty: str = Form("none")):
+    """出具裁决:记录事实/处罚;penalty=ban 时联动踢出目标经纪人。"""
+    did, d = _get_dispute(dispute_id)
+    if d.get("status") in ("resolved", "rejected"):
+        return RedirectResponse(url=f"/admin/disputes/{dispute_id}", status_code=status.HTTP_303_SEE_OTHER)
+    penalty = penalty if penalty in ("none", "warn", "ban") else "none"
+    db["disputes"].update_one({"_id": did}, {"$set": {
+        "status": "resolved", "ruling": ruling.strip(), "penalty": penalty,
+        "handled_at": datetime.now(), "updated_at": datetime.now(),
+    }})
+    # 处罚执行:ban 且目标是经纪人 → 踢出
+    if penalty == "ban" and d.get("target_type") == "agent":
+        try:
+            tid = ObjectId(d["target_id"])
+            if db["agents"].find_one({"_id": tid}):
+                db["agents"].update_one({"_id": tid}, {"$set": {
+                    "status": "banned", "status_reason": f"争议裁决:{ruling.strip()[:50]}",
+                    "status_changed_at": datetime.now(), "updated_at": datetime.now()}})
+                write_audit("agent_ban", "agent", d["target_id"], {"via_dispute": dispute_id})
+        except Exception:
+            pass
+    write_audit("dispute_resolve", "dispute", dispute_id, {"penalty": penalty})
+    return RedirectResponse(url=f"/admin/disputes/{dispute_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@admin_router.post("/disputes/{dispute_id}/reject")
+def admin_dispute_reject(dispute_id: str, _: bool = Depends(require_admin), ruling: str = Form(...)):
+    did, d = _get_dispute(dispute_id)
+    if d.get("status") in ("resolved", "rejected"):
+        return RedirectResponse(url=f"/admin/disputes/{dispute_id}", status_code=status.HTTP_303_SEE_OTHER)
+    db["disputes"].update_one({"_id": did}, {"$set": {
+        "status": "rejected", "ruling": ruling.strip(),
+        "handled_at": datetime.now(), "updated_at": datetime.now(),
+    }})
+    write_audit("dispute_reject", "dispute", dispute_id, {})
+    return RedirectResponse(url=f"/admin/disputes/{dispute_id}", status_code=status.HTTP_303_SEE_OTHER)

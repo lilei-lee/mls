@@ -399,3 +399,61 @@ def test_community_merge_by_name_match(client):
     _login(client)
     client.post(f"/admin/communities/{A}/merge", data={"target": str(B)}, follow_redirects=False)
     assert db["listings"].find_one({"_id": lid})["community"] == "目标小区"
+
+
+# ── 争议仲裁 ──
+
+def _seed_dispute(target_type="agent", target_id=None, status="pending"):
+    from bson import ObjectId
+    return db["disputes"].insert_one({
+        "_id": ObjectId(), "reporter_agent_id": ObjectId(), "reporter_name": "李红",
+        "target_type": target_type, "target_id": target_id or str(ObjectId()),
+        "reason": "截客", "description": "私下成交", "status": status,
+        "ruling": None, "penalty": None, "created_at": datetime.now(),
+    }).inserted_id
+
+
+def test_disputes_requires_auth(client):
+    r = client.get("/admin/disputes", follow_redirects=False)
+    assert r.status_code == 303
+
+
+def test_disputes_list_and_detail(client):
+    did = _seed_dispute()
+    _login(client)
+    r = client.get("/admin/disputes", follow_redirects=False)
+    assert r.status_code == 200 and "截客" in r.text
+    r2 = client.get(f"/admin/disputes/{did}", follow_redirects=False)
+    assert r2.status_code == 200 and "私下成交" in r2.text
+
+
+def test_dispute_accept(client):
+    did = _seed_dispute()
+    _login(client)
+    r = client.post(f"/admin/disputes/{did}/accept", follow_redirects=False)
+    assert r.status_code == 303
+    assert db["disputes"].find_one({"_id": did})["status"] == "accepted"
+    assert db["audit_log"].find_one({"action": "dispute_accept"}) is not None
+
+
+def test_dispute_rule_with_ban(client):
+    aid = _seed_agent()  # 被举报的经纪人
+    did = _seed_dispute(target_type="agent", target_id=str(aid), status="accepted")
+    _login(client)
+    r = client.post(f"/admin/disputes/{did}/rule",
+                    data={"ruling": "查实截客,予以踢出", "penalty": "ban"}, follow_redirects=False)
+    assert r.status_code == 303
+    d = db["disputes"].find_one({"_id": did})
+    assert d["status"] == "resolved" and d["penalty"] == "ban"
+    # 联动踢出目标经纪人
+    assert db["agents"].find_one({"_id": aid})["status"] == "banned"
+    assert db["audit_log"].find_one({"action": "dispute_resolve"}) is not None
+
+
+def test_dispute_reject(client):
+    did = _seed_dispute()
+    _login(client)
+    r = client.post(f"/admin/disputes/{did}/reject", data={"ruling": "证据不足"}, follow_redirects=False)
+    assert r.status_code == 303
+    d = db["disputes"].find_one({"_id": did})
+    assert d["status"] == "rejected" and d["ruling"] == "证据不足"

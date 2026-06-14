@@ -1,0 +1,38 @@
+{% extends "admin/base.html" %}
+{% block title %}争议仲裁 · MLS 管理后台{% endblock %}
+{% block content %}
+<h1>争议仲裁</h1>
+
+<form class="inline" method="get" action="/admin/disputes">
+  <div>
+    <label>状态</label>
+    <select name="status_f" style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px;">
+      <option value="">全部</option>
+      {% for k, label in status_labels.items() %}
+      <option value="{{ k }}" {% if status_f==k %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit">筛选</button>
+</form>
+
+<table>
+  <thead>
+    <tr><th>时间</th><th>举报人</th><th>对象</th><th>类别</th><th>状态</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td style="white-space:nowrap;">{{ r.created_at }}</td>
+      <td>{{ r.reporter }}</td>
+      <td>{{ '成交' if r.target_type=='transaction' else '经纪人' }}</td>
+      <td>{{ r.reason }}</td>
+      <td>{{ r.status_label }}</td>
+      <td><a href="/admin/disputes/{{ r.id }}">处理</a></td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6" style="color:#94a3b8;">暂无争议</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -34,6 +34,7 @@ from communities import ensure_communities_indexes
 from transactions import ensure_transactions_indexes
 from settlements import ensure_settlements_indexes
 from customers import ensure_customers_indexes
+from disputes import ensure_disputes_indexes
 from scheduler import start_scheduler, stop_scheduler
 from storage import ensure_bucket
 
@@ -51,6 +52,7 @@ from routers.collaborations import collaborations_router
 from routers.qna import qna_router
 from routers.photos import photos_router
 from routers.admin import admin_router
+from routers.disputes import disputes_router
 
 app = FastAPI(
     title="MLS 后端 API",
@@ -102,6 +104,7 @@ app.include_router(collaborations_router)
 app.include_router(qna_router)
 app.include_router(photos_router)
 app.include_router(admin_router)
+app.include_router(disputes_router)
 
 
 @app.on_event("startup")
@@ -124,6 +127,8 @@ def startup_check():
     print("[OK] 奖金结算索引已建立")
     ensure_customers_indexes()
     print("[OK] 客户档案索引已建立")
+    ensure_disputes_indexes()
+    print("[OK] 争议举报索引已建立")
     ensure_bucket()
     start_scheduler()
 

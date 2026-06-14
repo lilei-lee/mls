@@ -32,4 +32,7 @@ ACTION_LABEL = {
     "community_merge": "合并小区",
     "export": "数据导出",
     "config_update": "修改系统配置",
+    "dispute_accept": "受理争议",
+    "dispute_resolve": "争议裁决",
+    "dispute_reject": "驳回争议",
 }
