@@ -13,27 +13,40 @@ class CustomerService {
   // ========== 基础 CRUD ==========
 
   /// 创建客户
-  /// 返 { customer_id, surname, gender, phone, requirements, ... }
+  /// extra 可携带升级后的全部档案字段(预算/意向/户型/目的/分级/标签…)
   Future<Map<String, dynamic>> create({
     required String surname,
     required String gender,
     String? phone,
     String? requirements,
+    Map<String, dynamic>? extra,
   }) async {
-    final resp = await _dio.post('/customers', data: {
+    final data = <String, dynamic>{
       'surname': surname,
       'gender': gender,
       if (phone != null && phone.isNotEmpty) 'phone': phone,
       if (requirements != null && requirements.isNotEmpty)
         'requirements': requirements,
-    });
+      ...?extra,
+    };
+    final resp = await _dio.post('/customers', data: data);
     return Map<String, dynamic>.from(resp.data['data']);
   }
 
-  /// 我的客户列表 · 按 updated_at 降序
+  /// 我的客户列表(支持筛选/排序)
   /// 返 { items: [...], total: N }
-  Future<Map<String, dynamic>> listMine() async {
-    final resp = await _dio.get('/customers/mine');
+  Future<Map<String, dynamic>> listMine({
+    String? status,
+    String? grade,
+    bool dueOnly = false,
+    String? sort,
+  }) async {
+    final qp = <String, dynamic>{};
+    if (status != null) qp['status'] = status;
+    if (grade != null) qp['grade'] = grade;
+    if (dueOnly) qp['due_only'] = true;
+    if (sort != null) qp['sort'] = sort;
+    final resp = await _dio.get('/customers/mine', queryParameters: qp);
     return Map<String, dynamic>.from(resp.data['data']);
   }
 
@@ -43,21 +56,19 @@ class CustomerService {
     return Map<String, dynamic>.from(resp.data['data']);
   }
 
-  /// 更新客户基础信息(部分字段)
+  /// 更新客户(传入任意字段 map:基础信息 / 档案 / status+lost_reason)
   Future<Map<String, dynamic>> update(
-    String customerId, {
-    String? surname,
-    String? gender,
-    String? phone,
-    String? requirements,
-  }) async {
-    final payload = <String, dynamic>{};
-    if (surname != null) payload['surname'] = surname;
-    if (gender != null) payload['gender'] = gender;
-    if (phone != null) payload['phone'] = phone;
-    if (requirements != null) payload['requirements'] = requirements;
+    String customerId,
+    Map<String, dynamic> fields,
+  ) async {
+    final resp = await _dio.patch('/customers/$customerId', data: fields);
+    return Map<String, dynamic>.from(resp.data['data']);
+  }
 
-    final resp = await _dio.patch('/customers/$customerId', data: payload);
+  /// 客户已看房源列表(带每次带看反馈)
+  /// 返 { items: [...], total: N }
+  Future<Map<String, dynamic>> showings(String customerId) async {
+    final resp = await _dio.get('/customers/$customerId/showings');
     return Map<String, dynamic>.from(resp.data['data']);
   }
 
