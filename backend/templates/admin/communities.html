@@ -12,6 +12,13 @@
       <label>搜索(小区名/区域/备案名/别名)</label>
       <input name="q" value="{{ q }}" placeholder="关键词">
     </div>
+    <div>
+      <label>区域</label>
+      <select name="district_f" style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px;">
+        <option value="">全部</option>
+        {% for d in districts %}<option value="{{ d }}" {% if district_f==d %}selected{% endif %}>{{ d }}</option>{% endfor %}
+      </select>
+    </div>
     <button type="submit">筛选</button>
   </form>
   <form class="inline" method="post" action="/admin/community-import" enctype="multipart/form-data" style="margin:0;">
@@ -22,12 +29,15 @@
     <button type="submit">导入</button>
   </form>
 </div>
-<p style="color:#94a3b8; font-size:12px; margin:-6px 0 12px;">提示：「导出空白模板」拿到只含表头的空表，从零批量录入后再「导入」；要改现有数据，先在下表勾选要导的小区再「导出选中」。</p>
+<p style="color:#94a3b8; font-size:12px; margin:-6px 0 12px;">提示：「导出空白模板」拿到只含表头的空表，从零批量录入后再「导入」；要改现有数据，勾选行「导出选中」（单/多选），或按区域/关键词筛选后「导出筛选结果」。</p>
 
 <form method="post" action="/admin/community-export.csv">
+  <input type="hidden" name="q" value="{{ q }}">
+  <input type="hidden" name="district_f" value="{{ district_f }}">
   <div style="margin-bottom:8px;">
-    <button type="submit">⤓ 导出选中(CSV)</button>
-    <span style="color:#94a3b8; font-size:12px; margin-left:8px;">勾选下表的小区后点此导出，不勾则只导出表头。</span>
+    <button type="submit" name="mode" value="selected">⤓ 导出选中</button>
+    <button type="submit" name="mode" value="filtered" style="background:#64748b;">⤓ 导出筛选结果</button>
+    <span style="color:#94a3b8; font-size:12px; margin-left:8px;">勾选→导出选中；或按当前区域/关键词→导出筛选结果。</span>
   </div>
   <table>
     <thead>

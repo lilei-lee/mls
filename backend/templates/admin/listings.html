@@ -33,9 +33,13 @@
 </form>
 
 <form method="post" action="/admin/export/listings.csv">
+  <input type="hidden" name="q" value="{{ q }}">
+  <input type="hidden" name="status_f" value="{{ status_f }}">
+  <input type="hidden" name="district_f" value="{{ district_f }}">
   <div style="margin:6px 0 8px;">
-    <button type="submit">⤓ 导出选中(CSV)</button>
-    <span style="color:#94a3b8; font-size:12px; margin-left:8px;">勾选下表的房源后点此导出（含全部字段），不勾则只导出表头。</span>
+    <button type="submit" name="mode" value="selected">⤓ 导出选中</button>
+    <button type="submit" name="mode" value="filtered" style="background:#64748b;">⤓ 导出筛选结果</button>
+    <span style="color:#94a3b8; font-size:12px; margin-left:8px;">勾选行→导出选中（单/多选，含全部字段）；或按当前区域/状态/小区→导出筛选结果。</span>
   </div>
   <table>
     <thead>

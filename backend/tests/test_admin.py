@@ -293,15 +293,38 @@ def test_export_requires_auth(client):
     assert r.status_code == 303
 
 
-def test_export_agents_csv(client):
-    _seed_agent(name="张三", phone="13912345678")
+def test_export_agents_selected_csv(client):
+    aid = _seed_agent(name="张三", phone="13912345678")
+    _seed_agent(name="李四", phone="13800000000")
     _login(client)
-    r = client.get("/admin/export/agents.csv", follow_redirects=False)
+    r = client.post("/admin/export/agents.csv", data={"ids": [str(aid)]}, follow_redirects=False)
     assert r.status_code == 200
-    assert "text/csv" in r.headers["content-type"]
-    assert "attachment" in r.headers["content-disposition"]
+    assert "text/csv" in r.headers["content-type"] and "attachment" in r.headers["content-disposition"]
     assert "张三" in r.text and "姓名" in r.text
-    assert db["audit_log"].find_one({"action": "export", "target_type": "agents"}) is not None
+    assert "李四" not in r.text
+    e = db["audit_log"].find_one({"action": "export", "target_type": "agents"})
+    assert e is not None and e["detail"]["mode"] == "selected" and e["detail"]["count"] == 1
+
+
+def test_export_agents_filtered_by_status(client):
+    _seed_agent(name="正常哥", phone="13911111111")
+    db["agents"].insert_one({"name": "被踢哥", "phone": "13922222222", "store_name": "x",
+                             "role": "agent", "status": "banned", "created_at": datetime.now()})
+    _login(client)
+    # 按状态 banned 筛选导出 → 只出被踢哥
+    r = client.post("/admin/export/agents.csv", data={"mode": "filtered", "status_f": "banned"},
+                    follow_redirects=False)
+    assert r.status_code == 200
+    assert "被踢哥" in r.text and "正常哥" not in r.text
+
+
+def test_export_agents_empty_template(client):
+    _seed_agent(name="不出现")
+    _login(client)
+    r = client.get("/admin/export/agents.csv", params={"empty": 1}, follow_redirects=False)
+    assert r.status_code == 200
+    assert "姓名" in r.text and "不出现" not in r.text
+    assert "agents_template.csv" in r.headers["content-disposition"]
 
 
 def test_export_listings_selected_csv(client):
@@ -336,6 +359,70 @@ def test_export_listings_empty_template(client):
     assert "listings_template.csv" in r.headers["content-disposition"]
     e = db["audit_log"].find_one({"action": "export", "target_type": "listings"})
     assert e is not None and e["detail"]["mode"] == "template"
+
+
+def test_export_listings_filtered_by_district(client):
+    _seed_listing(community="桥东小区", district="桥东区", house_code="HC-D1")
+    _seed_listing(community="桥西小区", district="桥西区", house_code="HC-D2")
+    _login(client)
+    # 按区域 桥东区 筛选导出 → 只出桥东小区
+    r = client.post("/admin/export/listings.csv",
+                    data={"mode": "filtered", "district_f": "桥东区"}, follow_redirects=False)
+    assert r.status_code == 200
+    assert "桥东小区" in r.text and "桥西小区" not in r.text
+    e = db["audit_log"].find_one({"action": "export", "target_type": "listings"})
+    assert e is not None and e["detail"]["mode"] == "filtered"
+
+
+def test_export_listings_filtered_by_community_keyword(client):
+    _seed_listing(community="阳光花园", house_code="HC-K1")
+    _seed_listing(community="月亮湾", house_code="HC-K2")
+    _login(client)
+    r = client.post("/admin/export/listings.csv",
+                    data={"mode": "filtered", "q": "阳光"}, follow_redirects=False)
+    assert r.status_code == 200
+    assert "阳光花园" in r.text and "月亮湾" not in r.text
+
+
+def _seed_confirmed_txn(community, listing_id=None):
+    from bson import ObjectId
+    return db["transactions"].insert_one({
+        "_id": ObjectId(), "status": "confirmed",
+        "listing_id": listing_id or ObjectId(),
+        "listing_snapshot": {"community": community},
+        "ba_agent_name": "李红", "la_agent_name": "张三",
+        "ba_deal_price_yuan": 950000, "bonus_yuan_snapshot": 3000,
+        "confirmed_at": datetime.now(),
+    }).inserted_id
+
+
+def test_export_transactions_all(client):
+    _seed_confirmed_txn("阳光花园")
+    _login(client)
+    r = client.get("/admin/export/transactions.csv", follow_redirects=False)
+    assert r.status_code == 200 and "阳光花园" in r.text and "成交价(元)" in r.text
+
+
+def test_export_transactions_filter_by_community(client):
+    _seed_confirmed_txn("阳光花园")
+    _seed_confirmed_txn("月亮湾")
+    _login(client)
+    r = client.get("/admin/export/transactions.csv", params={"community": "阳光"}, follow_redirects=False)
+    assert r.status_code == 200
+    assert "阳光花园" in r.text and "月亮湾" not in r.text
+    e = db["audit_log"].find_one({"action": "export", "target_type": "transactions"})
+    assert e is not None and e["detail"]["community"] == "阳光"
+
+
+def test_export_transactions_filter_by_district(client):
+    east = _seed_listing(community="东苑", district="桥东区", house_code="HC-TE")
+    west = _seed_listing(community="西苑", district="桥西区", house_code="HC-TW")
+    _seed_confirmed_txn("东苑", listing_id=east)
+    _seed_confirmed_txn("西苑", listing_id=west)
+    _login(client)
+    r = client.get("/admin/export/transactions.csv", params={"district": "桥东区"}, follow_redirects=False)
+    assert r.status_code == 200
+    assert "东苑" in r.text and "西苑" not in r.text
 
 
 # ── 系统配置 ──
@@ -744,6 +831,26 @@ def test_community_export_selected_csv(client):
     assert "不导小区" not in r.text
     e = db["audit_log"].find_one({"action": "export", "target_type": "communities"})
     assert e is not None and e["detail"]["mode"] == "selected" and e["detail"]["count"] == 1
+
+
+def test_community_export_filtered_by_district(client):
+    _seed_community("桥东甲", "桥东区")
+    _seed_community("桥西乙", "桥西区")
+    _login(client)
+    r = client.post("/admin/community-export.csv",
+                    data={"mode": "filtered", "district_f": "桥东区"}, follow_redirects=False)
+    assert r.status_code == 200
+    assert "桥东甲" in r.text and "桥西乙" not in r.text
+    e = db["audit_log"].find_one({"action": "export", "target_type": "communities"})
+    assert e is not None and e["detail"]["mode"] == "filtered"
+
+
+def test_community_list_district_filter(client):
+    _seed_community("东区房", "桥东区")
+    _seed_community("西区房", "桥西区")
+    _login(client)
+    r = client.get("/admin/communities", params={"district_f": "桥东区"}, follow_redirects=False)
+    assert r.status_code == 200 and "东区房" in r.text and "西区房" not in r.text
 
 
 def test_community_export_none_selected_gives_header_only(client):

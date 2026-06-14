@@ -176,15 +176,7 @@ _AGENT_STATUS_LABEL = {"active": "正常", "suspended": "暂停", "banned": "已
 def admin_agents(request: Request, _: bool = Depends(require_admin),
                  q: str = "", status_f: str = "", msg: str = ""):
     now = datetime.now()
-    query: dict = {}
-    if status_f:
-        query["status"] = status_f
-    if q:
-        query["$or"] = [
-            {"name": {"$regex": q, "$options": "i"}},
-            {"phone": {"$regex": q}},
-            {"store_name": {"$regex": q, "$options": "i"}},
-        ]
+    query = _agents_query(q, status_f)
     rows = []
     for a in db["agents"].find(query).sort("created_at", -1):
         aid = a["_id"]
@@ -355,17 +347,7 @@ _LISTING_STATUS_LABEL = {
 @admin_router.get("/listings", response_class=HTMLResponse)
 def admin_listings(request: Request, _: bool = Depends(require_admin),
                    q: str = "", status_f: str = "", district_f: str = "", msg: str = ""):
-    query: dict = {}
-    if status_f:
-        query["status"] = status_f
-    if district_f:
-        query["district"] = district_f
-    if q:
-        query["$or"] = [
-            {"community": {"$regex": q, "$options": "i"}},
-            {"owner_agent_name": {"$regex": q, "$options": "i"}},
-            {"house_code": {"$regex": q, "$options": "i"}},
-        ]
+    query = _listings_query(q, status_f, district_f)
     rows = []
     for l in db["listings"].find(query).sort("created_at", -1).limit(200):
         rows.append({
@@ -476,9 +458,11 @@ def admin_audit(request: Request, _: bool = Depends(require_admin), action_f: st
 
 # ── 小区库管理(列表 + 编辑) ──
 
-@admin_router.get("/communities", response_class=HTMLResponse)
-def admin_communities(request: Request, _: bool = Depends(require_admin), q: str = "", msg: str = ""):
+def _communities_query(q: str, district_f: str) -> dict:
+    """小区列表/导出共用筛选(区域精确 + 名/区/备案名/别名关键词)。"""
     query: dict = {}
+    if district_f:
+        query["district"] = district_f
     if q:
         query["$or"] = [
             {"name": {"$regex": q, "$options": "i"}},
@@ -486,6 +470,13 @@ def admin_communities(request: Request, _: bool = Depends(require_admin), q: str
             {"filing_name": {"$regex": q, "$options": "i"}},
             {"aliases": {"$regex": q, "$options": "i"}},
         ]
+    return query
+
+
+@admin_router.get("/communities", response_class=HTMLResponse)
+def admin_communities(request: Request, _: bool = Depends(require_admin),
+                      q: str = "", district_f: str = "", msg: str = ""):
+    query = _communities_query(q, district_f)
     rows = []
     for c in db["communities"].find(query).sort("name", 1).limit(300):
         _alt = [c.get("filing_name")] + (c.get("aliases") or [])
@@ -499,7 +490,10 @@ def admin_communities(request: Request, _: bool = Depends(require_admin), q: str
             "listing_count": db["listings"].count_documents({
                 "community": c.get("name", ""), "district": c.get("district", "")}),
         })
-    return templates.TemplateResponse(request, "admin/communities.html", {"rows": rows, "q": q, "msg": msg})
+    districts = [d for d in db["communities"].distinct("district") if d]
+    return templates.TemplateResponse(request, "admin/communities.html",
+                                      {"rows": rows, "q": q, "district_f": district_f,
+                                       "districts": districts, "msg": msg})
 
 
 @admin_router.get("/communities/{community_id}", response_class=HTMLResponse)
@@ -606,19 +600,68 @@ def _fmt_date(v) -> str:
     return v.strftime("%Y-%m-%d") if isinstance(v, datetime) else ""
 
 
+def _selected_oids(form) -> list:
+    """从表单 ids 多值里解析合法 ObjectId,跳过非法值。"""
+    out = []
+    for i in form.getlist("ids"):
+        try:
+            out.append(ObjectId(i))
+        except Exception:
+            continue
+    return out
+
+
+_AGENTS_EXPORT_HEADER = ["姓名", "手机号", "门店", "类型", "状态", "联卖审核", "会员到期", "注册时间"]
+
+
+def _agent_export_row(a: dict) -> list:
+    return [
+        a.get("name", ""), a.get("phone", ""), a.get("store_name", ""),
+        "门店老板" if a.get("role") == "boss" else "经纪人",
+        _AGENT_STATUS_LABEL.get(a.get("status", ""), a.get("status", "")),
+        "是" if a.get("coop_verified") else "否",
+        _fmt_date(a.get("membership_expires_at")), _fmt_date(a.get("created_at")),
+    ]
+
+
+def _agents_query(q: str, status_f: str) -> dict:
+    """经纪人列表/导出共用的筛选条件(状态 + 姓名/手机/门店关键词)。"""
+    query: dict = {}
+    if status_f:
+        query["status"] = status_f
+    if q:
+        query["$or"] = [
+            {"name": {"$regex": q, "$options": "i"}},
+            {"phone": {"$regex": q}},
+            {"store_name": {"$regex": q, "$options": "i"}},
+        ]
+    return query
+
+
 @admin_router.get("/export/agents.csv")
-def export_agents(_: bool = Depends(require_admin)):
+def export_agents(_: bool = Depends(require_admin), empty: int = 0):
+    """空白模板导出(仅表头)。导数据走 POST:勾选(单/多选)或按当前筛选。"""
+    write_audit("export", "agents", "-", {"mode": "template"})
+    return _csv_response("agents_template.csv", _AGENTS_EXPORT_HEADER, [])
+
+
+@admin_router.post("/export/agents.csv")
+async def export_agents_post(request: Request, _: bool = Depends(require_admin)):
+    """mode=selected:导勾选的 ids;mode=filtered:导当前筛选(状态/关键词)全部。"""
+    form = await request.form()
+    mode = form.get("mode") or "selected"
     rows = []
-    for a in db["agents"].find().sort("created_at", -1):
-        rows.append([
-            a.get("name", ""), a.get("phone", ""), a.get("store_name", ""),
-            "门店老板" if a.get("role") == "boss" else "经纪人",
-            a.get("status", ""), "是" if a.get("coop_verified") else "否",
-            _fmt_date(a.get("membership_expires_at")), _fmt_date(a.get("created_at")),
-        ])
-    write_audit("export", "agents", "-", {"count": len(rows)})
-    return _csv_response("agents.csv",
-                         ["姓名", "手机号", "门店", "类型", "状态", "联卖审核", "会员到期", "注册时间"], rows)
+    if mode == "filtered":
+        query = _agents_query((form.get("q") or "").strip(), (form.get("status_f") or "").strip())
+        for a in db["agents"].find(query).sort("created_at", -1):
+            rows.append(_agent_export_row(a))
+    else:
+        oids = _selected_oids(form)
+        if oids:
+            for a in db["agents"].find({"_id": {"$in": oids}}).sort("created_at", -1):
+                rows.append(_agent_export_row(a))
+    write_audit("export", "agents", "-", {"mode": mode, "count": len(rows)})
+    return _csv_response("agents.csv", _AGENTS_EXPORT_HEADER, rows)
 
 
 # 房源导出字段集(表头 + 取值,两处共用,保证模板与数据列一致)
@@ -627,6 +670,22 @@ _LISTING_EXPORT_HEADER = [
     "挂牌价(万)", "合作奖金(元)", "状态", "产权号", "归属经纪人", "归属手机",
     "公开备注", "录入时间",
 ]
+
+
+def _listings_query(q: str, status_f: str, district_f: str) -> dict:
+    """房源列表/导出共用的筛选条件(状态 + 区域 + 小区/经纪人/编号关键词)。"""
+    query: dict = {}
+    if status_f:
+        query["status"] = status_f
+    if district_f:
+        query["district"] = district_f
+    if q:
+        query["$or"] = [
+            {"community": {"$regex": q, "$options": "i"}},
+            {"owner_agent_name": {"$regex": q, "$options": "i"}},
+            {"house_code": {"$regex": q, "$options": "i"}},
+        ]
+    return query
 
 
 def _listing_export_row(l: dict) -> list:
@@ -650,34 +709,54 @@ def export_listings(_: bool = Depends(require_admin), empty: int = 0):
 
 
 @admin_router.post("/export/listings.csv")
-async def export_listings_selected(request: Request, _: bool = Depends(require_admin)):
-    """选择性导出:只导出列表里勾选的房源(表单字段 ids),一个都没勾 → 只给表头。"""
+async def export_listings_post(request: Request, _: bool = Depends(require_admin)):
+    """mode=selected:导勾选的 ids(单/多选);mode=filtered:导当前筛选(区域/状态/小区关键词)全部。"""
     form = await request.form()
-    oids = []
-    for i in form.getlist("ids"):
-        try:
-            oids.append(ObjectId(i))
-        except Exception:
-            continue
+    mode = form.get("mode") or "selected"
     rows = []
-    if oids:
-        for l in db["listings"].find({"_id": {"$in": oids}}).sort("created_at", -1):
+    if mode == "filtered":
+        query = _listings_query((form.get("q") or "").strip(),
+                                (form.get("status_f") or "").strip(),
+                                (form.get("district_f") or "").strip())
+        for l in db["listings"].find(query).sort("created_at", -1):
             rows.append(_listing_export_row(l))
-    write_audit("export", "listings", "-", {"mode": "selected", "count": len(rows)})
+    else:
+        oids = _selected_oids(form)
+        if oids:
+            for l in db["listings"].find({"_id": {"$in": oids}}).sort("created_at", -1):
+                rows.append(_listing_export_row(l))
+    write_audit("export", "listings", "-", {"mode": mode, "count": len(rows)})
     return _csv_response("listings.csv", _LISTING_EXPORT_HEADER, rows)
 
 
 @admin_router.get("/export/transactions.csv")
-def export_transactions(_: bool = Depends(require_admin)):
+def export_transactions(_: bool = Depends(require_admin), district: str = "", community: str = ""):
+    """成交导出,支持按小区(snapshot 子串)/按区域(经 listing 解析)筛选。都不传 = 全部已成交。"""
+    district = (district or "").strip()
+    community = (community or "").strip()
+    txns = list(db["transactions"].find({"status": "confirmed"}).sort("confirmed_at", -1))
+
+    # 区域不在 snapshot 里,按 listing_id 批量解析出该区域的成交
+    allowed_ids = None
+    if district:
+        lids = [t.get("listing_id") for t in txns if t.get("listing_id")]
+        in_district = db["listings"].find({"_id": {"$in": lids}, "district": district}, {"_id": 1})
+        allowed_ids = {d["_id"] for d in in_district}
+
     rows = []
-    for t in db["transactions"].find({"status": "confirmed"}).sort("confirmed_at", -1):
+    for t in txns:
         snap = t.get("listing_snapshot", {})
+        if community and community not in (snap.get("community", "") or ""):
+            continue
+        if allowed_ids is not None and t.get("listing_id") not in allowed_ids:
+            continue
         rows.append([
             snap.get("community", ""), t.get("ba_agent_name", ""), t.get("la_agent_name", ""),
             t.get("ba_deal_price_yuan", ""), t.get("bonus_yuan_snapshot", ""),
             _fmt_date(t.get("confirmed_at")),
         ])
-    write_audit("export", "transactions", "-", {"count": len(rows)})
+    write_audit("export", "transactions", "-",
+                {"count": len(rows), "district": district or None, "community": community or None})
     return _csv_response("transactions.csv",
                          ["小区", "BA", "LA", "成交价(元)", "合作奖金(元)", "成交确认时间"], rows)
 
@@ -1169,43 +1248,49 @@ def admin_ownership_reject(change_id: str, _: bool = Depends(require_admin), not
 
 # ── 小区批量导入 / 导出(CSV) ──
 
+def _community_export_header() -> list:
+    from communities import COMMUNITY_RICH_FIELDS
+    return (["小区名", "区域", "备案名", "别名", "建成年代", "楼栋数"]
+            + [f["label"] for f in COMMUNITY_RICH_FIELDS])
+
+
+def _community_export_row(c: dict) -> list:
+    from communities import COMMUNITY_RICH_FIELDS
+    row = [c.get("name", ""), c.get("district", ""),
+           c.get("filing_name") or "", "、".join(c.get("aliases") or []),
+           c.get("built_year") or "", c.get("building_count") or ""]
+    row += [c.get(f["key"]) if c.get(f["key"]) is not None else "" for f in COMMUNITY_RICH_FIELDS]
+    return row
+
+
 @admin_router.get("/community-export.csv")
 def admin_community_export(_: bool = Depends(require_admin), empty: int = 0):
     """空白模板导出:只给表头(无数据行),供从零批量录入后导入。
 
-    不再一键全量导出——要导现有数据请到列表勾选后走 POST /community-export.csv。
+    不再一键全量导出——要导现有数据走 POST:勾选(单/多选)或按当前筛选(区域/关键词)。
     """
-    from communities import COMMUNITY_RICH_FIELDS
-    header = (["小区名", "区域", "备案名", "别名", "建成年代", "楼栋数"]
-              + [f["label"] for f in COMMUNITY_RICH_FIELDS])
     write_audit("export", "communities", "-", {"mode": "template"})
-    return _csv_response("communities_template.csv", header, [])
+    return _csv_response("communities_template.csv", _community_export_header(), [])
 
 
 @admin_router.post("/community-export.csv")
-async def admin_community_export_selected(request: Request, _: bool = Depends(require_admin)):
-    """选择性导出:只导出列表里勾选的小区(表单字段 ids)。一个都没勾 → 只给表头。"""
-    from communities import COMMUNITY_RICH_FIELDS
+async def admin_community_export_post(request: Request, _: bool = Depends(require_admin)):
+    """mode=selected:导勾选 ids(单/多选);mode=filtered:导当前筛选(区域/名/备案名/别名)全部。"""
     form = await request.form()
-    ids = form.getlist("ids")
-    header = (["小区名", "区域", "备案名", "别名", "建成年代", "楼栋数"]
-              + [f["label"] for f in COMMUNITY_RICH_FIELDS])
-    oids = []
-    for i in ids:
-        try:
-            oids.append(ObjectId(i))
-        except Exception:
-            continue
+    mode = form.get("mode") or "selected"
     rows = []
-    if oids:
-        for c in db["communities"].find({"_id": {"$in": oids}}).sort("name", 1):
-            row = [c.get("name", ""), c.get("district", ""),
-                   c.get("filing_name") or "", "、".join(c.get("aliases") or []),
-                   c.get("built_year") or "", c.get("building_count") or ""]
-            row += [c.get(f["key"]) if c.get(f["key"]) is not None else "" for f in COMMUNITY_RICH_FIELDS]
-            rows.append(row)
-    write_audit("export", "communities", "-", {"mode": "selected", "count": len(rows)})
-    return _csv_response("communities.csv", header, rows)
+    if mode == "filtered":
+        query = _communities_query((form.get("q") or "").strip(),
+                                   (form.get("district_f") or "").strip())
+        for c in db["communities"].find(query).sort("name", 1):
+            rows.append(_community_export_row(c))
+    else:
+        oids = _selected_oids(form)
+        if oids:
+            for c in db["communities"].find({"_id": {"$in": oids}}).sort("name", 1):
+                rows.append(_community_export_row(c))
+    write_audit("export", "communities", "-", {"mode": mode, "count": len(rows)})
+    return _csv_response("communities.csv", _community_export_header(), rows)
 
 
 @admin_router.post("/community-import")

@@ -1,7 +1,7 @@
 {% extends "admin/base.html" %}
 {% block title %}经纪人 · MLS 管理后台{% endblock %}
 {% block content %}
-<h1>经纪人管理 <a href="/admin/export/agents.csv" style="font-size:13px; font-weight:400; color:#0f172a;">⤓ 导出 CSV</a></h1>
+<h1>经纪人管理 <a href="/admin/export/agents.csv?empty=1" style="font-size:13px; font-weight:400; color:#0f172a;">⤓ 导出空白模板</a></h1>
 {% if msg %}<div class="msg">{{ msg }}</div>{% endif %}
 
 <form class="inline" method="get" action="/admin/agents">
@@ -21,26 +21,39 @@
   <button type="submit">筛选</button>
 </form>
 
-<table>
-  <thead>
-    <tr><th>姓名</th><th>手机号</th><th>门店</th><th>类型</th><th>状态</th><th>联卖审核</th><th>房源数</th><th>会员</th><th></th></tr>
-  </thead>
-  <tbody>
-    {% for r in rows %}
-    <tr>
-      <td>{{ r.name }}</td>
-      <td>{{ r.phone }}</td>
-      <td>{{ r.store_name }}</td>
-      <td>{{ '门店老板' if r.role=='boss' else '经纪人' }}</td>
-      <td>{{ r.status_label }}</td>
-      <td>{% if r.coop_verified %}<span class="tag ok">已通过</span>{% else %}<span class="tag no">未审核</span>{% endif %}</td>
-      <td>{{ r.listing_count }}</td>
-      <td>{% if r.member_active %}<span class="tag ok">有效</span>{% else %}<span class="tag no">无</span>{% endif %}</td>
-      <td><a href="/admin/agents/{{ r.id }}">详情</a></td>
-    </tr>
-    {% else %}
-    <tr><td colspan="9" style="color:#94a3b8;">无匹配经纪人</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
+<form method="post" action="/admin/export/agents.csv">
+  <input type="hidden" name="q" value="{{ q }}">
+  <input type="hidden" name="status_f" value="{{ status_f }}">
+  <div style="margin:6px 0 8px;">
+    <button type="submit" name="mode" value="selected">⤓ 导出选中</button>
+    <button type="submit" name="mode" value="filtered" style="background:#64748b;">⤓ 导出筛选结果</button>
+    <span style="color:#94a3b8; font-size:12px; margin-left:8px;">勾选行→导出选中（单/多选）；或按当前状态/关键词→导出筛选结果。</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:32px;"><input type="checkbox" onclick="for(const c of document.getElementsByName('ids'))c.checked=this.checked;"></th>
+        <th>姓名</th><th>手机号</th><th>门店</th><th>类型</th><th>状态</th><th>联卖审核</th><th>房源数</th><th>会员</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td><input type="checkbox" name="ids" value="{{ r.id }}"></td>
+        <td>{{ r.name }}</td>
+        <td>{{ r.phone }}</td>
+        <td>{{ r.store_name }}</td>
+        <td>{{ '门店老板' if r.role=='boss' else '经纪人' }}</td>
+        <td>{{ r.status_label }}</td>
+        <td>{% if r.coop_verified %}<span class="tag ok">已通过</span>{% else %}<span class="tag no">未审核</span>{% endif %}</td>
+        <td>{{ r.listing_count }}</td>
+        <td>{% if r.member_active %}<span class="tag ok">有效</span>{% else %}<span class="tag no">无</span>{% endif %}</td>
+        <td><a href="/admin/agents/{{ r.id }}">详情</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="10" style="color:#94a3b8;">无匹配经纪人</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</form>
 {% endblock %}

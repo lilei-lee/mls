@@ -1,7 +1,13 @@
 {% extends "admin/base.html" %}
 {% block title %}数据看板 · MLS 管理后台{% endblock %}
 {% block content %}
-<h1>数据看板 <span style="font-size:13px; font-weight:400;"><a href="/admin/export/transactions.csv" style="color:#0f172a;">⤓ 导出本期成交 CSV</a></span></h1>
+<h1>数据看板</h1>
+<form class="inline" method="get" action="/admin/export/transactions.csv" style="margin:0 0 14px;">
+  <div><label>区域(选填)</label><input name="district" placeholder="如 桥东区"></div>
+  <div><label>小区(选填,模糊)</label><input name="community" placeholder="小区名关键词"></div>
+  <button type="submit">⤓ 导出成交 CSV</button>
+  <span style="color:#94a3b8; font-size:12px; margin-left:8px;">都留空=导出全部已成交；填区域/小区=按维度导出。</span>
+</form>
 <div class="cards">
   <div class="card">
     <div class="label">注册经纪人</div>
