@@ -1,0 +1,134 @@
+// MLS UI Kit · 留痕时间线 + 成交确认签字 (Trace timeline — pushed page)
+// Product soul: 双方独立留痕、互不可改、链路自动结算。
+function TraceScreen({ data, onBack }) {
+  const { NavBar, Icon, Badge, Card, Avatar, Btn, ProgressStepper, MlsIn } = window.MLS;
+  const d = data || { listing: { name: '万达华府 · 3室朝南' }, partner: '李红', role: 'BA', customer: '客户王先生', current: 3 };
+  const [signed, setSigned] = React.useState(false);
+
+  const steps = ['申请', '同意', '带看', '发起', '录入'];
+
+  // Each event is one side's INDEPENDENT, immutable record.
+  const trace = [
+    { who: '李红', side: 'BA', icon: 'send', title: '发起带看申请', detail: '申请带客户王先生看「万达华府 · 3室」', time: 'TODAY · 09:12:04', hash: '0x7f3a…91c', done: true },
+    { who: '张三', side: 'LA', icon: 'check', title: '同意协作申请', detail: '已确认 BA 身份 · 授权带看', time: 'TODAY · 09:40:18', hash: '0x2b8e…4af', done: true },
+    { who: '李红', side: 'BA', icon: 'user-check', title: '完成实地带看', detail: '带看 108㎡ · 客户二次咨询 · 已上传现场留痕', time: 'TODAY · 15:06:33', hash: '0xc1d0…7e2', done: true },
+    { who: '张三', side: 'LA', icon: 'file-text', title: '发起成交确认', detail: '成交价 ¥218万 · 等待双方独立签字', time: 'TODAY · 16:20:09', hash: '0x9a45…0bb', done: true, current: true },
+    { who: '双方', side: 'SIGN', icon: 'pen-line', title: '成交确认签字', detail: '双方各自独立签字后链路闭合，奖金自动结算', time: '待你签字', future: true },
+  ];
+
+  const sideMeta = { BA: { c: 'var(--primary)', label: 'BA 留痕' }, LA: { c: 'var(--gold)', label: 'LA 留痕' }, SIGN: { c: 'var(--text-tertiary)', label: 'PENDING' } };
+
+  return (
+    <div style={{ minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* dark hero nav region */}
+      <div style={{ background: 'var(--grad-panel-dark)', marginTop: -38, paddingTop: 38, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: 80, background: 'linear-gradient(180deg, rgba(134,239,172,.12), transparent)', animation: 'mlsScan 3.6s var(--ease-in) infinite', pointerEvents: 'none' }} />
+        <NavBar title="成交确认 · 留痕" onBack={onBack} dark
+          right={<span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.5, color: '#86EFAC', background: 'rgba(34,197,94,.12)', border: '0.5px solid rgba(34,197,94,.3)', padding: '3px 7px', borderRadius: 'var(--r-sm)', marginRight: 6 }}>SECURED</span>} />
+        <div style={{ padding: '4px 20px 18px', position: 'relative' }}>
+          <div style={{ fontSize: 17, fontWeight: 600, color: '#fff', letterSpacing: -0.2 }}>{d.listing.name}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+            <div style={{ display: 'flex' }}>
+              <div style={{ marginRight: -8 }}><Avatar name="张三" size={26} border={2} borderColor="#1E293B" /></div>
+              <Avatar name={d.partner} size={26} border={2} borderColor="#1E293B" />
+            </div>
+            <span style={{ fontSize: 12, color: 'var(--text-on-dark-muted)' }}>张三 LA · {d.partner} {d.role} · {d.customer}</span>
+          </div>
+          <div style={{ marginTop: 16, padding: '14px 12px', borderRadius: 'var(--r-2xl)', background: 'rgba(255,255,255,.05)', border: '0.5px solid var(--border-on-dark)' }}>
+            <ProgressStepper steps={steps} current={4} />
+          </div>
+        </div>
+      </div>
+
+      {/* timeline */}
+      <div style={{ padding: '18px 16px 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+          <Icon name="git-commit-vertical" size={16} color="var(--text-secondary)" />
+          <span className="t-section">链路留痕</span>
+          <span className="t-mono-label" style={{ marginLeft: 'auto' }}>IMMUTABLE · 互不可改</span>
+        </div>
+
+        <div style={{ position: 'relative' }}>
+          {trace.map((e, i) => {
+            const m = sideMeta[e.side];
+            const last = i === trace.length - 1;
+            return (
+              <MlsIn key={i} index={i} style={{ display: 'block' }}>
+              <div style={{ display: 'flex', gap: 12, position: 'relative' }}>
+                {/* rail */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 30, flexShrink: 0 }}>
+                  <div style={{ position: 'relative', width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+                    background: e.future ? 'transparent' : `color-mix(in srgb, ${m.c} 14%, transparent)`,
+                    border: e.future ? '1.5px dashed var(--border-strong)' : 'none',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {e.current && <span style={{ position: 'absolute', inset: -6, borderRadius: '50%', background: m.c, animation: 'mlsPulse 2s ease-in-out infinite' }} />}
+                    <span style={{ position: 'relative', display: 'flex' }}><Icon name={e.icon} size={15} color={e.future ? 'var(--text-tertiary)' : m.c} stroke={2.2} /></span>
+                  </div>
+                  {!last && <div style={{ flex: 1, width: 1.5, minHeight: 28, marginTop: 4, marginBottom: 4, background: e.done ? `color-mix(in srgb, ${m.c} 35%, transparent)` : 'transparent', backgroundImage: e.done ? 'none' : 'linear-gradient(180deg, var(--border-strong) 50%, transparent 50%)', backgroundSize: e.done ? 'auto' : '1.5px 7px' }} />}
+                </div>
+
+                {/* content */}
+                <div style={{ flex: 1, minWidth: 0, paddingBottom: last ? 0 : 18 }}>
+                  <Card variant={e.future ? 'flat' : e.current ? 'elevated' : 'primary'} pad={13} style={e.future ? { borderStyle: 'dashed', background: 'transparent', boxShadow: 'none' } : undefined}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-primary)' }}>{e.title}</span>
+                      <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 600, letterSpacing: 1, color: m.c, background: `color-mix(in srgb, ${m.c} 10%, transparent)`, padding: '2px 6px', borderRadius: 'var(--r-xs)' }}>{m.label}</span>
+                    </div>
+                    <div className="t-body-2" style={{ marginTop: 5, lineHeight: 1.5 }}>{e.detail}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 9 }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        {e.side !== 'SIGN' && <Avatar name={e.who} size={16} />}
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-tertiary)', letterSpacing: 0.3 }}>{e.time}</span>
+                      </span>
+                      {e.hash && <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 3, fontFamily: 'var(--font-mono)', fontSize: 9.5, color: 'var(--text-tertiary)' }}><Icon name="lock" size={10} color="var(--text-tertiary)" />{e.hash}</span>}
+                    </div>
+                  </Card>
+                </div>
+              </div>
+              </MlsIn>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* signature area */}
+      <div style={{ padding: '4px 16px 0' }}>
+        <MlsIn index={5}>
+        <Card variant="dark" style={{ position: 'relative', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Icon name="shield-check" size={18} color="#86EFAC" />
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-on-dark)' }}>双方独立签字 · 反作弊基石</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 14 }}>
+            {[{ n: '张三', r: 'LA', ok: true }, { n: d.partner, r: d.role, ok: signed }].map((p, i) => (
+              <div key={i} style={{ padding: '12px', borderRadius: 'var(--r-xl)', background: 'rgba(255,255,255,.05)', border: `0.5px solid ${p.ok ? 'rgba(34,197,94,.4)' : 'var(--border-on-dark)'}`, transition: 'border-color 300ms' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <Avatar name={p.n} size={24} />
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-on-dark)' }}>{p.n}</div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, letterSpacing: 1, color: 'var(--text-on-dark-subtle)' }}>{p.r}</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 9 }}>
+                  <Icon name={p.ok ? 'check-circle-2' : 'circle-dashed'} size={13} color={p.ok ? '#86EFAC' : 'var(--text-on-dark-subtle)'} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 0.5, color: p.ok ? '#86EFAC' : 'var(--text-on-dark-subtle)' }}>{p.ok ? 'SIGNED' : 'PENDING'}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+        </MlsIn>
+      </div>
+
+      {/* bottom action */}
+      <div style={{ marginTop: 'auto', position: 'sticky', bottom: 0, padding: '12px 16px', background: 'color-mix(in srgb, var(--bg-page-end) 88%, transparent)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderTop: '0.5px solid var(--border-light)' }}>
+        {!signed ? (
+          <Btn variant="dark" full size="large" leading="pen-line" onClick={() => setSigned(true)}>确认签字 · 留痕闭合</Btn>
+        ) : (
+          <Btn variant="primary" full size="large" leading="check" disabled>已签字 · 奖金自动结算中</Btn>
+        )}
+      </div>
+    </div>
+  );
+}
+window.MLS = Object.assign(window.MLS || {}, { TraceScreen });

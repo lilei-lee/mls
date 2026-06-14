@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<!-- @dsCard group="Components" name="房源规格网格" subtitle="key-value 双列 · 数字走 mono、中文走 sans" viewport="720x320" -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+/* ============================================================
+   张家口 MLS · Design Tokens
+   Source of truth: app/mls_app/lib/theme/*.dart (MlsColors / MlsTypography / MlsRadius / MlsShadows / MlsAnimations)
+   Aesthetic: "立体科技 · 商家工具" — warm paper ground, white glassy elevated cards,
+   tech-blue primary, warm gold for money, dark navy panels for "serious" zones,
+   JetBrains Mono for every number, 5-color human avatars.
+   ============================================================ */
+
+/* JetBrains Mono — the number/label face. Chinese body is the system sans stack. */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+  /* ---------- Font families ---------- */
+  --font-sans: "PingFang SC", -apple-system, "HarmonyOS Sans SC", "Microsoft YaHei",
+               "Source Han Sans CN", "Noto Sans CJK SC", sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Menlo", "Consolas", "Roboto Mono", monospace;
+
+  /* ============================================================
+     COLOR — backgrounds
+     ============================================================ */
+  --bg-page-start: #EEECE4;   /* warm gray, page gradient top */
+  --bg-page-end:   #E8E5DB;   /* warm gray, page gradient bottom */
+  --bg-card:       #FFFFFF;   /* card primary */
+  --bg-card-2:     #FAFAF7;   /* card elevated gradient end (cool white) */
+  --bg-input-start:#F8FAFC;
+  --bg-input-end:  #F1F5F9;
+  --bg-panel-dark: #0F172A;   /* dark "serious / anti-cheat" panel */
+  --bg-panel-dark-end: #1E293B;
+
+  /* Dashboard (deep navy data screen) */
+  --bg-dashboard:  #06173B;
+  --bg-card-dark:  #0A234E;
+  --border-card-dark: #185FA5;
+
+  /* ---------- Text ---------- */
+  --text-primary:   #0F172A;
+  --text-secondary: #6B7280;
+  --text-tertiary:  #9CA3AF;
+  --text-on-dark:        #E8EAED;
+  --text-on-dark-muted:  #CBD5E1;
+  --text-on-dark-subtle: #94A3B8;
+
+  /* ---------- Primary (tech blue) ---------- */
+  --primary:       #2563EB;
+  --primary-dark:  #1E3A8A;
+  --primary-light: #3B82F6;
+  --primary-bg:    rgba(37, 99, 235, 0.08);
+
+  /* ---------- Status ---------- */
+  --success: #10B981;  --success-bg: rgba(16, 185, 129, 0.08);  --success-text: #047857;
+  --warning: #F59E0B;  --warning-bg: rgba(245, 158, 11, 0.08);  --warning-text: #92400E;
+  --danger:  #DC2626;  --danger-bg:  rgba(220, 38, 38, 0.08);   --danger-dark:  #B91C1C;
+  --info:    #2563EB;
+
+  /* ---------- Gold (money / bonus / level) ---------- */
+  --gold:          #D97706;
+  --gold-light:    #FBBF24;
+  --gold-bg-start: #FEFCE8;
+  --gold-bg-end:   #FEF3C7;
+  --gold-text-dark:#78350F;
+  --gold-text-mid: #B45309;
+  --level-gold:    #EAB308;
+  --level-silver:  #94A3B8;
+  --level-bronze:  #92400E;
+
+  /* ---------- Live / presence ---------- */
+  --online: #22C55E;
+  --away:   #9CA3AF;
+
+  /* ---------- Chart accents ---------- */
+  --chart-purple: #AFA9EC;
+  --chart-orange: #EF9F27;
+
+  /* ---------- Borders (black tints) ---------- */
+  --border-light:  rgba(15, 23, 42, 0.06);  /* default hairline */
+  --border-mid:    rgba(15, 23, 42, 0.08);
+  --border-strong: rgba(15, 23, 42, 0.15);
+  --border-on-dark:rgba(255, 255, 255, 0.08);
+
+  /* ---------- Avatar palette (hash %5: 李黄/王紫/周蓝/陈粉/杨绿) ---------- */
+  --avatar-yellow: #FBBF24; --avatar-yellow-light: #FDE68A; --avatar-yellow-text: #78350F;
+  --avatar-purple: #A78BFA; --avatar-purple-light: #C4B5FD; --avatar-purple-text: #3730A3;
+  --avatar-blue:   #60A5FA; --avatar-blue-light:   #BFDBFE; --avatar-blue-text:   #1E3A8A;
+  --avatar-pink:   #F472B6; --avatar-pink-light:   #FBCFE8; --avatar-pink-text:   #831843;
+  --avatar-green:  #34D399; --avatar-green-light:  #A7F3D0; --avatar-green-text:  #064E3B;
+
+  /* ============================================================
+     GRADIENTS
+     ============================================================ */
+  --grad-page:      linear-gradient(180deg, var(--bg-page-start) 0%, var(--bg-page-end) 100%);
+  --grad-card:      linear-gradient(160deg, var(--bg-card) 0%, var(--bg-card-2) 100%);
+  --grad-hero:      linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 60%, var(--primary-light) 100%);
+  --grad-gold:      linear-gradient(160deg, var(--bg-card) 0%, var(--gold-bg-start) 50%, var(--gold-bg-end) 100%);
+  --grad-panel-dark:linear-gradient(135deg, var(--bg-panel-dark) 0%, var(--bg-panel-dark-end) 100%);
+  --grad-input:     linear-gradient(160deg, var(--bg-input-start) 0%, var(--bg-input-end) 100%);
+  --grad-btn-blue:  linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+  --grad-btn-danger:linear-gradient(135deg, var(--danger) 0%, var(--danger-dark) 100%);
+
+  /* ============================================================
+     SHADOWS — every step is "near + far" double-layer for real float
+     ============================================================ */
+  --shadow-sm:   0 1px 2px rgba(15,23,42,0.04);
+  --shadow-md:   0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.06);
+  --shadow-lg:   0 1px 2px rgba(15,23,42,0.04), 0 8px 24px rgba(15,23,42,0.08);
+  --shadow-hero: 0 4px 12px rgba(37,99,235,0.20), 0 12px 32px rgba(37,99,235,0.18);
+  --shadow-gold: 0 1px 2px rgba(15,23,42,0.04), 0 8px 24px rgba(217,119,6,0.08);
+  --shadow-panel-dark: 0 4px 12px rgba(15,23,42,0.25), 0 12px 32px rgba(15,23,42,0.18);
+  --shadow-btn-blue:   0 2px 8px rgba(37,99,235,0.25);
+  --shadow-btn-danger: 0 2px 6px rgba(220,38,38,0.25);
+  --shadow-nav-top:    0 -4px 16px rgba(15,23,42,0.04);
+
+  /* ============================================================
+     RADIUS — 4 / 6 / 8 / 10 / 12 / 14 / 16 / 18 / pill
+     ============================================================ */
+  --r-xs: 4px;    /* heatmap cells */
+  --r-sm: 6px;    /* badges / tags */
+  --r-md: 8px;    /* small buttons / inputs */
+  --r-lg: 10px;   /* mid buttons / icon containers */
+  --r-xl: 12px;   /* sub-cards / list items */
+  --r-2xl: 14px;  /* standard card */
+  --r-3xl: 16px;  /* large card / focused input */
+  --r-4xl: 18px;  /* hero / outer container */
+  --r-pill: 999px;
+
+  /* ============================================================
+     SPACING — 4px base
+     ============================================================ */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
+  --s-5: 20px; --s-6: 24px; --s-8: 32px; --s-12: 48px;
+
+  /* ============================================================
+     MOTION
+     ============================================================ */
+  --dur-in: 550ms;       /* module entrance */
+  --dur-ring: 1800ms;    /* progress ring */
+  --dur-bar: 1200ms;     /* progress bar */
+  --dur-pulse: 2000ms;   /* live pulse */
+  --dur-press: 120ms;    /* tap scale */
+  --ease-in: cubic-bezier(0.22, 0.61, 0.36, 1);   /* easeOutCubic */
+  --ease-progress: cubic-bezier(0.65, 0, 0.35, 1);
+  --stagger: 80ms;       /* per-index entrance delay */
+  --press-scale: 0.98;   /* card press */
+  --press-scale-btn: 0.97;
+}
+
+/* ============================================================
+   BASE TYPE PRESETS  (map to MlsTypography.*)
+   Numbers & uppercase labels use --font-mono; Chinese copy uses --font-sans.
+   ============================================================ */
+.t-greeting   { font-family: var(--font-sans); font-size: 22px;  font-weight: 600; letter-spacing: -0.3px; color: var(--text-primary); }
+.t-page-title { font-family: var(--font-sans); font-size: 17px;  font-weight: 600; letter-spacing: -0.2px; color: var(--text-primary); }
+.t-card-title-lg { font-family: var(--font-sans); font-size: 16px; font-weight: 600; letter-spacing: -0.1px; color: var(--text-primary); }
+.t-card-title { font-family: var(--font-sans); font-size: 14.5px; font-weight: 500; line-height: 1.4; color: var(--text-primary); }
+.t-section    { font-family: var(--font-sans); font-size: 13px;  font-weight: 600; color: var(--text-primary); }
+.t-body       { font-family: var(--font-sans); font-size: 13px;  font-weight: 400; line-height: 1.5; color: var(--text-primary); }
+.t-body-2     { font-family: var(--font-sans); font-size: 12px;  font-weight: 400; color: var(--text-secondary); }
+.t-caption    { font-family: var(--font-sans); font-size: 11px;  font-weight: 400; color: var(--text-tertiary); }
+
+/* mono numbers */
+.t-num-xl     { font-family: var(--font-mono); font-size: 26px; font-weight: 700; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+.t-num-lg     { font-family: var(--font-mono); font-size: 24px; font-weight: 600; letter-spacing: -0.5px; font-variant-numeric: tabular-nums; }
+.t-num-md     { font-family: var(--font-mono); font-size: 22px; font-weight: 700; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+.t-num-metric { font-family: var(--font-mono); font-size: 20px; font-weight: 700; letter-spacing: -0.5px; font-variant-numeric: tabular-nums; }
+/* mono uppercase labels */
+.t-mono-badge { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.5px; }
+.t-mono-label { font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 2px; color: var(--text-secondary); text-transform: uppercase; }
+.t-mono-tiny  { font-family: var(--font-mono); font-size: 9px;  font-weight: 400; letter-spacing: 1.5px; color: var(--text-tertiary); text-transform: uppercase; }
+
+</style>
+<style>
+  body { margin: 0; font-family: var(--font-sans); background: var(--bg-page-start); }
+  .wrap { padding: 22px 20px; }
+  .card { background: var(--grad-card); border: 0.5px solid var(--border-light); border-radius: var(--r-3xl); padding: 16px; box-shadow: var(--shadow-lg); }
+  .cap { font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-secondary); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 12px; margin-top: 14px; }
+  .kv { display: flex; flex-direction: column; gap: 3px; }
+  .k { font-size: 11px; color: var(--text-tertiary); }
+  .v { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+  .v.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .note { margin-top: 14px; font-size: 11px; color: var(--text-tertiary); }
+  .note code { font-family: var(--font-mono); color: var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <span class="cap">SPEC · 房源信息</span>
+    <div class="grid">
+      <div class="kv"><span class="k">户型</span><span class="v">3室2厅2卫</span></div>
+      <div class="kv"><span class="k">建筑面积</span><span class="v mono">108㎡</span></div>
+      <div class="kv"><span class="k">朝向</span><span class="v">南北通透</span></div>
+      <div class="kv"><span class="k">楼层</span><span class="v mono">中 / 18层</span></div>
+      <div class="kv"><span class="k">装修</span><span class="v">精装修</span></div>
+      <div class="kv"><span class="k">建成年代</span><span class="v mono">2015</span></div>
+      <div class="kv"><span class="k">产权</span><span class="v">满五唯一</span></div>
+      <div class="kv"><span class="k">挂牌编号</span><span class="v mono">WD-2031</span></div>
+    </div>
+  </div>
+  <div class="note">规则：含数字 / ㎡ 的值走 <code>--font-mono</code> + tabular-nums；纯中文走 <code>--font-sans</code>。键 11px tertiary，值 14px/600 primary。</div>
+</div>
+</body>
+</html>

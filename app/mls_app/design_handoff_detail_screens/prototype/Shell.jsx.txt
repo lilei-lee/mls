@@ -1,0 +1,112 @@
+// MLS UI Kit · Phone shell — status bar, bezel, bottom nav
+
+function StatusBar({ dark }) {
+  const c = dark ? '#fff' : 'var(--text-primary)';
+  return (
+    <div style={{ height: 38, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 18px', flexShrink: 0, position: 'relative', zIndex: 5 }}>
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600, color: c, letterSpacing: 0.3 }}>9:41</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: c }}>
+        {window.MLS.Icon && <window.MLS.Icon name="signal" size={15} color={c} stroke={2.4} />}
+        {window.MLS.Icon && <window.MLS.Icon name="wifi" size={15} color={c} stroke={2.4} />}
+        {window.MLS.Icon && <window.MLS.Icon name="battery-full" size={17} color={c} stroke={2.2} />}
+      </div>
+    </div>
+  );
+}
+
+const MLS_TABS = [
+  { key: 'home',   label: '工作台', icon: 'layout-dashboard' },
+  { key: 'listing',label: '房源',   icon: 'house' },
+  { key: 'collab', label: '协作',   icon: 'handshake' },
+  { key: 'customer',label: '客户',  icon: 'user' },
+  { key: 'bonus',  label: '奖金',   icon: 'badge-dollar-sign' },
+];
+function BottomNav({ active, onChange }) {
+  const Icon = window.MLS.Icon;
+  return (
+    <div style={{
+      display: 'flex', background: 'var(--bg-card)', borderTop: '1px solid var(--border-light)',
+      boxShadow: 'var(--shadow-nav-top)', padding: '8px 4px 6px', flexShrink: 0, position: 'relative', zIndex: 5,
+    }}>
+      {MLS_TABS.map(t => {
+        const on = t.key === active;
+        return (
+          <div key={t.key} onClick={() => onChange(t.key)} style={{
+            flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer',
+            color: on ? 'var(--primary)' : 'var(--text-tertiary)',
+          }}>
+            <Icon name={t.icon} size={24} stroke={on ? 2.4 : 2} />
+            <span style={{ fontSize: 10, fontWeight: on ? 600 : 400 }}>{t.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Phone bezel. headerDark controls status bar icon color for the current screen.
+function PhoneFrame({ children, statusDark, nav, onNav, navActive }) {
+  return (
+    <div style={{
+      width: 390, height: 844, borderRadius: 44, background: '#0B0E14', padding: 11,
+      boxShadow: '0 40px 90px rgba(11,18,32,.45), 0 0 0 1px rgba(255,255,255,.06) inset', flexShrink: 0,
+    }}>
+      <div style={{
+        width: '100%', height: '100%', borderRadius: 34, overflow: 'hidden',
+        background: 'var(--grad-page)', display: 'flex', flexDirection: 'column', position: 'relative',
+      }}>
+        <StatusBar dark={statusDark} />
+        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', position: 'relative' }} className="mls-scroll">
+          {children}
+        </div>
+        {nav && <BottomNav active={navActive} onChange={onNav} />}
+      </div>
+    </div>
+  );
+}
+
+// Top app bar for pushed detail screens — back chevron + title + optional right slot.
+// `dark` puts it on a hero/navy ground (white text). Sticky so it stays while body scrolls.
+function NavBar({ title, sub, onBack, right, dark }) {
+  const Icon = window.MLS.Icon;
+  const fg = dark ? '#fff' : 'var(--text-primary)';
+  return (
+    <div style={{
+      position: 'sticky', top: 0, zIndex: 6, height: 52, flexShrink: 0,
+      display: 'flex', alignItems: 'center', gap: 8, padding: '0 8px 0 6px',
+      background: dark ? 'transparent' : 'color-mix(in srgb, var(--bg-page-start) 86%, transparent)',
+      backdropFilter: dark ? 'none' : 'saturate(180%) blur(12px)',
+      WebkitBackdropFilter: dark ? 'none' : 'saturate(180%) blur(12px)',
+      borderBottom: dark ? 'none' : '0.5px solid var(--border-light)',
+    }}>
+      <div onClick={onBack} style={{ width: 40, height: 40, borderRadius: 'var(--r-lg)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+        <Icon name="chevron-left" size={24} color={fg} stroke={2.2} />
+      </div>
+      <div style={{ flex: 1, minWidth: 0, lineHeight: 1.25 }}>
+        <div style={{ fontSize: 16, fontWeight: 600, letterSpacing: -0.2, color: fg, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</div>
+        {sub && <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: 1.5, textTransform: 'uppercase', color: dark ? 'rgba(255,255,255,.6)' : 'var(--text-tertiary)', marginTop: 1 }}>{sub}</div>}
+      </div>
+      {right}
+    </div>
+  );
+}
+
+window.MLS = Object.assign(window.MLS || {}, { StatusBar, BottomNav, PhoneFrame, MLS_TABS, NavBar });
+
+// Staggered entrance wrapper — JS-driven fade + slide-up (reliable across embeds)
+function MlsIn({ index = 0, children, style }) {
+  const [shown, setShown] = React.useState(false);
+  React.useEffect(() => {
+    const id = setTimeout(() => setShown(true), 40 + index * 80);
+    return () => clearTimeout(id);
+  }, []);
+  return (
+    <div style={{
+      opacity: shown ? 1 : 0,
+      transform: shown ? 'translateY(0)' : 'translateY(14px)',
+      transition: 'opacity 520ms cubic-bezier(0.22,0.61,0.36,1), transform 520ms cubic-bezier(0.22,0.61,0.36,1)',
+      ...style,
+    }}>{children}</div>
+  );
+}
+window.MLS = Object.assign(window.MLS || {}, { MlsIn });

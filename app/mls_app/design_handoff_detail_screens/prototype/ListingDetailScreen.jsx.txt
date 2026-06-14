@@ -1,0 +1,137 @@
+// MLS UI Kit · 房源详情 (Listing detail — pushed page)
+function ListingDetailScreen({ listing, onBack, onOpenTrace }) {
+  const { NavBar, Icon, Badge, Card, Avatar, Btn, MlsIn } = window.MLS;
+  const l = listing || { name: '万达华府 · 3室朝南', price: '218', unit: '万', area: '108㎡', status: ['在售', 'success'], shows: 4, code: 'WD-2031', accent: 'var(--primary)' };
+  const [shot, setShot] = React.useState(0);
+  const shots = ['客厅', '主卧', '次卧', '厨房', '卫生间', '阳台'];
+
+  const specs = [
+    { k: '户型', v: '3室2厅2卫' }, { k: '建筑面积', v: '108㎡' },
+    { k: '朝向', v: '南北通透' }, { k: '楼层', v: '中 / 18层' },
+    { k: '装修', v: '精装修' }, { k: '建成年代', v: '2015' },
+    { k: '产权', v: '满五唯一' }, { k: '挂牌编号', v: l.code },
+  ];
+  const traces = [
+    { partner: '李红', role: 'BA', who: '客户王先生', status: ['进行中', 'info'], time: '今日 15:00 带看', cur: 3, pulse: true },
+    { partner: '周丽', role: 'BA', who: '客户刘女士', status: ['已带看', 'neutral'], time: '6月1日 · 已留痕', cur: 4 },
+  ];
+
+  return (
+    <div style={{ minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
+      <NavBar title="房源详情" onBack={onBack}
+        right={<div style={{ display: 'flex', gap: 2 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 'var(--r-lg)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Icon name="share-2" size={20} color="var(--text-secondary)" /></div>
+          <div style={{ width: 40, height: 40, borderRadius: 'var(--r-lg)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Icon name="bookmark" size={20} color="var(--text-secondary)" /></div>
+        </div>} />
+
+      {/* photo gallery */}
+      <MlsIn index={0} style={{ display: 'block' }}>
+      <div style={{ padding: '4px 16px 0' }}>
+        <div style={{ position: 'relative', height: 188, borderRadius: 'var(--r-3xl)', overflow: 'hidden', background: 'linear-gradient(160deg,#E8EDF5,#DCE3EE)', border: '0.5px solid var(--border-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <Icon name="image" size={40} color="rgba(15,23,42,.18)" />
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.5, color: 'rgba(15,23,42,.3)', textTransform: 'uppercase' }}>{shots[shot]} · PHOTO</span>
+          </div>
+          <span style={{ position: 'absolute', top: 12, left: 12 }}><Badge variant={l.status[1]}>{l.status[0]}</Badge></span>
+          <span style={{ position: 'absolute', top: 12, right: 12, fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600, color: '#fff', background: 'rgba(15,23,42,.5)', padding: '2px 8px', borderRadius: 'var(--r-pill)' }}>{shot + 1}/{shots.length}</span>
+        </div>
+        <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+          {shots.map((s, i) => (
+            <div key={s} onClick={() => setShot(i)} style={{ flex: 1, height: 4, borderRadius: 2, cursor: 'pointer', background: i === shot ? l.accent : 'rgba(15,23,42,.12)', transition: 'background 180ms' }} />
+          ))}
+        </div>
+      </div>
+      </MlsIn>
+
+      <div style={{ padding: '16px 16px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {/* title + price */}
+        <MlsIn index={1} style={{ display: 'block' }}>
+        <div>
+          <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: -0.3, color: 'var(--text-primary)' }}>{l.name}</div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, marginTop: 8 }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 30, fontWeight: 700, letterSpacing: -1.5, color: l.accent, fontVariantNumeric: 'tabular-nums' }}>{l.price}</span>
+            <span style={{ fontSize: 14, color: l.accent, fontWeight: 600 }}>{l.unit}</span>
+            <span className="t-body-2" style={{ marginLeft: 10 }}>单价 ¥20,185/㎡</span>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
+            {['满五唯一', '南北通透', '精装', '近地铁'].map(t => (
+              <span key={t} style={{ fontSize: 11, color: 'var(--text-secondary)', background: 'rgba(15,23,42,.05)', padding: '4px 9px', borderRadius: 'var(--r-sm)' }}>{t}</span>
+            ))}
+          </div>
+        </div>
+        </MlsIn>
+
+        {/* spec grid */}
+        <MlsIn index={2}>
+        <Card variant="elevated">
+          <span className="t-mono-label">SPEC · 房源信息</span>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 12px', marginTop: 14 }}>
+            {specs.map(s => (
+              <div key={s.k} style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{s.k}</span>
+                <span style={{ fontFamily: /[0-9㎡]/.test(s.v) ? 'var(--font-mono)' : 'var(--font-sans)', fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>{s.v}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+        </MlsIn>
+
+        {/* LA agent */}
+        <MlsIn index={3}>
+        <Card>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <Avatar name="张三" size={42} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--text-primary)' }}>张三</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 600, letterSpacing: 1, color: 'var(--primary)', background: 'var(--primary-bg)', padding: '1px 5px', borderRadius: 'var(--r-xs)' }}>LA · 挂牌</span>
+              </div>
+              <div className="t-body-2" style={{ marginTop: 3 }}>本房源由我挂牌 · 信誉 A · 成交 23</div>
+            </div>
+            <div style={{ width: 38, height: 38, borderRadius: 'var(--r-lg)', background: 'var(--primary-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <Icon name="phone" size={18} color="var(--primary)" />
+            </div>
+          </div>
+        </Card>
+        </MlsIn>
+
+        {/* collab / 带看记录 */}
+        <MlsIn index={4} style={{ display: 'block' }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <span className="t-section">协作 · 带看记录</span>
+            <span className="t-mono-label" style={{ color: 'var(--text-tertiary)' }}>{traces.length} 条</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {traces.map((t, i) => (
+              <Card key={i} onClick={() => onOpenTrace && onOpenTrace({ listing: l, partner: t.partner, role: t.role, customer: t.who, current: t.cur })}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ position: 'relative' }}>
+                    <Avatar name={t.partner} size={38} online={t.pulse ? 'online' : undefined} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{t.partner}</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 600, letterSpacing: 1, color: 'var(--text-secondary)', background: 'rgba(15,23,42,.06)', padding: '1px 5px', borderRadius: 'var(--r-xs)' }}>{t.role}</span>
+                      <Badge variant={t.status[1]}>{t.status[0]}</Badge>
+                    </div>
+                    <div className="t-body-2" style={{ marginTop: 3 }}>{t.who} · {t.time}</div>
+                  </div>
+                  <Icon name="chevron-right" size={18} color="var(--text-tertiary)" />
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+        </MlsIn>
+      </div>
+
+      {/* bottom action bar */}
+      <div style={{ marginTop: 'auto', position: 'sticky', bottom: 0, padding: '12px 16px', display: 'flex', gap: 10, background: 'color-mix(in srgb, var(--bg-page-end) 88%, transparent)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderTop: '0.5px solid var(--border-light)' }}>
+        <Btn variant="secondary" leading="share-2">共享到库</Btn>
+        <Btn variant="primary" full leading="handshake" onClick={() => onOpenTrace && onOpenTrace({ listing: l, partner: '李红', role: 'BA', customer: '客户王先生', current: 3 })}>发起协作</Btn>
+      </div>
+    </div>
+  );
+}
+window.MLS = Object.assign(window.MLS || {}, { ListingDetailScreen });
