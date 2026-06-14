@@ -238,11 +238,13 @@ def create_listing(req, physical_attrs: dict, agent: dict) -> dict:
             },
         )
 
+    from system_config import get_config
+    max_photos = get_config("listing_max_photos", MAX_PHOTOS)
     photos_list = [p.model_dump() for p in (req.photos or [])]
-    if len(photos_list) > MAX_PHOTOS:
+    if len(photos_list) > max_photos:
         raise HTTPException(
             status_code=400,
-            detail=f"最多上传 {MAX_PHOTOS} 张照片"
+            detail=f"最多上传 {max_photos} 张照片"
         )
 
     community_oid = None

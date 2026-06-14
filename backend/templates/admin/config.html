@@ -1,0 +1,24 @@
+{% extends "admin/base.html" %}
+{% block title %}系统配置 · MLS 管理后台{% endblock %}
+{% block content %}
+<h1>系统配置</h1>
+{% if msg %}<div class="msg">{{ msg }}</div>{% endif %}
+
+<form method="post" action="/admin/config"
+      style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:20px; max-width:560px;">
+  {% for r in rows %}
+  <div style="margin-bottom:16px;">
+    <label>{{ r.label }}</label>
+    <input name="{{ r.key }}" type="number" value="{{ r.value }}" min="1" style="width:120px;" required>
+    <div style="font-size:12px; color:#94a3b8; margin-top:4px;">{{ r.note }}</div>
+  </div>
+  {% endfor %}
+  <button type="submit">保存</button>
+</form>
+
+<p style="color:#94a3b8; font-size:12px; margin-top:14px; max-width:560px;">
+  说明：此处只收录代码里真有强制点、改了立刻生效的运营参数。设计稿 §8 其余配置项
+  （成交响应时限 / 回退天数 / 驳回超限冻结 / 定金异常监控 / 暂停自动撤牌 等）对应的
+  业务功能尚未实现，待落地后再纳入。所有修改记入审计日志。
+</p>
+{% endblock %}

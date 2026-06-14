@@ -19,7 +19,8 @@ def expire_stale_showing_requests():
     """把超过 7 天未处理的 pending 带客申请批量改为 expired。
     每天凌晨 3:00 跑一次。
     """
-    cutoff = datetime.now() - timedelta(days=7)
+    from system_config import get_config
+    cutoff = datetime.now() - timedelta(days=get_config("showing_request_expire_days", 7))
     result = db["showing_requests"].update_many(
         {
             "status": "pending",

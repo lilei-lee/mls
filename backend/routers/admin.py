@@ -561,3 +561,38 @@ def export_transactions(_: bool = Depends(require_admin)):
     write_audit("export", "transactions", "-", {"count": len(rows)})
     return _csv_response("transactions.csv",
                          ["小区", "BA", "LA", "成交价(元)", "合作奖金(元)", "成交确认时间"], rows)
+
+
+# ── 系统配置 ──
+
+@admin_router.get("/config", response_class=HTMLResponse)
+def admin_config(request: Request, _: bool = Depends(require_admin), msg: str = ""):
+    from system_config import CONFIG_SPEC, get_config
+    rows = [{
+        "key": c["key"], "label": c["label"], "note": c["note"],
+        "value": get_config(c["key"], c["default"]),
+    } for c in CONFIG_SPEC]
+    return templates.TemplateResponse(request, "admin/config.html", {"rows": rows, "msg": msg})
+
+
+@admin_router.post("/config")
+async def admin_config_save(request: Request, _: bool = Depends(require_admin)):
+    from system_config import CONFIG_SPEC, get_config, set_config
+    form = await request.form()
+    changed = {}
+    for c in CONFIG_SPEC:
+        raw = form.get(c["key"])
+        if raw is None:
+            continue
+        try:
+            val = int(raw)
+        except (TypeError, ValueError):
+            continue
+        if val < 1:
+            continue
+        if get_config(c["key"], c["default"]) != val:
+            set_config(c["key"], val)
+            changed[c["key"]] = val
+    if changed:
+        write_audit("config_update", "system", "-", changed)
+    return RedirectResponse(url=f"/admin/config?msg={quote('已保存')}", status_code=status.HTTP_303_SEE_OTHER)

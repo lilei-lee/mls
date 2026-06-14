@@ -104,16 +104,18 @@ def _pwd_fail_key(phone: str) -> str:
 
 
 def is_password_locked(phone: str) -> bool:
+    from system_config import get_config
     v = redis_client.get(_pwd_fail_key(phone))
-    return v is not None and int(v) >= PWD_MAX_FAILS
+    return v is not None and int(v) >= get_config("password_max_fails", PWD_MAX_FAILS)
 
 
 def register_password_fail(phone: str) -> int:
     """记一次失败,返回当前累计失败数。首次失败时设 TTL。"""
+    from system_config import get_config
     key = _pwd_fail_key(phone)
     n = redis_client.incr(key)
     if n == 1:
-        redis_client.expire(key, PWD_LOCK_SECONDS)
+        redis_client.expire(key, get_config("password_lock_minutes", 15) * 60)
     return n
 
 

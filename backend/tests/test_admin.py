@@ -3,7 +3,7 @@
 走 TestClient(in-process)+ mongomock,不需起真服务。管理员默认凭据
 admin/admin123(config 默认,生产用 env 覆盖)。
 """
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -309,3 +309,42 @@ def test_export_listings_csv(client):
     _login(client)
     r = client.get("/admin/export/listings.csv", follow_redirects=False)
     assert r.status_code == 200 and "阳光小区" in r.text and "MLS编号" in r.text
+
+
+# ── 系统配置 ──
+
+def test_config_requires_auth(client):
+    r = client.get("/admin/config", follow_redirects=False)
+    assert r.status_code == 303
+
+
+def test_config_page_shows_params(client):
+    _login(client)
+    r = client.get("/admin/config", follow_redirects=False)
+    assert r.status_code == 200 and "带客申请有效期(天)" in r.text
+
+
+def test_config_save_and_audit(client):
+    from system_config import get_config
+    _login(client)
+    r = client.post("/admin/config", data={
+        "showing_request_expire_days": "3", "listing_max_photos": "6",
+        "password_max_fails": "5", "password_lock_minutes": "15",
+    }, follow_redirects=False)
+    assert r.status_code == 303
+    assert get_config("showing_request_expire_days") == 3
+    assert db["audit_log"].find_one({"action": "config_update"}) is not None
+
+
+def test_config_drives_scheduler_expiry(client):
+    """过期天数设为 3,4 天前的 pending 应被过期(默认 7 不会)"""
+    from system_config import set_config
+    from scheduler import expire_stale_showing_requests
+    from bson import ObjectId
+    set_config("showing_request_expire_days", 3)
+    rid = db["showing_requests"].insert_one({
+        "status": "pending", "created_at": datetime.now() - timedelta(days=4),
+        "listing_agent_id": ObjectId(), "buyer_agent_id": ObjectId(),
+    }).inserted_id
+    expire_stale_showing_requests()
+    assert db["showing_requests"].find_one({"_id": rid})["status"] == "expired"
