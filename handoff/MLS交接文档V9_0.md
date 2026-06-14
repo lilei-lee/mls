@@ -697,9 +697,9 @@ node = SizedBox(
    - 照片 base64 存 MongoDB,50 户内临时方案
    - 先决:申请腾讯/阿里/七牛 COS 账号
 
-2. **Pydantic 校验补强**(承袭 V8.x)
-   - `price_wan` 允许负数 / 姓名 50 字 / 备注 1000 字均通过
-   - 用户可编辑字段必须加 Pydantic validator
+2. ~~**Pydantic 校验补强**(承袭 V8.x)~~ ✅ **已闭合**(2026-06-14 全库复核)
+   - 原债(`price_wan` 允许负数 / 姓名 50 字 / 备注 1000 字)已不存在:全后端用户可编辑字段均有约束(price_wan gt=0、注册 name 2~20、deal_price gt=0 ≤5亿、各备注 max_length、预算区间+跨字段一致性、gender/枚举用 Literal/pattern)
+   - 防范规则仍有效:**新增**用户可编辑字段必须加 Pydantic validator
 
 3. **实时推送(WebSocket / 极光)**
    - 当前协作详情页 pop 后自动刷新是部分修
@@ -1113,7 +1113,7 @@ git log efbe291..393dfae --oneline
   ☐ V2.2 / V3 路线决策(候选见 §11.4)
 
 技术债优先级:
-  🔴 COS 迁移 / Pydantic 校验 / 实时推送
+  🔴 COS 迁移 / 实时推送  (Pydantic 校验已闭合 2026-06-14)
   🟡 7d 过期定时任务 / bonus 快照 / 直接带看状态守卫
   🟢 pre-commit hook / .env 统一 / docs README 索引
 

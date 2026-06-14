@@ -13,7 +13,7 @@ MVP 范围:
 - 暂停校验 / 自促成交 / 批量审批
 """
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Literal
 from bson import ObjectId
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
@@ -31,7 +31,7 @@ class CreateShowingRequestBody(BaseModel):
     """发起带客申请请求"""
     listing_id: str = Field(..., description="目标房源 ID")
     customer_surname: str = Field(..., min_length=1, max_length=5, description="客户姓氏")
-    customer_gender: str = Field(..., description="客户性别:male/female")
+    customer_gender: Literal["male", "female"] = Field(..., description="客户性别:male/female")
     requirements: str = Field(..., min_length=1, max_length=200, description="购房需求")
     customer_id: str = Field(..., description="必须关联客户档案(V2.1 起强制)")
 
@@ -106,9 +106,7 @@ def create_showing_request(req: CreateShowingRequestBody, buyer_agent: dict) -> 
     if listing["owner_agent_id"] == buyer_agent["_id"]:
         raise HTTPException(status_code=400, detail="不能对自己录入的房源发起带客申请")
 
-    # 3. 校验性别
-    if req.customer_gender not in ("male", "female"):
-        raise HTTPException(status_code=400, detail="性别参数错误")
+    # 3. 性别校验已上移到 Pydantic(customer_gender: Literal["male","female"])
 
     # 3.5. 校验 customer_id: 必须真实存在,且 owner_agent_id == 当前 BA
     try:
