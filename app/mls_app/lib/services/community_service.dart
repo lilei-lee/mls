@@ -1,3 +1,5 @@
+/// 小区服务 — 后端路由: /api/v1/communities/*
+/// 被 community_detail_screen、shared listings filter 使用
 import 'package:dio/dio.dart';
 import 'api_client.dart';
 

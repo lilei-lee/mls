@@ -1,3 +1,5 @@
+/// 客户管理服务 — 后端路由: /api/v1/customers/*
+/// 被 customer_list_screen、customer_detail_screen、customer_new_screen 使用
 import 'package:dio/dio.dart';
 import 'api_client.dart';
 

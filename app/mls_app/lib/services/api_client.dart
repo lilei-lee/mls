@@ -49,13 +49,33 @@ class ApiClient {
     // ===== 认证拦截器(请求前自动加 Authorization 头) =====
     dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
+        // 从 FlutterSecureStorage 读 access_token，自动附加 Authorization header
         final token = await _storage.read(key: 'access_token');
         if (token != null && token.isNotEmpty) {
           options.headers['Authorization'] = 'Bearer $token';
         }
         handler.next(options);
       },
-      // ===== 响应错误拦截器(401 自动续 token) =====
+      // ===== 401 自动刷新队列（Token Rotation）=====
+      //
+      // 时序:
+      //   请求   → 401 ?
+      //     │        └─ 是 → 正在 refresh? (_isRefreshing)
+      //     │                    ├─ true  → 入队等待 (_pendingQueue)
+      //     │                    └─ false → 发起 POST /auth/refresh
+      //     │                                  ├─ 成功 → 存新 token
+      //     │                                  │       → 重放当前请求
+      //     │                                  │       → 逐个重放队列 (_processPendingQueue)
+      //     │                                  └─ 失败 → 清 secure storage
+      //     │                                          → 跳转 /login
+      //     │                                          → 拒绝队列中所有请求
+      //     └─ 否 → 正常返回
+      //
+      // 关键设计:
+      //   - _isRefreshing 锁: 防止并发 401 都去调 refresh（只发一次）
+      //   - _pendingQueue: 刷新期间的请求不丢失，token 更新后自动重试
+      //   - _refreshDio: 独立 Dio 实例（不走拦截器，避免无限循环）
+      //   - refresh 本身返回 401 不重试（/auth/refresh 路径跳过拦截）
       onError: (err, handler) async {
         // 402 = 会员已过期(收费期只读)。全局提示一次,错误照常向上传。
         if (err.response?.statusCode == 402) {

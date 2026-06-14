@@ -1,3 +1,5 @@
+/// Q&A 问答服务 — 后端路由: /api/v1/qna/*
+/// 被 qna_list_screen、my_questions_screen、listing_detail_screen 使用
 import 'package:dio/dio.dart';
 import 'api_client.dart';
 import '../models/qna_thread.dart';

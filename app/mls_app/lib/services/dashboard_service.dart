@@ -1,3 +1,5 @@
+/// Dashboard 数据大屏服务 — 后端路由: /api/v1/dashboard/*
+/// 被 dashboard_screen、home_screen（待办汇总）使用
 import 'package:dio/dio.dart';
 import 'api_client.dart';
 

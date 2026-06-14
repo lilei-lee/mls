@@ -1,3 +1,5 @@
+/// 带看记录服务 — 后端路由: /api/v1/showings/*
+/// 被 showing_confirm_screen、showing_submit_screen 等使用
 import 'package:dio/dio.dart';
 import 'api_client.dart';
 

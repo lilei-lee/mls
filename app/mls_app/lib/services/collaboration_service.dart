@@ -1,3 +1,5 @@
+/// 协作列表服务 — 后端路由: /api/v1/collaborations/*
+/// 被 home_screen、collaboration_list_screen 使用
 import 'package:dio/dio.dart';
 import 'api_client.dart';
 
