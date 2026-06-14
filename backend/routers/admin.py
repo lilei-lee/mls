@@ -483,13 +483,17 @@ def admin_communities(request: Request, _: bool = Depends(require_admin), q: str
         query["$or"] = [
             {"name": {"$regex": q, "$options": "i"}},
             {"district": {"$regex": q, "$options": "i"}},
+            {"filing_name": {"$regex": q, "$options": "i"}},
+            {"aliases": {"$regex": q, "$options": "i"}},
         ]
     rows = []
     for c in db["communities"].find(query).sort("name", 1).limit(300):
+        _alt = [c.get("filing_name")] + (c.get("aliases") or [])
         rows.append({
             "id": str(c["_id"]),
             "name": c.get("name", ""),
             "district": c.get("district", ""),
+            "alt_names": "、".join([x for x in _alt if x]) or "-",
             "built_year": c.get("built_year") or "-",
             "building_count": c.get("building_count") or "-",
             "listing_count": db["listings"].count_documents({
@@ -512,6 +516,8 @@ def admin_community_edit(community_id: str, request: Request, _: bool = Depends(
         "id": str(cid),
         "name": c.get("name", ""),
         "district": c.get("district", ""),
+        "filing_name": c.get("filing_name") or "",
+        "aliases": "、".join(c.get("aliases") or []),
         "built_year": c.get("built_year") or "",
         "building_count": c.get("building_count") or "",
         "listing_count": db["listings"].count_documents({
@@ -540,6 +546,19 @@ def _coerce_field(value: str, type_: str):
     return v
 
 
+def _parse_aliases(value: str) -> list:
+    """把别名输入(顿号/逗号/分号分隔)拆成去重列表。"""
+    import re as _re
+    if not value:
+        return []
+    out = []
+    for p in _re.split(r"[、,，;；\n]", value):
+        p = p.strip()
+        if p and p not in out:
+            out.append(p)
+    return out
+
+
 @admin_router.post("/communities/{community_id}")
 async def admin_community_save(community_id: str, request: Request, _: bool = Depends(require_admin)):
     from communities import COMMUNITY_RICH_FIELDS
@@ -559,6 +578,8 @@ async def admin_community_save(community_id: str, request: Request, _: bool = De
         return RedirectResponse(url=f"/admin/communities/{community_id}?msg={msg}",
                                 status_code=status.HTTP_303_SEE_OTHER)
     upd = {"name": name, "district": district, "updated_at": datetime.now()}
+    upd["filing_name"] = (form.get("filing_name") or "").strip() or None
+    upd["aliases"] = _parse_aliases(form.get("aliases"))
     upd["built_year"] = _coerce_field(form.get("built_year"), "int")
     upd["building_count"] = _coerce_field(form.get("building_count"), "int")
     for f in COMMUNITY_RICH_FIELDS:
@@ -1121,10 +1142,12 @@ def admin_ownership_reject(change_id: str, _: bool = Depends(require_admin), not
 @admin_router.get("/community-export.csv")
 def admin_community_export(_: bool = Depends(require_admin)):
     from communities import COMMUNITY_RICH_FIELDS
-    header = ["小区名", "区域", "建成年代", "楼栋数"] + [f["label"] for f in COMMUNITY_RICH_FIELDS]
+    header = (["小区名", "区域", "备案名", "别名", "建成年代", "楼栋数"]
+              + [f["label"] for f in COMMUNITY_RICH_FIELDS])
     rows = []
     for c in db["communities"].find().sort("name", 1):
         row = [c.get("name", ""), c.get("district", ""),
+               c.get("filing_name") or "", "、".join(c.get("aliases") or []),
                c.get("built_year") or "", c.get("building_count") or ""]
         row += [c.get(f["key"]) if c.get(f["key"]) is not None else "" for f in COMMUNITY_RICH_FIELDS]
         rows.append(row)
@@ -1155,6 +1178,8 @@ async def admin_community_import(_: bool = Depends(require_admin), file: UploadF
             continue
         doc = {
             "name": name, "district": district, "updated_at": now,
+            "filing_name": (_pick(row, "备案名", "filing_name") or "").strip() or None,
+            "aliases": _parse_aliases(_pick(row, "别名", "aliases")),
             "built_year": _coerce_field(_pick(row, "建成年代", "built_year"), "int"),
             "building_count": _coerce_field(_pick(row, "楼栋数", "building_count"), "int"),
         }

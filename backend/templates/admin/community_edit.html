@@ -15,6 +15,14 @@
     <label>所属区域</label>
     <input name="district" value="{{ c.district }}" style="width:100%;" required>
   </div>
+  <div style="margin-bottom:14px;">
+    <label>备案名</label>
+    <input name="filing_name" value="{{ c.filing_name }}" style="width:100%;" placeholder="政府备案的项目名,可与标准名不同(选填)">
+  </div>
+  <div style="margin-bottom:14px;">
+    <label>别名 / 曾用名</label>
+    <input name="aliases" value="{{ c.aliases }}" style="width:100%;" placeholder="一个项目多个名,用顿号或逗号分隔，如：保利时光印象、保利时光里">
+  </div>
   <div style="display:flex; gap:12px; margin-bottom:14px;">
     <div style="flex:1;"><label>建成年代</label><input name="built_year" type="number" value="{{ c.built_year }}" style="width:100%;" min="1900" max="2100"></div>
     <div style="flex:1;"><label>楼栋数</label><input name="building_count" type="number" value="{{ c.building_count }}" style="width:100%;" min="1" max="1000"></div>

@@ -724,3 +724,69 @@ def test_community_import_csv(client):
     c = db["communities"].find_one({"name": "新导入小区", "district": "桥东区"})
     assert c is not None and c["built_year"] == 2015 and c["property_company"] == "导入物业"
     assert db["audit_log"].find_one({"action": "community_import"}) is not None
+
+
+# ── 别名 / 备案名(一个项目多个名) ──
+
+def test_community_edit_saves_filing_name_and_aliases(client):
+    cid = _seed_community("时光印象", "桥东区")
+    _login(client)
+    r = client.post(f"/admin/communities/{cid}", data={
+        "name": "时光印象", "district": "桥东区",
+        "filing_name": "保利·时光印象花园",
+        "aliases": "保利时光里、时光里，时光印象",  # 含顿号/逗号/与标准名重复
+    }, follow_redirects=False)
+    assert r.status_code == 303
+    c = db["communities"].find_one({"_id": cid})
+    assert c["filing_name"] == "保利·时光印象花园"
+    # 顿号+逗号拆分、去重(标准名虽重复也只是别名表自己的去重)
+    assert c["aliases"] == ["保利时光里", "时光里", "时光印象"]
+
+
+def test_community_edit_blank_filing_name_becomes_none(client):
+    cid = _seed_community("无备案小区", "桥东区")
+    _login(client)
+    client.post(f"/admin/communities/{cid}", data={
+        "name": "无备案小区", "district": "桥东区", "filing_name": "  ", "aliases": "",
+    }, follow_redirects=False)
+    c = db["communities"].find_one({"_id": cid})
+    assert c["filing_name"] is None and c["aliases"] == []
+
+
+def test_search_matches_filing_name_and_aliases(client):
+    from communities import search_communities
+    cid = _seed_community("标准名小区", "桥东区")
+    db["communities"].update_one({"_id": cid}, {"$set": {
+        "filing_name": "备案专属名", "aliases": ["曾用旧名", "民间俗称"],
+        "created_at": datetime.now(),
+    }})
+    # 备案名命中
+    assert any(r["community_id"] == str(cid) for r in search_communities("备案专属"))
+    # 别名命中
+    assert any(r["community_id"] == str(cid) for r in search_communities("民间俗称"))
+    # 标准名仍命中
+    assert any(r["community_id"] == str(cid) for r in search_communities("标准名"))
+
+
+def test_community_export_includes_alt_names(client):
+    cid = _seed_community("导出多名小区", "桥东区")
+    db["communities"].update_one({"_id": cid}, {"$set": {
+        "filing_name": "导出备案名", "aliases": ["导出别名甲", "导出别名乙"]}})
+    _login(client)
+    r = client.get("/admin/community-export.csv", follow_redirects=False)
+    assert r.status_code == 200
+    assert "备案名" in r.text and "别名" in r.text
+    assert "导出备案名" in r.text and "导出别名甲、导出别名乙" in r.text
+
+
+def test_community_import_round_trips_alt_names(client):
+    _login(client)
+    csv_content = ("小区名,区域,备案名,别名\n"
+                   "回传小区,桥西区,回传备案名,别名一、别名二\n")
+    r = client.post("/admin/community-import",
+                    files={"file": ("c.csv", csv_content.encode("utf-8"), "text/csv")},
+                    follow_redirects=False)
+    assert r.status_code == 303
+    c = db["communities"].find_one({"name": "回传小区", "district": "桥西区"})
+    assert c["filing_name"] == "回传备案名"
+    assert c["aliases"] == ["别名一", "别名二"]

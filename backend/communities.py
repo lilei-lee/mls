@@ -29,6 +29,7 @@ communities_collection = db["communities"]
 class CreateCommunityBody(BaseModel):
     name: str = Field(..., min_length=1, max_length=50, description="小区标准名")
     district: str = Field(..., min_length=1, max_length=20, description="所属行政区")
+    filing_name: Optional[str] = Field(None, max_length=50, description="备案名(政府备案的项目名,可与标准名不同)")
     built_year: Optional[int] = Field(None, ge=1900, le=2100, description="建成年代")
     building_count: Optional[int] = Field(None, ge=1, le=1000, description="楼栋数")
 
@@ -65,7 +66,12 @@ def search_communities(
 
     # 转义正则特殊字符,防注入(用户输入 .* 不会导致命中全部)
     pattern = re.escape(q)
-    filter_q: dict = {"name": {"$regex": pattern, "$options": "i"}}
+    # 一个项目可能有多个名:标准名 / 备案名 / 别名 都参与匹配
+    filter_q: dict = {"$or": [
+        {"name": {"$regex": pattern, "$options": "i"}},
+        {"filing_name": {"$regex": pattern, "$options": "i"}},
+        {"aliases": {"$regex": pattern, "$options": "i"}},
+    ]}
     if district:
         filter_q["district"] = district.strip()
 
@@ -101,6 +107,8 @@ def create_community(body: CreateCommunityBody, agent: dict) -> dict:
     doc = {
         "name": name,
         "district": district,
+        "filing_name": (body.filing_name or "").strip() or None,
+        "aliases": [],
         "built_year": body.built_year,
         "building_count": body.building_count,
         "created_at": now,
@@ -186,6 +194,8 @@ def _format_community(doc: dict) -> dict:
         "community_id": str(doc["_id"]),
         "name": doc["name"],
         "district": doc["district"],
+        "filing_name": doc.get("filing_name") or "",
+        "aliases": doc.get("aliases") or [],
         "built_year": doc.get("built_year"),
         "building_count": doc.get("building_count"),
         "created_at": doc["created_at"].isoformat()

@@ -7,7 +7,7 @@
 <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
   <form class="inline" method="get" action="/admin/communities" style="margin:0;">
     <div>
-      <label>搜索(小区名/区域)</label>
+      <label>搜索(小区名/区域/备案名/别名)</label>
       <input name="q" value="{{ q }}" placeholder="关键词">
     </div>
     <button type="submit">筛选</button>
@@ -24,20 +24,21 @@
 
 <table>
   <thead>
-    <tr><th>小区名</th><th>区域</th><th>建成年代</th><th>楼栋数</th><th>房源数</th><th></th></tr>
+    <tr><th>小区名</th><th>区域</th><th>备案名/别名</th><th>建成年代</th><th>楼栋数</th><th>房源数</th><th></th></tr>
   </thead>
   <tbody>
     {% for r in rows %}
     <tr>
       <td>{{ r.name }}</td>
       <td>{{ r.district }}</td>
+      <td style="color:#64748b; font-size:13px;">{{ r.alt_names }}</td>
       <td>{{ r.built_year }}</td>
       <td>{{ r.building_count }}</td>
       <td>{{ r.listing_count }}</td>
       <td><a href="/admin/communities/{{ r.id }}">编辑</a></td>
     </tr>
     {% else %}
-    <tr><td colspan="6" style="color:#94a3b8;">无匹配小区</td></tr>
+    <tr><td colspan="7" style="color:#94a3b8;">无匹配小区</td></tr>
     {% endfor %}
   </tbody>
 </table>
