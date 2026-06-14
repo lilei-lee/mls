@@ -54,6 +54,7 @@ from routers.qna import qna_router
 from routers.photos import photos_router
 from routers.admin import admin_router
 from routers.disputes import disputes_router
+from routers.ownership import ownership_router
 
 app = FastAPI(
     title="MLS 后端 API",
@@ -106,6 +107,7 @@ app.include_router(qna_router)
 app.include_router(photos_router)
 app.include_router(admin_router)
 app.include_router(disputes_router)
+app.include_router(ownership_router)
 
 
 @app.on_event("startup")

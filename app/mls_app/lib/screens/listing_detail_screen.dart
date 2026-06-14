@@ -10,6 +10,7 @@ import '../models/qna_thread.dart';
 import '../services/api_client.dart';
 import '../services/qna_service.dart';
 import '../services/transaction_service.dart';
+import '../services/ownership_service.dart';
 import '../widgets/base64_image.dart';
 import '../widgets/photo_picker.dart';
 import '../widgets/mls/mls_avatar.dart';
@@ -1158,6 +1159,141 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     );
   }
 
+  // ──── 申请归属变更(含委托凭证上传) ────
+  Future<void> _showOwnershipChangeSheet(String listingName) async {
+    final phoneCtrl = TextEditingController();
+    final reasonCtrl = TextEditingController();
+    List<PickedPhoto> proof = [];
+    bool submitting = false;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) => Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: MlsColors.borderStrong,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text('「$listingName」归属变更', style: MlsTypography.sectionTitle),
+                  const SizedBox(height: 8),
+                  Text('指定新归属经纪人并上传独家委托协议凭证;提交后房源锁定,待平台复核确认',
+                      style: MlsTypography.caption1
+                          .copyWith(color: MlsColors.textSecondary)),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: phoneCtrl,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(
+                      labelText: '目标经纪人手机号',
+                      hintText: '如 13912345678',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  PhotoPicker(
+                    initialPhotos: proof,
+                    maxCount: 1,
+                    label: '委托协议凭证',
+                    showCoverBadge: false,
+                    hintText: '上传独家委托协议照片,长按可删除',
+                    onChanged: (p) => proof = p,
+                    onCoverThumbnailChanged: (_) {},
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: reasonCtrl,
+                    maxLength: 200,
+                    decoration: const InputDecoration(
+                      labelText: '变更理由(选填)',
+                      hintText: '如:原经纪人离职',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: submitting ? null : () => Navigator.pop(ctx),
+                          child: const Text('取消'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: submitting
+                              ? null
+                              : () async {
+                                  if (phoneCtrl.text.trim().isEmpty) {
+                                    ScaffoldMessenger.of(ctx).showSnackBar(
+                                      const SnackBar(content: Text('请填写目标经纪人手机号')),
+                                    );
+                                    return;
+                                  }
+                                  setSheet(() => submitting = true);
+                                  try {
+                                    await OwnershipService.instance
+                                        .requestOwnershipChange(
+                                      listingId: widget.listingId,
+                                      toPhone: phoneCtrl.text.trim(),
+                                      proofDataUrl: proof.isNotEmpty
+                                          ? proof.first.dataUrl
+                                          : null,
+                                      reason: reasonCtrl.text.trim(),
+                                    );
+                                    if (ctx.mounted) Navigator.pop(ctx);
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text('已提交归属变更,房源已锁定待复核')),
+                                      );
+                                      _reload();
+                                    }
+                                  } catch (e) {
+                                    setSheet(() => submitting = false);
+                                    if (ctx.mounted) {
+                                      ScaffoldMessenger.of(ctx).showSnackBar(
+                                        SnackBar(content: Text('提交失败:$e')),
+                                      );
+                                    }
+                                  }
+                                },
+                          child: submitting
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: Colors.white))
+                              : const Text('提交'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   // ──── sticky 底部操作栏 ────
   Widget _buildBottomBar(String listingName, String laName, String myRole,
       bool isOwner, String status) {
@@ -1165,7 +1301,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     final isBA = myRole == 'BA';
     final partnerRole = isBA ? 'LA' : 'BA';
 
-    // owner 视角 + 在售：显示「标记定金已付」(含凭证上传)
+    // owner 视角 + 在售：标记定金已付(含凭证) + 归属变更(含委托凭证)
     if (isOwner && status == 'on_sale') {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -1175,12 +1311,28 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         ),
         child: SafeArea(
           top: false,
-          child: MlsPrimaryButton(
-            text: '标记定金已付',
-            variant: MlsButtonVariant.primary,
-            leadingIcon: LucideIcons.banknote,
-            fullWidth: true,
-            onPressed: () => _showMarkDepositSheet(listingName),
+          child: Row(
+            children: [
+              Expanded(
+                child: MlsPrimaryButton(
+                  text: '标记定金已付',
+                  variant: MlsButtonVariant.primary,
+                  leadingIcon: LucideIcons.banknote,
+                  fullWidth: true,
+                  onPressed: () => _showMarkDepositSheet(listingName),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: MlsPrimaryButton(
+                  text: '归属变更',
+                  variant: MlsButtonVariant.secondary,
+                  leadingIcon: Icons.swap_horiz,
+                  fullWidth: true,
+                  onPressed: () => _showOwnershipChangeSheet(listingName),
+                ),
+              ),
+            ],
           ),
         ),
       );

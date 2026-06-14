@@ -32,7 +32,13 @@ def _check_transferable(listing: dict, lid: ObjectId):
         raise HTTPException(status_code=400, detail="该房源有进行中的成交,不可变更归属")
 
 
-def create_ownership_change(listing_id_str: str, to_phone: str, proof: str, reason: str) -> dict:
+def create_ownership_change(listing_id_str: str, to_phone: str, proof: str, reason: str,
+                            requester_agent_id=None) -> dict:
+    """发起归属变更请求 + 锁定房源。
+
+    requester_agent_id:经纪人端发起时传(强制 = 当前归属人本人);
+    后台 admin 发起时传 None(不校验发起人)。
+    """
     try:
         lid = ObjectId(listing_id_str)
     except Exception:
@@ -40,6 +46,8 @@ def create_ownership_change(listing_id_str: str, to_phone: str, proof: str, reas
     listing = db["listings"].find_one({"_id": lid})
     if not listing:
         raise HTTPException(status_code=404, detail="房源不存在")
+    if requester_agent_id is not None and listing.get("owner_agent_id") != requester_agent_id:
+        raise HTTPException(status_code=403, detail="只能对自己归属的房源发起归属变更")
     if listing.get("ownership_locked"):
         raise HTTPException(status_code=400, detail="该房源已有待复核的归属变更")
     _check_transferable(listing, lid)

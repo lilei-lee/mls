@@ -91,3 +91,20 @@ def test_require_proof_config_on_blocks_no_proof():
     with pytest.raises(HTTPException) as e:
         create_ownership_change(str(lid), "13900000001", "", "x")  # 无 proof
     assert "委托凭证" in e.value.detail
+
+
+def test_create_rejects_non_owner_requester():
+    _agent()
+    owner = ObjectId()
+    lid = _listing(owner_id=owner)
+    with pytest.raises(HTTPException) as e:
+        create_ownership_change(str(lid), "13900000001", "", "x", requester_agent_id=ObjectId())
+    assert e.value.status_code == 403
+
+
+def test_create_allows_owner_requester():
+    _agent()
+    owner = ObjectId()
+    lid = _listing(owner_id=owner)
+    res = create_ownership_change(str(lid), "13900000001", "", "x", requester_agent_id=owner)
+    assert "id" in res
