@@ -95,6 +95,35 @@ def test_listing_create_with_empty_4_fields(mock_client_class, agent, physical):
     db["listings"].delete_one({"_id": ObjectId(result["listing_id"])})
 
 
+@patch("dictionary_client.DictionaryClient")
+def test_create_listing_handles_dict_not_found(mock_client_class, agent, physical):
+    """identify_community 首次抛 DictionaryNotFoundError → 走 except 重试分支。
+
+    守护 0227acb:create_listing 用了 `except DictionaryNotFoundError` 但曾漏 import
+    该异常类,真实触发该分支时 NameError。本测试强制走这条路径。
+    """
+    from dictionary_client import DictionaryNotFoundError
+    mock_client = MagicMock()
+    mock_client.identify_community.side_effect = [
+        DictionaryNotFoundError("辞典 community 不存在"),  # 首次 NotFound
+        {"_id": "dict_comm_123"},                          # except 内重试成功
+    ]
+    mock_client.identify_property.return_value = {"property_code": "DNF001"}
+    mock_client.submit_claim.return_value = {"total_claims_after": 1}
+    mock_client_class.return_value = mock_client
+
+    from services.listings import create_listing
+    from database import db
+    req = FakeReqV2()
+    result = create_listing(req, physical, agent)  # 不应 NameError
+
+    doc = db["listings"].find_one({"_id": ObjectId(result["listing_id"])})
+    assert doc is not None
+    assert mock_client.identify_community.call_count == 2  # 触发了 except 重试
+
+    db["listings"].delete_one({"_id": ObjectId(result["listing_id"])})
+
+
 # ═══════════════════════════════════════════
 # 2. 4 字段更新
 # ═══════════════════════════════════════════
