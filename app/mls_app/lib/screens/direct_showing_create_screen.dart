@@ -7,6 +7,7 @@ import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import '../services/showing_service.dart';
 import '../widgets/mls/mls_card.dart';
+import '../widgets/showing_feedback_fields.dart';
 
 /// Day 16:直接带看新建页(1:N 模式)
 ///
@@ -38,9 +39,17 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
   final List<String> _photos = []; // base64
   bool _submitting = false;
 
+  // 客户反馈 4 项
+  String? _satisfaction;
+  String? _intentResult;
+  final _feedbackController = TextEditingController();
+  final _trueNeedsController = TextEditingController();
+
   @override
   void dispose() {
     _notes.dispose();
+    _feedbackController.dispose();
+    _trueNeedsController.dispose();
     super.dispose();
   }
 
@@ -133,6 +142,12 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
         showingTime: _showingTime!,
         photos: _photos,
         notes: _notes.text.trim(),
+        feedback: ShowingFeedbackFields.buildMap(
+          satisfaction: _satisfaction,
+          intentResult: _intentResult,
+          customerFeedback: _feedbackController.text,
+          trueNeeds: _trueNeedsController.text,
+        ),
       );
 
       if (!mounted) return;
@@ -376,6 +391,20 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
               alignLabelWithHint: true,
               border: OutlineInputBorder(),
             ),
+          ),
+          const SizedBox(height: 12),
+          const Divider(),
+          const SizedBox(height: 4),
+          const Text('客户反馈 · 帮助分析真实需求',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0)),
+          const SizedBox(height: 12),
+          ShowingFeedbackFields(
+            satisfaction: _satisfaction,
+            onSatisfaction: (v) => setState(() => _satisfaction = v),
+            intentResult: _intentResult,
+            onIntent: (v) => setState(() => _intentResult = v),
+            feedbackController: _feedbackController,
+            trueNeedsController: _trueNeedsController,
           ),
           const SizedBox(height: 24),
 

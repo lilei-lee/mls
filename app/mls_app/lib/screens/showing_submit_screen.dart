@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import '../services/showing_service.dart';
 import '../widgets/mls/mls_card.dart';
+import '../widgets/showing_feedback_fields.dart';
 
 /// BA 提交带看记录(交易留痕节点 ④)
 class ShowingSubmitScreen extends StatefulWidget {
@@ -30,12 +31,20 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
   final List<String> _photos = []; // base64 data URL
   final _notesController = TextEditingController();
 
+  // 客户反馈 4 项
+  String? _satisfaction;
+  String? _intentResult;
+  final _feedbackController = TextEditingController();
+  final _trueNeedsController = TextEditingController();
+
   bool _submitting = false;
   bool _picking = false;
 
   @override
   void dispose() {
     _notesController.dispose();
+    _feedbackController.dispose();
+    _trueNeedsController.dispose();
     super.dispose();
   }
 
@@ -156,6 +165,12 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
         notes: _notesController.text.trim().isEmpty
             ? null
             : _notesController.text.trim(),
+        feedback: ShowingFeedbackFields.buildMap(
+          satisfaction: _satisfaction,
+          intentResult: _intentResult,
+          customerFeedback: _feedbackController.text,
+          trueNeeds: _trueNeedsController.text,
+        ),
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -263,6 +278,20 @@ class _ShowingSubmitScreenState extends State<ShowingSubmitScreen> {
               hintText: '例如:客户对客厅采光满意,对厨房面积有疑虑...',
               border: OutlineInputBorder(),
             ),
+          ),
+          const SizedBox(height: 12),
+          const Divider(),
+          const SizedBox(height: 4),
+          const Text('客户反馈 · 帮助分析真实需求',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0)),
+          const SizedBox(height: 12),
+          ShowingFeedbackFields(
+            satisfaction: _satisfaction,
+            onSatisfaction: (v) => setState(() => _satisfaction = v),
+            intentResult: _intentResult,
+            onIntent: (v) => setState(() => _intentResult = v),
+            feedbackController: _feedbackController,
+            trueNeedsController: _trueNeedsController,
           ),
           const SizedBox(height: 24),
 

@@ -428,6 +428,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'handshake' => Icons.handshake_outlined,
       'hourglass_empty' => LucideIcons.hourglass,
       'help_circle' => LucideIcons.helpCircle,
+      'person_pin' => Icons.person_pin,
       _ => LucideIcons.bell,
     };
     final route = todo['action_route'] as String?;

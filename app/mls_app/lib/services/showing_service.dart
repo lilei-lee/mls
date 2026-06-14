@@ -14,12 +14,14 @@ class ShowingService {
     required DateTime showingTime,
     required List<String> photos,
     String? notes,
+    Map<String, dynamic>? feedback,
   }) async {
     final resp = await _dio.post('/showings', data: {
       'showing_request_id': showingRequestId,
       'showing_time': showingTime.toIso8601String(),
       'photos': photos,
       'notes': notes ?? '',
+      ...?feedback,
     });
     return resp.data['showing_id'] as String;
   }
@@ -34,12 +36,14 @@ class ShowingService {
     required DateTime showingTime,
     required List<String> photos,
     String? notes,
+    Map<String, dynamic>? feedback,
   }) async {
     final resp = await _dio.post('/showings/direct', data: {
       'listing_id': listingId,
       'showing_time': showingTime.toIso8601String(),
       'photos': photos,
       'notes': notes ?? '',
+      ...?feedback,
     });
     return resp.data['data']['showing_id'] as String;
   }
