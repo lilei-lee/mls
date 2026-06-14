@@ -200,3 +200,43 @@ def test_dashboard_enhanced_sections(client):
     assert "环比趋势" in r.text
     assert "区域分布" in r.text
     assert "门店维度" in r.text
+
+
+# ── 审计日志 + 踢出/恢复 ──
+
+def test_audit_requires_auth(client):
+    r = client.get("/admin/audit", follow_redirects=False)
+    assert r.status_code == 303
+
+
+def test_membership_grant_writes_audit(client):
+    aid = _seed_agent()
+    _login(client)
+    client.post(f"/admin/agents/{aid}/membership", data={"days": "365"}, follow_redirects=False)
+    e = db["audit_log"].find_one({"action": "membership_grant", "target_id": str(aid)})
+    assert e is not None and e["detail"]["days"] == 365
+    r = client.get("/admin/audit", follow_redirects=False)
+    assert r.status_code == 200 and "会员开通/续期" in r.text
+
+
+def test_agent_ban_and_unban(client):
+    aid = _seed_agent()
+    _login(client)
+    # 踢出
+    r = client.post(f"/admin/agents/{aid}/ban", data={"reason": "严重违规"}, follow_redirects=False)
+    assert r.status_code == 303
+    a = db["agents"].find_one({"_id": aid})
+    assert a["status"] == "banned" and a["status_reason"] == "严重违规"
+    assert db["audit_log"].find_one({"action": "agent_ban", "target_id": str(aid)}) is not None
+    # 恢复
+    client.post(f"/admin/agents/{aid}/unban", follow_redirects=False)
+    assert db["agents"].find_one({"_id": aid})["status"] == "active"
+    assert db["audit_log"].find_one({"action": "agent_restore", "target_id": str(aid)}) is not None
+
+
+def test_listing_offline_writes_audit(client):
+    lid = _seed_listing(status="on_sale")
+    _login(client)
+    client.post(f"/admin/listings/{lid}/offline", data={"reason": "照片不合规"}, follow_redirects=False)
+    e = db["audit_log"].find_one({"action": "listing_offline", "target_id": str(lid)})
+    assert e is not None and e["detail"]["reason"] == "照片不合规"

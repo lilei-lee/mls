@@ -35,6 +35,24 @@
   </form>
 </div>
 
+<div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:16px; margin-bottom:18px;">
+  <div class="label" style="margin-bottom:10px;">账号状态：{{ a.status_label }}
+    {% if a.status_reason %}<span style="color:#94a3b8;">· {{ a.status_reason }}</span>{% endif %}
+  </div>
+  {% if a.can_unban %}
+  <form method="post" action="/admin/agents/{{ a.id }}/unban" style="margin:0;">
+    <button type="submit">恢复账号</button>
+  </form>
+  {% else %}
+  <form method="post" action="/admin/agents/{{ a.id }}/ban"
+        onsubmit="return confirm('确认踢出该经纪人？其将无法登录。');"
+        style="display:flex; gap:10px; align-items:end; margin:0;">
+    <div><label>踢出原因</label><input name="reason" placeholder="如:严重违规" required></div>
+    <button type="submit" style="background:#b91c1c;">踢出（禁止登录）</button>
+  </form>
+  {% endif %}
+</div>
+
 <h1 style="font-size:16px;">名下房源（{{ listings|length }}）</h1>
 <table>
   <thead><tr><th>小区</th><th>楼栋-房号</th><th>挂牌价(万)</th><th>状态</th></tr></thead>

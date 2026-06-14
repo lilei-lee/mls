@@ -1,0 +1,37 @@
+{% extends "admin/base.html" %}
+{% block title %}审计日志 · MLS 管理后台{% endblock %}
+{% block content %}
+<h1>审计日志</h1>
+
+<form class="inline" method="get" action="/admin/audit">
+  <div>
+    <label>动作类型</label>
+    <select name="action_f" style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px;">
+      <option value="">全部</option>
+      {% for k, label in action_labels.items() %}
+      <option value="{{ k }}" {% if action_f==k %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit">筛选</button>
+</form>
+
+<table>
+  <thead>
+    <tr><th>时间</th><th>动作</th><th>操作人</th><th>对象</th><th>详情</th></tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td style="white-space:nowrap;">{{ r.created_at }}</td>
+      <td>{{ r.action_label }}</td>
+      <td>{{ r.actor }}</td>
+      <td>{{ r.target_type }} {{ r.target_id }}</td>
+      <td style="font-family:monospace; font-size:12px; color:#475569;">{{ r.detail }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" style="color:#94a3b8;">暂无日志</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

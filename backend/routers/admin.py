@@ -13,6 +13,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from database import db
+from audit import write_audit, ACTION_LABEL
 from admin_auth import COOKIE_NAME, MAX_AGE, make_admin_cookie, check_credentials, require_admin
 
 _TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), "..", "templates")
@@ -160,6 +161,7 @@ def admin_agent_membership(agent_id: str, _: bool = Depends(require_admin), days
         "membership_expires_at": datetime.now() + timedelta(days=days),
         "updated_at": datetime.now(),
     }})
+    write_audit("membership_grant", "agent", agent_id, {"days": days})
     return RedirectResponse(url=f"/admin/agents/{agent_id}", status_code=status.HTTP_303_SEE_OTHER)
 
 
@@ -230,6 +232,9 @@ def admin_agent_detail(agent_id: str, request: Request, _: bool = Depends(requir
         "member_active": isinstance(exp, datetime) and exp > now,
         "expires_at": exp.strftime("%Y-%m-%d") if isinstance(exp, datetime) else "-",
         "deal_count": deal_count,
+        "can_ban": a.get("status") != "banned",
+        "can_unban": a.get("status") == "banned",
+        "status_reason": a.get("status_reason", ""),
     }
     listing_rows = [{
         "community": l.get("community", ""),
@@ -253,6 +258,46 @@ def admin_agent_coop(agent_id: str, _: bool = Depends(require_admin), action: st
         "coop_reviewed_at": datetime.now(),
         "updated_at": datetime.now(),
     }})
+    write_audit("coop_review", "agent", agent_id, {"verified": action == "approve"})
+    return RedirectResponse(url=f"/admin/agents/{agent_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@admin_router.post("/agents/{agent_id}/ban")
+def admin_agent_ban(agent_id: str, _: bool = Depends(require_admin), reason: str = Form("")):
+    """踢出经纪人(status=banned,拦登录)。需填原因,记入审计。"""
+    try:
+        aid = ObjectId(agent_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的经纪人 ID")
+    a = db["agents"].find_one({"_id": aid})
+    if not a:
+        raise HTTPException(status_code=404, detail="经纪人不存在")
+    if a.get("status") == "banned":
+        return RedirectResponse(url=f"/admin/agents/{agent_id}", status_code=status.HTTP_303_SEE_OTHER)
+    db["agents"].update_one({"_id": aid}, {"$set": {
+        "status": "banned", "status_reason": reason.strip(),
+        "status_changed_at": datetime.now(), "updated_at": datetime.now(),
+    }})
+    write_audit("agent_ban", "agent", agent_id, {"reason": reason.strip()})
+    return RedirectResponse(url=f"/admin/agents/{agent_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@admin_router.post("/agents/{agent_id}/unban")
+def admin_agent_unban(agent_id: str, _: bool = Depends(require_admin)):
+    """恢复被踢出的经纪人(status=active)。"""
+    try:
+        aid = ObjectId(agent_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的经纪人 ID")
+    a = db["agents"].find_one({"_id": aid})
+    if not a:
+        raise HTTPException(status_code=404, detail="经纪人不存在")
+    if a.get("status") != "banned":
+        return RedirectResponse(url=f"/admin/agents/{agent_id}", status_code=status.HTTP_303_SEE_OTHER)
+    db["agents"].update_one({"_id": aid}, {"$set": {
+        "status": "active", "status_changed_at": datetime.now(), "updated_at": datetime.now(),
+    }})
+    write_audit("agent_restore", "agent", agent_id, {})
     return RedirectResponse(url=f"/admin/agents/{agent_id}", status_code=status.HTTP_303_SEE_OTHER)
 
 
@@ -343,6 +388,8 @@ def _set_listing_status(listing_id: str, allowed_from: str, new_status: str, rea
     if new_status == "offline":
         upd["offline_reason"] = reason
     db["listings"].update_one({"_id": lid}, {"$set": upd})
+    write_audit("listing_offline" if new_status == "offline" else "listing_restore",
+                "listing", listing_id, {"reason": reason} if reason else {})
     return "已下架" if new_status == "offline" else "已恢复上架"
 
 
@@ -358,3 +405,25 @@ def admin_listing_restore(listing_id: str, _: bool = Depends(require_admin)):
     msg = _set_listing_status(listing_id, "offline", "on_sale", "")
     return RedirectResponse(url=f"/admin/listings/{listing_id}?msg={quote(msg)}",
                             status_code=status.HTTP_303_SEE_OTHER)
+
+
+# ── 审计日志查看 ──
+
+@admin_router.get("/audit", response_class=HTMLResponse)
+def admin_audit(request: Request, _: bool = Depends(require_admin), action_f: str = ""):
+    query: dict = {}
+    if action_f:
+        query["action"] = action_f
+    rows = []
+    for e in db["audit_log"].find(query).sort("created_at", -1).limit(300):
+        rows.append({
+            "action": e.get("action", ""),
+            "action_label": ACTION_LABEL.get(e.get("action", ""), e.get("action", "")),
+            "actor": e.get("actor", ""),
+            "target_type": e.get("target_type", ""),
+            "target_id": e.get("target_id", ""),
+            "detail": e.get("detail", {}),
+            "created_at": e["created_at"].strftime("%Y-%m-%d %H:%M:%S") if isinstance(e.get("created_at"), datetime) else "-",
+        })
+    return templates.TemplateResponse(request, "admin/audit.html",
+                                      {"rows": rows, "action_f": action_f, "action_labels": ACTION_LABEL})
