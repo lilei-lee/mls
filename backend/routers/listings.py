@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel, Field
 from database import db
-from auth import get_current_agent
+from auth import get_current_agent, get_unsuspended_agent
 from services.listings import (
     CreateListingRequest, PostListingRequest, _extract_physical_attrs,
     SyncPhysicalBody, CreateListingResponse, MarkDepositPaidBody,
@@ -22,7 +22,7 @@ listings_router = APIRouter(prefix="/api/v1", tags=["listings"])
 @listings_router.post("/listings", response_model=CreateListingResponse)
 def create_listing_api(
     req: PostListingRequest,
-    agent: dict = Depends(get_current_agent),
+    agent: dict = Depends(get_unsuspended_agent),
 ):
     physical_attrs = _extract_physical_attrs(req)
     result = create_listing(req, physical_attrs, agent)

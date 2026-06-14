@@ -236,6 +236,8 @@ def admin_agent_detail(agent_id: str, request: Request, _: bool = Depends(requir
         "deal_count": deal_count,
         "can_ban": a.get("status") != "banned",
         "can_unban": a.get("status") == "banned",
+        "can_suspend": a.get("status") == "active",
+        "can_unsuspend": a.get("status") == "suspended",
         "status_reason": a.get("status_reason", ""),
     }
     listing_rows = [{
@@ -300,6 +302,45 @@ def admin_agent_unban(agent_id: str, _: bool = Depends(require_admin)):
         "status": "active", "status_changed_at": datetime.now(), "updated_at": datetime.now(),
     }})
     write_audit("agent_restore", "agent", agent_id, {})
+    return RedirectResponse(url=f"/admin/agents/{agent_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@admin_router.post("/agents/{agent_id}/suspend")
+def admin_agent_suspend(agent_id: str, _: bool = Depends(require_admin), reason: str = Form("")):
+    """暂停经纪人(status=suspended):仍可登录/读/完成在途协作,但不能发起新业务。仅暂停 active。"""
+    try:
+        aid = ObjectId(agent_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的经纪人 ID")
+    a = db["agents"].find_one({"_id": aid})
+    if not a:
+        raise HTTPException(status_code=404, detail="经纪人不存在")
+    if a.get("status") != "active":
+        return RedirectResponse(url=f"/admin/agents/{agent_id}", status_code=status.HTTP_303_SEE_OTHER)
+    db["agents"].update_one({"_id": aid}, {"$set": {
+        "status": "suspended", "status_reason": reason.strip(),
+        "status_changed_at": datetime.now(), "updated_at": datetime.now(),
+    }})
+    write_audit("agent_suspend", "agent", agent_id, {"reason": reason.strip()})
+    return RedirectResponse(url=f"/admin/agents/{agent_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@admin_router.post("/agents/{agent_id}/unsuspend")
+def admin_agent_unsuspend(agent_id: str, _: bool = Depends(require_admin)):
+    """解除暂停(status=active)。仅对 suspended 生效。"""
+    try:
+        aid = ObjectId(agent_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的经纪人 ID")
+    a = db["agents"].find_one({"_id": aid})
+    if not a:
+        raise HTTPException(status_code=404, detail="经纪人不存在")
+    if a.get("status") != "suspended":
+        return RedirectResponse(url=f"/admin/agents/{agent_id}", status_code=status.HTTP_303_SEE_OTHER)
+    db["agents"].update_one({"_id": aid}, {"$set": {
+        "status": "active", "status_changed_at": datetime.now(), "updated_at": datetime.now(),
+    }})
+    write_audit("agent_unsuspend", "agent", agent_id, {})
     return RedirectResponse(url=f"/admin/agents/{agent_id}", status_code=status.HTTP_303_SEE_OTHER)
 
 

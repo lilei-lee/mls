@@ -161,6 +161,20 @@ def get_current_agent(
     return agent
 
 
+def get_unsuspended_agent(agent: dict = Depends(get_current_agent)) -> dict:
+    """在 get_current_agent 基础上,暂停账号禁止「发起新业务」(挂房源/带客申请/带看)。
+
+    暂停 ≠ 踢出:暂停期仍可登录、读、完成在途协作(审批申请/确认带看/发起成交/
+    填价/标记定金付款)。仅拦截拉新动作。被踢出(banned)在 get_current_agent 已先 403。
+    """
+    if agent.get("status") == "suspended":
+        raise HTTPException(
+            status_code=403,
+            detail="账号已被暂停,暂停期间不能发起新业务;可继续处理进行中的协作",
+        )
+    return agent
+
+
 def get_agent_from_token(token: str):
     """从 access token 解出 agent(任何失败返 None,不抛)。供会员中间件用。"""
     try:

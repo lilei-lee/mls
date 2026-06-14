@@ -28,6 +28,8 @@ ACTION_LABEL = {
     "listing_restore": "房源恢复上架",
     "agent_ban": "踢出经纪人",
     "agent_restore": "恢复经纪人",
+    "agent_suspend": "暂停经纪人",
+    "agent_unsuspend": "解除暂停",
     "community_edit": "编辑小区",
     "community_merge": "合并小区",
     "export": "数据导出",

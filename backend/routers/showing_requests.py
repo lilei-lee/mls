@@ -1,6 +1,6 @@
 """带客申请路由 -- 拆自 main.py L709-775"""
 from fastapi import APIRouter, Depends
-from auth import get_current_agent
+from auth import get_current_agent, get_unsuspended_agent
 from showing_requests import (
     CreateShowingRequestBody, RejectRequestBody,
     create_showing_request, approve_showing_request,
@@ -15,7 +15,7 @@ showing_requests_router = APIRouter(prefix="/api/v1", tags=["showing-requests"])
 @showing_requests_router.post("/showing-requests")
 def create_showing_request_api(
     req: CreateShowingRequestBody,
-    agent: dict = Depends(get_current_agent),
+    agent: dict = Depends(get_unsuspended_agent),
 ):
     result = create_showing_request(req, agent)
     print(f"\n👀 新带客申请: 客户{req.customer_surname} by {agent['name']}")

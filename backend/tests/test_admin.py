@@ -498,3 +498,28 @@ def test_mark_deposit_pushes_event(client):
     l = db["listings"].find_one({"_id": lid})
     assert l["status"] == "deposit_paid"
     assert any(e.get("type") == "deposit" for e in l.get("deposit_events", []))
+
+
+# ── 经纪人暂停/解除 ──
+
+def test_agent_suspend_and_unsuspend(client):
+    aid = _seed_agent()
+    _login(client)
+    r = client.post(f"/admin/agents/{aid}/suspend", data={"reason": "核实中"}, follow_redirects=False)
+    assert r.status_code == 303
+    a = db["agents"].find_one({"_id": aid})
+    assert a["status"] == "suspended" and a["status_reason"] == "核实中"
+    assert db["audit_log"].find_one({"action": "agent_suspend", "target_id": str(aid)}) is not None
+    # 解除
+    client.post(f"/admin/agents/{aid}/unsuspend", follow_redirects=False)
+    assert db["agents"].find_one({"_id": aid})["status"] == "active"
+    assert db["audit_log"].find_one({"action": "agent_unsuspend", "target_id": str(aid)}) is not None
+
+
+def test_suspend_only_active(client):
+    """已踢出的经纪人不能被'暂停'(状态守卫)"""
+    aid = _seed_agent()
+    db["agents"].update_one({"_id": aid}, {"$set": {"status": "banned"}})
+    _login(client)
+    client.post(f"/admin/agents/{aid}/suspend", data={"reason": "x"}, follow_redirects=False)
+    assert db["agents"].find_one({"_id": aid})["status"] == "banned"  # 未变

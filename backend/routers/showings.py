@@ -1,6 +1,6 @@
 """带看记录路由 -- 拆自 main.py L777-861"""
 from fastapi import APIRouter, HTTPException, Depends, Query
-from auth import get_current_agent
+from auth import get_current_agent, get_unsuspended_agent
 from showings import (
     CreateShowingBody, RejectShowingBody,
     submit_showing, get_showing_by_id, get_showing_by_request,
@@ -15,7 +15,7 @@ showings_router = APIRouter(prefix="/api/v1", tags=["showings"])
 @showings_router.post("/showings")
 def submit_showing_api(
     body: CreateShowingBody,
-    agent: dict = Depends(get_current_agent),
+    agent: dict = Depends(get_unsuspended_agent),
 ):
     result = submit_showing(body, agent)
     print(f"\n📸 新带看记录: showing_id={result['showing_id']} by {agent['name']}")
@@ -82,7 +82,7 @@ def api_can_direct_showing(
 @showings_router.post("/showings/direct")
 def api_create_direct_showing(
     req: DirectShowingRequest,
-    current_agent: dict = Depends(get_current_agent),
+    current_agent: dict = Depends(get_unsuspended_agent),
 ):
     """直接发起带看(跳过申请) · 前置:对这套房历史有 approved 申请"""
     data = create_direct_showing(str(current_agent["_id"]), req)

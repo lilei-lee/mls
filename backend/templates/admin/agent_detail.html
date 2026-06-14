@@ -44,12 +44,26 @@
     <button type="submit">恢复账号</button>
   </form>
   {% else %}
-  <form method="post" action="/admin/agents/{{ a.id }}/ban"
-        onsubmit="return confirm('确认踢出该经纪人？其将无法登录。');"
-        style="display:flex; gap:10px; align-items:end; margin:0;">
-    <div><label>踢出原因</label><input name="reason" placeholder="如:严重违规" required></div>
-    <button type="submit" style="background:#b91c1c;">踢出（禁止登录）</button>
-  </form>
+  <div style="display:flex; gap:18px; flex-wrap:wrap; align-items:end;">
+    {% if a.can_unsuspend %}
+    <form method="post" action="/admin/agents/{{ a.id }}/unsuspend" style="margin:0;">
+      <button type="submit">解除暂停</button>
+    </form>
+    {% elif a.can_suspend %}
+    <form method="post" action="/admin/agents/{{ a.id }}/suspend"
+          onsubmit="return confirm('确认暂停该经纪人？暂停期间不能发起新业务，但仍可登录处理进行中的协作。');"
+          style="display:flex; gap:8px; align-items:end; margin:0;">
+      <div><label>暂停原因</label><input name="reason" placeholder="如:核实中"></div>
+      <button type="submit" style="background:#d97706;">暂停</button>
+    </form>
+    {% endif %}
+    <form method="post" action="/admin/agents/{{ a.id }}/ban"
+          onsubmit="return confirm('确认踢出该经纪人？其将无法登录。');"
+          style="display:flex; gap:8px; align-items:end; margin:0;">
+      <div><label>踢出原因</label><input name="reason" placeholder="如:严重违规" required></div>
+      <button type="submit" style="background:#b91c1c;">踢出（禁止登录）</button>
+    </form>
+  </div>
   {% endif %}
 </div>
 
