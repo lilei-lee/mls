@@ -535,8 +535,8 @@ PLAN:
 
 ### 🔴 高优先级技术债
 
-1. **B 对象存储迁移**（3-4 小时）
-   照片 base64 存 MongoDB 是 50 户内的临时方案。必做先决条件：申请腾讯/阿里/七牛 COS 账号。
+1. ~~**B 对象存储迁移**（3-4 小时）~~ 🟡 **实质已完成**（2026-06-14 复核）
+   已实现自建 **MinIO** 对象存储：`storage.py`（`upload_photo`/`get_photo`/`ensure_bucket`）+ `routers/photos.py` 上传端点 + 启动建桶；`PhotoItem` 支持 `photo_key`（新上传走 MinIO）。用自建 MinIO，**不需要云 COS 账号**。残留：老 listing 的 base64 是否全量迁移到 MinIO + 前端是否全切 photo_key 路径，未逐一核（base64 仍向后兼容）。
 
 2. ~~**Pydantic 校验补强**（V8.4，Day 17 经验 9）~~ ✅ **已闭合**（Day 26-31 重构期系统性补完，2026-06-14 全库复核确认）
    原债（`price_wan` 允许负数、姓名允许 50 字、备注允许 1000 字）已不存在：全后端用户可编辑字段均有约束——`price_wan gt=0`、注册 `name 2~20`/`store_name 2~100`、`deal_price gt=0 ≤5亿`、各备注 `max_length`、预算 `0~10万`+`min≤max` 跨字段校验、gender/枚举用 `Literal`/`pattern`。
@@ -544,8 +544,8 @@ PLAN:
 
 ### 🟡 中优先级（3-5 天内）
 
-- 直接带看 listing 状态守卫过严（`transaction_ongoing` 该入白名单）
-- 房源表单缺奖金输入字段
+- ~~直接带看 listing 状态守卫过严（`transaction_ongoing` 该入白名单）~~ ✅ **已修**（customers.py:565 白名单已含 `transaction_ongoing`）
+- ~~房源表单缺奖金输入字段~~ ✅ **已有**（listing_create_screen.dart:313「合作奖金(元)」输入框 + 提交 `bonus_yuan`）
 - ~~成交日期 vs 带看时间严格比较 bug~~ ✅ **已修**（按天截断比较，transactions.py:197-202；回归测试 `test_transaction_initiate.py`）
 - ~~`initiate_transaction` 未给 `bonus_yuan` 拍快照~~ ✅ **已实现**（`bonus_yuan_snapshot` 锁定 BA 提交时点，transactions.py:236；回归测试同上）
 - ~~带客申请 7 天过期定时任务~~ ✅ **已实现**（`scheduler.expire_stale_showing_requests` 每天 03:00；回归测试 `test_scheduler.py`）
@@ -659,7 +659,7 @@ REM 期望:209 passed / 46 skipped(smoke) / 0 failed
 | 模块 | 已实现 | 未实现（产品意图，但代码没写） |
 |---|---|---|
 | 模块一 注册登录 | 手机号 + 短信验证码登录、JWT、Token Rotation、退出黑名单、密码登录、**会员费机制（全局开关 MEMBERSHIP_ENFORCED + 过期只读 + 后台开通，真机待验）** | 微信登录、生物识别、多设备策略、设备信任、异地登录二次验证、Web 会员后台、自助续费支付 |
-| 模块二 房源管理 | 5/12 状态机、查重、奖金字段、共享开关 | 即将上市、撤牌、暂停、待审核、锁定、独家委托上传、定金凭证 EXIF 校验、COS 对象存储（用 base64 临时） |
+| 模块二 房源管理 | 5/12 状态机、查重、奖金字段、共享开关、**MinIO 对象存储（storage.py + photos 路由，PhotoItem 支持 photo_key）** | 即将上市、撤牌、暂停、待审核、锁定、独家委托上传、定金凭证 EXIF 校验、老 base64 全量迁移 MinIO |
 | 模块三 共享房源库 | 列表 + 筛选 + 卡片状态标签 + 防重复申请 + listing 状态徽章 | 高德地图、CMA 数据、关注小区、收藏通知、本地缓存离线查看、Excel 导出 |
 | 模块四 带客协作 | 申请审批、带看确认、1:N 再次带看、直接带看、客户选择器、详情页 pop 后自动刷新 | 7 天有效期定时任务、批量审批、地理围栏签到、本地通知兜底、深度链接审批、实时推送 |
 | 模块五 交易留痕 | BA 发起成交确认、LA 独立填价（视角隔离 + 后端脱敏 + 前端隐藏 + 双向 mask）、自动 settlement | LA 催促、14 天回退发起、驳回超 2 次冻结、30 天修正窗口、争议举报、仲裁流程、bonus_yuan 严格快照、BA 确认收款 |
