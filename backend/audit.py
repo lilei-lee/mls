@@ -29,6 +29,7 @@ ACTION_LABEL = {
     "agent_ban": "踢出经纪人",
     "agent_restore": "恢复经纪人",
     "community_edit": "编辑小区",
+    "community_merge": "合并小区",
     "export": "数据导出",
     "config_update": "修改系统配置",
 }

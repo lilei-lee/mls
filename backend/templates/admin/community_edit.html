@@ -22,4 +22,10 @@
   <button type="submit">保存</button>
 </form>
 <p style="color:#94a3b8; font-size:12px; margin-top:10px;">注：(小区名, 区域) 全局唯一，改名撞库会被拒绝。</p>
+
+<div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:16px; max-width:480px; margin-top:16px;">
+  <div class="label" style="margin-bottom:8px;">合并小区</div>
+  <p style="font-size:13px; color:#475569; margin:0 0 10px;">把本小区并入另一个小区（房源迁移 + 旧名存别名 + 删除本小区）。</p>
+  <a href="/admin/communities/{{ c.id }}/merge"><button type="button" style="background:#64748b;">去合并 →</button></a>
+</div>
 {% endblock %}

@@ -348,3 +348,54 @@ def test_config_drives_scheduler_expiry(client):
     }).inserted_id
     expire_stale_showing_requests()
     assert db["showing_requests"].find_one({"_id": rid})["status"] == "expired"
+
+
+# ── 小区合并 ──
+
+def test_community_merge_requires_auth(client):
+    cid = _seed_community("甲小区", "桥东区")
+    r = client.get(f"/admin/communities/{cid}/merge", follow_redirects=False)
+    assert r.status_code == 303
+
+
+def test_community_merge_preview(client):
+    from bson import ObjectId
+    A = _seed_community("旧名小区", "桥东区")
+    B = _seed_community("新名小区", "桥东区")
+    db["listings"].insert_one({"community": "旧名小区", "community_id": A,
+                               "district": "桥东区", "status": "on_sale", "created_at": datetime.now()})
+    _login(client)
+    r = client.get(f"/admin/communities/{A}/merge", params={"target": str(B)}, follow_redirects=False)
+    assert r.status_code == 200
+    assert "1" in r.text and "新名小区" in r.text  # 影响 1 套
+
+
+def test_community_merge_execute(client):
+    A = _seed_community("旧名小区", "桥东区")
+    B = _seed_community("新名小区", "桥东区")
+    lid = db["listings"].insert_one({
+        "community": "旧名小区", "community_id": A, "district": "桥东区",
+        "status": "on_sale", "created_at": datetime.now(),
+    }).inserted_id
+    _login(client)
+    r = client.post(f"/admin/communities/{A}/merge", data={"target": str(B)}, follow_redirects=False)
+    assert r.status_code == 303
+    l = db["listings"].find_one({"_id": lid})
+    assert l["community"] == "新名小区" and l["community_id"] == B
+    assert db["communities"].find_one({"_id": A}) is None
+    b = db["communities"].find_one({"_id": B})
+    assert "旧名小区" in (b.get("aliases") or [])
+    assert db["audit_log"].find_one({"action": "community_merge"}) is not None
+
+
+def test_community_merge_by_name_match(client):
+    """房源用 community 名(无 community_id)也能被迁移"""
+    A = _seed_community("名匹配小区", "桥西区")
+    B = _seed_community("目标小区", "桥西区")
+    lid = db["listings"].insert_one({
+        "community": "名匹配小区", "district": "桥西区",  # 无 community_id
+        "status": "on_sale", "created_at": datetime.now(),
+    }).inserted_id
+    _login(client)
+    client.post(f"/admin/communities/{A}/merge", data={"target": str(B)}, follow_redirects=False)
+    assert db["listings"].find_one({"_id": lid})["community"] == "目标小区"

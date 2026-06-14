@@ -1,0 +1,37 @@
+{% extends "admin/base.html" %}
+{% block title %}合并小区 · MLS 管理后台{% endblock %}
+{% block content %}
+<p style="margin:0 0 12px;"><a href="/admin/communities/{{ a.id }}" style="color:#64748b; font-size:13px;">← 返回小区编辑</a></p>
+<h1>合并小区</h1>
+
+<div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:20px; max-width:560px;">
+  <p style="margin:0 0 14px;">将 <b>{{ a.name }}</b>（{{ a.district }}）并入下面选定的目标小区：</p>
+  <form method="get" action="/admin/communities/{{ a.id }}/merge" style="display:flex; gap:10px; align-items:end; margin:0;">
+    <div>
+      <label>目标小区</label>
+      <select name="target" style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; min-width:240px;">
+        <option value="">请选择…</option>
+        {% for o in others %}
+        <option value="{{ o.id }}" {% if preview and preview.target_id==o.id %}selected{% endif %}>{{ o.name }}（{{ o.district }}）</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" style="background:#64748b;">预览影响</button>
+  </form>
+
+  {% if preview %}
+  <div style="margin-top:18px; padding:14px; background:#fff7ed; border:1px solid #fed7aa; border-radius:8px;">
+    <p style="margin:0 0 8px;">⚠️ 确认合并（<b>不可撤销</b>）：</p>
+    <ul style="margin:0 0 12px; padding-left:18px; font-size:13px; color:#475569;">
+      <li><b>{{ preview.affected }}</b> 套房源将从「{{ a.name }}」迁移到「{{ preview.target_name }}（{{ preview.target_district }}）」</li>
+      <li>「{{ a.name }}」将作为别名记入目标小区，然后从小区库删除</li>
+    </ul>
+    <form method="post" action="/admin/communities/{{ a.id }}/merge"
+          onsubmit="return confirm('确认将「{{ a.name }}」并入「{{ preview.target_name }}」？此操作不可撤销。');" style="margin:0;">
+      <input type="hidden" name="target" value="{{ preview.target_id }}">
+      <button type="submit" style="background:#b91c1c;">确认合并</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

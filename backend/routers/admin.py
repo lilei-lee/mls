@@ -596,3 +596,66 @@ async def admin_config_save(request: Request, _: bool = Depends(require_admin)):
     if changed:
         write_audit("config_update", "system", "-", changed)
     return RedirectResponse(url=f"/admin/config?msg={quote('已保存')}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+# ── 小区合并(A 并入 B:房源迁移 + 旧名存别名 + 删 A) ──
+
+def _merge_match(A: dict, aid: ObjectId) -> dict:
+    """匹配归属 A 的房源:community_id(ObjectId) 或 (community 名 + district)。"""
+    return {"$or": [
+        {"community_id": aid},
+        {"community": A.get("name", ""), "district": A.get("district", "")},
+    ]}
+
+
+@admin_router.get("/communities/{community_id}/merge", response_class=HTMLResponse)
+def admin_community_merge_page(community_id: str, request: Request,
+                               _: bool = Depends(require_admin), target: str = ""):
+    try:
+        aid = ObjectId(community_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的小区 ID")
+    A = db["communities"].find_one({"_id": aid})
+    if not A:
+        raise HTTPException(status_code=404, detail="小区不存在")
+    others = [{"id": str(c["_id"]), "name": c["name"], "district": c.get("district", "")}
+              for c in db["communities"].find({"_id": {"$ne": aid}}).sort("name", 1)]
+    preview = None
+    if target:
+        try:
+            B = db["communities"].find_one({"_id": ObjectId(target)})
+        except Exception:
+            B = None
+        if B:
+            preview = {
+                "target_id": str(B["_id"]), "target_name": B["name"],
+                "target_district": B.get("district", ""),
+                "affected": db["listings"].count_documents(_merge_match(A, aid)),
+            }
+    a = {"id": str(aid), "name": A["name"], "district": A.get("district", "")}
+    return templates.TemplateResponse(request, "admin/community_merge.html",
+                                      {"a": a, "others": others, "preview": preview})
+
+
+@admin_router.post("/communities/{community_id}/merge")
+def admin_community_merge(community_id: str, _: bool = Depends(require_admin), target: str = Form(...)):
+    try:
+        aid, bid = ObjectId(community_id), ObjectId(target)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的小区 ID")
+    if aid == bid:
+        raise HTTPException(status_code=400, detail="不能合并到自己")
+    A = db["communities"].find_one({"_id": aid})
+    B = db["communities"].find_one({"_id": bid})
+    if not A or not B:
+        raise HTTPException(status_code=404, detail="小区不存在")
+    res = db["listings"].update_many(_merge_match(A, aid), {"$set": {
+        "community": B["name"], "community_id": bid, "district": B.get("district", ""),
+        "updated_at": datetime.now(),
+    }})
+    db["communities"].update_one({"_id": bid}, {"$addToSet": {"aliases": A["name"]}})
+    db["communities"].delete_one({"_id": aid})
+    write_audit("community_merge", "community", community_id,
+                {"into": str(bid), "into_name": B["name"], "affected": res.modified_count})
+    msg = quote(f"已将「{A['name']}」并入「{B['name']}」,迁移 {res.modified_count} 套房源")
+    return RedirectResponse(url=f"/admin/communities?msg={msg}", status_code=status.HTTP_303_SEE_OTHER)
