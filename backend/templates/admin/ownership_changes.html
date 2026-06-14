@@ -1,0 +1,39 @@
+{% extends "admin/base.html" %}
+{% block title %}归属变更 · MLS 管理后台{% endblock %}
+{% block content %}
+<h1>归属变更</h1>
+<p style="color:#64748b; font-size:13px; margin:0 0 14px;">流程：发起(目标+凭证+理由)→ 房源锁定 → 复核 → 确认转/不转。从房源详情页发起。</p>
+
+<form class="inline" method="get" action="/admin/ownership-changes">
+  <div>
+    <label>状态</label>
+    <select name="status_f" style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px;">
+      <option value="">全部</option>
+      {% for k, label in status_labels.items() %}
+      <option value="{{ k }}" {% if status_f==k %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit">筛选</button>
+</form>
+
+<table>
+  <thead>
+    <tr><th>时间</th><th>小区</th><th>原归属</th><th>转给</th><th>状态</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td style="white-space:nowrap;">{{ r.created_at }}</td>
+      <td>{{ r.community }}</td>
+      <td>{{ r.from_name }}</td>
+      <td>{{ r.to_name }}</td>
+      <td>{{ r.status_label }}</td>
+      <td><a href="/admin/ownership-changes/{{ r.id }}">复核</a></td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6" style="color:#94a3b8;">暂无归属变更</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

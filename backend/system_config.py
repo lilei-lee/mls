@@ -22,6 +22,8 @@ CONFIG_SPEC = [
      "note": "触发锁定后的持续时间"},
     {"key": "deposit_watch_days", "label": "定金异常监控窗口(天)", "default": 30,
      "note": "统计此窗口内定金标记/回退次数,超 2 次在'定金监控'标红"},
+    {"key": "ownership_require_proof", "label": "归属变更是否强制委托凭证(0关/1开)", "default": 0,
+     "note": "种子期 0=不强制;设 1 后发起归属变更必须上传委托凭证"},
 ]
 
 _DEFAULTS = {c["key"]: c["default"] for c in CONFIG_SPEC}

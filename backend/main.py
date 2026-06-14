@@ -35,6 +35,7 @@ from transactions import ensure_transactions_indexes
 from settlements import ensure_settlements_indexes
 from customers import ensure_customers_indexes
 from disputes import ensure_disputes_indexes
+from ownership import ensure_ownership_indexes
 from scheduler import start_scheduler, stop_scheduler
 from storage import ensure_bucket
 
@@ -129,6 +130,8 @@ def startup_check():
     print("[OK] 客户档案索引已建立")
     ensure_disputes_indexes()
     print("[OK] 争议举报索引已建立")
+    ensure_ownership_indexes()
+    print("[OK] 归属变更索引已建立")
     ensure_bucket()
     start_scheduler()
 

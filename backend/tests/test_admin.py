@@ -611,3 +611,34 @@ def test_transactions_overdue_red(client):
     _login(client)
     r = client.get("/admin/transactions", follow_redirects=False)
     assert r.status_code == 200 and "fef2f2" in r.text  # 超时标红背景
+
+
+# ── 归属变更(admin 流程) ──
+
+def test_ownership_admin_flow(client):
+    from bson import ObjectId
+    to = db["agents"].insert_one({"_id": ObjectId(), "name": "新主", "phone": "13900000055",
+                                  "status": "active"}).inserted_id
+    lid = db["listings"].insert_one({
+        "_id": ObjectId(), "community": "归属小区", "status": "on_sale",
+        "owner_agent_id": ObjectId(), "owner_agent_name": "原主", "owner_agent_phone": "138",
+        "house_code": "HC-OWN", "building": "1", "unit": "1", "room_no": "1",
+        "district": "桥东区", "price_wan": 80.0, "created_at": datetime.now(),
+    }).inserted_id
+    _login(client)
+    # 发起 → 锁定
+    r = client.post(f"/admin/listings/{lid}/ownership-change",
+                    data={"to_phone": "13900000055", "reason": "离职"}, follow_redirects=False)
+    assert r.status_code == 303
+    assert db["listings"].find_one({"_id": lid})["ownership_locked"] is True
+    assert db["audit_log"].find_one({"action": "ownership_create"}) is not None
+    # 列表显示
+    r2 = client.get("/admin/ownership-changes", follow_redirects=False)
+    assert r2.status_code == 200 and "归属小区" in r2.text
+    # 复核通过 → 转移 + 解锁
+    cid = db["ownership_changes"].find_one({"listing_id": lid})["_id"]
+    r3 = client.post(f"/admin/ownership-changes/{cid}/approve", follow_redirects=False)
+    assert r3.status_code == 303
+    l = db["listings"].find_one({"_id": lid})
+    assert l["owner_agent_id"] == to and l["ownership_locked"] is False
+    assert db["audit_log"].find_one({"action": "ownership_approve"}) is not None

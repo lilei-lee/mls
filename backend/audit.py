@@ -38,4 +38,7 @@ ACTION_LABEL = {
     "dispute_resolve": "争议裁决",
     "dispute_reject": "驳回争议",
     "deposit_proof_review": "定金凭证审核",
+    "ownership_create": "发起归属变更",
+    "ownership_approve": "归属变更通过",
+    "ownership_reject": "归属变更驳回",
 }

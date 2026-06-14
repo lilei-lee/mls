@@ -413,6 +413,8 @@ def admin_listing_detail(listing_id: str, request: Request, _: bool = Depends(re
         "created_at": l["created_at"].strftime("%Y-%m-%d") if isinstance(l.get("created_at"), datetime) else "-",
         "can_offline": l.get("status") == "on_sale",
         "can_restore": l.get("status") == "offline",
+        "ownership_locked": bool(l.get("ownership_locked")),
+        "can_transfer": l.get("status") != "sold" and not l.get("ownership_locked"),
     }
     return templates.TemplateResponse(request, "admin/listing_detail.html", {"l": listing, "msg": msg})
 
@@ -967,3 +969,76 @@ def admin_transactions(request: Request, _: bool = Depends(require_admin), view:
             "cancel_reason": t.get("cancel_reason", ""),
         })
     return templates.TemplateResponse(request, "admin/transactions.html", {"rows": rows, "view": view})
+
+
+# ── 归属变更(模块六 §5.3:发起→锁定→复核→确认) ──
+
+@admin_router.post("/listings/{listing_id}/ownership-change")
+def admin_create_ownership_change(listing_id: str, _: bool = Depends(require_admin),
+                                  to_phone: str = Form(...), proof: str = Form(""), reason: str = Form("")):
+    from ownership import create_ownership_change
+    res = create_ownership_change(listing_id, to_phone, proof, reason)
+    write_audit("ownership_create", "listing", listing_id, {"to_phone": to_phone.strip()})
+    return RedirectResponse(url=f"/admin/ownership-changes/{res['id']}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@admin_router.get("/ownership-changes", response_class=HTMLResponse)
+def admin_ownership_changes(request: Request, _: bool = Depends(require_admin), status_f: str = ""):
+    from ownership import STATUS_LABEL
+    query = {"status": status_f} if status_f else {}
+    rows = []
+    for c in db["ownership_changes"].find(query).sort("created_at", -1).limit(200):
+        rows.append({
+            "id": str(c["_id"]),
+            "community": c.get("community", ""),
+            "from_name": c.get("from_agent_name", ""),
+            "to_name": c.get("to_agent_name", ""),
+            "status": c.get("status", ""),
+            "status_label": STATUS_LABEL.get(c.get("status", ""), c.get("status", "")),
+            "created_at": c["created_at"].strftime("%Y-%m-%d %H:%M") if isinstance(c.get("created_at"), datetime) else "-",
+        })
+    return templates.TemplateResponse(request, "admin/ownership_changes.html",
+                                      {"rows": rows, "status_f": status_f, "status_labels": STATUS_LABEL})
+
+
+@admin_router.get("/ownership-changes/{change_id}", response_class=HTMLResponse)
+def admin_ownership_detail(change_id: str, request: Request, _: bool = Depends(require_admin)):
+    from ownership import STATUS_LABEL
+    try:
+        cid = ObjectId(change_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的变更 ID")
+    c = db["ownership_changes"].find_one({"_id": cid})
+    if not c:
+        raise HTTPException(status_code=404, detail="归属变更不存在")
+    d = {
+        "id": str(cid),
+        "community": c.get("community", ""),
+        "from_name": c.get("from_agent_name", ""),
+        "to_name": c.get("to_agent_name", ""),
+        "to_phone": c.get("to_agent_phone", ""),
+        "reason": c.get("reason", ""),
+        "proof_src": _proof_src(c.get("proof", "")),
+        "has_proof": bool(c.get("proof")),
+        "status": c.get("status", ""),
+        "status_label": STATUS_LABEL.get(c.get("status", ""), c.get("status", "")),
+        "review_note": c.get("review_note", ""),
+        "pending": c.get("status") == "pending_review",
+    }
+    return templates.TemplateResponse(request, "admin/ownership_detail.html", {"d": d})
+
+
+@admin_router.post("/ownership-changes/{change_id}/approve")
+def admin_ownership_approve(change_id: str, _: bool = Depends(require_admin)):
+    from ownership import approve_ownership_change
+    res = approve_ownership_change(change_id)
+    write_audit("ownership_approve", "ownership_change", change_id, {"to": res.get("transferred_to", "")})
+    return RedirectResponse(url=f"/admin/ownership-changes/{change_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@admin_router.post("/ownership-changes/{change_id}/reject")
+def admin_ownership_reject(change_id: str, _: bool = Depends(require_admin), note: str = Form("")):
+    from ownership import reject_ownership_change
+    reject_ownership_change(change_id, note)
+    write_audit("ownership_reject", "ownership_change", change_id, {})
+    return RedirectResponse(url=f"/admin/ownership-changes/{change_id}", status_code=status.HTTP_303_SEE_OTHER)

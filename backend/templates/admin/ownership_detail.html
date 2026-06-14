@@ -1,0 +1,36 @@
+{% extends "admin/base.html" %}
+{% block title %}归属变更复核 · MLS 管理后台{% endblock %}
+{% block content %}
+<p style="margin:0 0 12px;"><a href="/admin/ownership-changes" style="color:#64748b; font-size:13px;">← 返回归属变更</a></p>
+<h1>归属变更复核 <span style="font-size:13px; color:#64748b;">{{ d.status_label }}</span></h1>
+
+<div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:18px; margin-bottom:16px; max-width:640px;">
+  <p style="margin:0 0 8px;"><b>小区：</b>{{ d.community }}</p>
+  <p style="margin:0 0 8px;"><b>原归属：</b>{{ d.from_name }} → <b>转给：</b>{{ d.to_name }}（{{ d.to_phone }}）</p>
+  <p style="margin:0 0 8px;"><b>理由：</b>{{ d.reason or '-' }}</p>
+  <p style="margin:0;"><b>委托凭证：</b>
+    {% if d.has_proof %}<a href="{{ d.proof_src }}" target="_blank">查看凭证</a>{% else %}<span style="color:#94a3b8;">未上传（种子期不强制）</span>{% endif %}
+  </p>
+</div>
+
+{% if d.pending %}
+<div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:18px; max-width:640px;">
+  <div class="label" style="margin-bottom:10px;">确认转还是不转（通过前系统二次校验：无进行中成交 + 目标仍 active）</div>
+  <div style="display:flex; gap:18px; align-items:end; flex-wrap:wrap;">
+    <form method="post" action="/admin/ownership-changes/{{ d.id }}/approve"
+          onsubmit="return confirm('确认把房源归属转给 {{ d.to_name }}？');" style="margin:0;">
+      <button type="submit" style="background:#0f172a;">确认转移</button>
+    </form>
+    <form method="post" action="/admin/ownership-changes/{{ d.id }}/reject"
+          style="display:flex; gap:8px; align-items:end; margin:0;">
+      <div><label>驳回理由</label><input name="note" placeholder="如:凭证不实"></div>
+      <button type="submit" style="background:#64748b;">驳回（解锁）</button>
+    </form>
+  </div>
+</div>
+{% else %}
+<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:16px; max-width:640px;">
+  已处理：{{ d.status_label }}{% if d.review_note %} · {{ d.review_note }}{% endif %}
+</div>
+{% endif %}
+{% endblock %}
