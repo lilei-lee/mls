@@ -705,13 +705,39 @@ def test_community_edit_rich_fields(client):
     assert c["property_company"] == "金科物业" and c["plot_ratio"] == 2.5 and c["green_ratio"] == 35.0
 
 
-def test_community_export_csv(client):
+def test_community_export_selected_csv(client):
     cid = _seed_community("导出小区", "桥东区")
+    _seed_community("不导小区", "桥西区")
     db["communities"].update_one({"_id": cid}, {"$set": {"property_company": "测试物业"}})
     _login(client)
-    r = client.get("/admin/community-export.csv", follow_redirects=False)
+    # 只勾选「导出小区」→ 导出里有它、没有「不导小区」
+    r = client.post("/admin/community-export.csv", data={"ids": [str(cid)]}, follow_redirects=False)
     assert r.status_code == 200
     assert "导出小区" in r.text and "物业公司" in r.text and "测试物业" in r.text
+    assert "不导小区" not in r.text
+    e = db["audit_log"].find_one({"action": "export", "target_type": "communities"})
+    assert e is not None and e["detail"]["mode"] == "selected" and e["detail"]["count"] == 1
+
+
+def test_community_export_none_selected_gives_header_only(client):
+    _seed_community("有数据小区", "桥东区")
+    _login(client)
+    r = client.post("/admin/community-export.csv", data={}, follow_redirects=False)
+    assert r.status_code == 200
+    assert "小区名" in r.text  # 表头在
+    assert "有数据小区" not in r.text  # 没勾 → 不带数据
+
+
+def test_community_export_empty_template(client):
+    _seed_community("不该出现的小区", "桥东区")
+    _login(client)
+    r = client.get("/admin/community-export.csv", params={"empty": 1}, follow_redirects=False)
+    assert r.status_code == 200
+    assert "小区名" in r.text and "备案名" in r.text  # 表头齐全
+    assert "不该出现的小区" not in r.text  # 空白模板:无数据行
+    assert "communities_template.csv" in r.headers["content-disposition"]
+    e = db["audit_log"].find_one({"action": "export", "target_type": "communities"})
+    assert e is not None and e["detail"]["mode"] == "template"
 
 
 def test_community_import_csv(client):
@@ -773,7 +799,7 @@ def test_community_export_includes_alt_names(client):
     db["communities"].update_one({"_id": cid}, {"$set": {
         "filing_name": "导出备案名", "aliases": ["导出别名甲", "导出别名乙"]}})
     _login(client)
-    r = client.get("/admin/community-export.csv", follow_redirects=False)
+    r = client.post("/admin/community-export.csv", data={"ids": [str(cid)]}, follow_redirects=False)
     assert r.status_code == 200
     assert "备案名" in r.text and "别名" in r.text
     assert "导出备案名" in r.text and "导出别名甲、导出别名乙" in r.text

@@ -1140,18 +1140,41 @@ def admin_ownership_reject(change_id: str, _: bool = Depends(require_admin), not
 # ── 小区批量导入 / 导出(CSV) ──
 
 @admin_router.get("/community-export.csv")
-def admin_community_export(_: bool = Depends(require_admin)):
+def admin_community_export(_: bool = Depends(require_admin), empty: int = 0):
+    """空白模板导出:只给表头(无数据行),供从零批量录入后导入。
+
+    不再一键全量导出——要导现有数据请到列表勾选后走 POST /community-export.csv。
+    """
     from communities import COMMUNITY_RICH_FIELDS
     header = (["小区名", "区域", "备案名", "别名", "建成年代", "楼栋数"]
               + [f["label"] for f in COMMUNITY_RICH_FIELDS])
+    write_audit("export", "communities", "-", {"mode": "template"})
+    return _csv_response("communities_template.csv", header, [])
+
+
+@admin_router.post("/community-export.csv")
+async def admin_community_export_selected(request: Request, _: bool = Depends(require_admin)):
+    """选择性导出:只导出列表里勾选的小区(表单字段 ids)。一个都没勾 → 只给表头。"""
+    from communities import COMMUNITY_RICH_FIELDS
+    form = await request.form()
+    ids = form.getlist("ids")
+    header = (["小区名", "区域", "备案名", "别名", "建成年代", "楼栋数"]
+              + [f["label"] for f in COMMUNITY_RICH_FIELDS])
+    oids = []
+    for i in ids:
+        try:
+            oids.append(ObjectId(i))
+        except Exception:
+            continue
     rows = []
-    for c in db["communities"].find().sort("name", 1):
-        row = [c.get("name", ""), c.get("district", ""),
-               c.get("filing_name") or "", "、".join(c.get("aliases") or []),
-               c.get("built_year") or "", c.get("building_count") or ""]
-        row += [c.get(f["key"]) if c.get(f["key"]) is not None else "" for f in COMMUNITY_RICH_FIELDS]
-        rows.append(row)
-    write_audit("export", "communities", "-", {"count": len(rows)})
+    if oids:
+        for c in db["communities"].find({"_id": {"$in": oids}}).sort("name", 1):
+            row = [c.get("name", ""), c.get("district", ""),
+                   c.get("filing_name") or "", "、".join(c.get("aliases") or []),
+                   c.get("built_year") or "", c.get("building_count") or ""]
+            row += [c.get(f["key"]) if c.get(f["key"]) is not None else "" for f in COMMUNITY_RICH_FIELDS]
+            rows.append(row)
+    write_audit("export", "communities", "-", {"mode": "selected", "count": len(rows)})
     return _csv_response("communities.csv", header, rows)
 
 

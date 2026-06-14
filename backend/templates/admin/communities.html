@@ -1,7 +1,9 @@
 {% extends "admin/base.html" %}
 {% block title %}小区库 · MLS 管理后台{% endblock %}
 {% block content %}
-<h1>小区库管理 <a href="/admin/community-export.csv" style="font-size:13px; font-weight:400; color:#0f172a;">⤓ 导出 CSV</a></h1>
+<h1>小区库管理
+  <a href="/admin/community-export.csv?empty=1" style="font-size:13px; font-weight:400; color:#0f172a;">⤓ 导出空白模板</a>
+</h1>
 {% if msg %}<div class="msg">{{ msg }}</div>{% endif %}
 
 <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
@@ -20,26 +22,36 @@
     <button type="submit">导入</button>
   </form>
 </div>
-<p style="color:#94a3b8; font-size:12px; margin:-6px 0 12px;">提示：先「导出 CSV」拿到含全部参数的模板，用 Excel 批量编辑后再「导入」回传（表头不要改）。</p>
+<p style="color:#94a3b8; font-size:12px; margin:-6px 0 12px;">提示：「导出空白模板」拿到只含表头的空表，从零批量录入后再「导入」；要改现有数据，先在下表勾选要导的小区再「导出选中」。</p>
 
-<table>
-  <thead>
-    <tr><th>小区名</th><th>区域</th><th>备案名/别名</th><th>建成年代</th><th>楼栋数</th><th>房源数</th><th></th></tr>
-  </thead>
-  <tbody>
-    {% for r in rows %}
-    <tr>
-      <td>{{ r.name }}</td>
-      <td>{{ r.district }}</td>
-      <td style="color:#64748b; font-size:13px;">{{ r.alt_names }}</td>
-      <td>{{ r.built_year }}</td>
-      <td>{{ r.building_count }}</td>
-      <td>{{ r.listing_count }}</td>
-      <td><a href="/admin/communities/{{ r.id }}">编辑</a></td>
-    </tr>
-    {% else %}
-    <tr><td colspan="7" style="color:#94a3b8;">无匹配小区</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
+<form method="post" action="/admin/community-export.csv">
+  <div style="margin-bottom:8px;">
+    <button type="submit">⤓ 导出选中(CSV)</button>
+    <span style="color:#94a3b8; font-size:12px; margin-left:8px;">勾选下表的小区后点此导出，不勾则只导出表头。</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:32px;"><input type="checkbox" onclick="for(const c of document.getElementsByName('ids'))c.checked=this.checked;"></th>
+        <th>小区名</th><th>区域</th><th>备案名/别名</th><th>建成年代</th><th>楼栋数</th><th>房源数</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td><input type="checkbox" name="ids" value="{{ r.id }}"></td>
+        <td>{{ r.name }}</td>
+        <td>{{ r.district }}</td>
+        <td style="color:#64748b; font-size:13px;">{{ r.alt_names }}</td>
+        <td>{{ r.built_year }}</td>
+        <td>{{ r.building_count }}</td>
+        <td>{{ r.listing_count }}</td>
+        <td><a href="/admin/communities/{{ r.id }}">编辑</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" style="color:#94a3b8;">无匹配小区</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</form>
 {% endblock %}
