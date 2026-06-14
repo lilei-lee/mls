@@ -619,6 +619,26 @@ set MEMBERSHIP_ENFORCED=
 3. 点右上角 Authorize，粘贴 `Bearer <token>`
 4. 后续接口测试不用每次填鉴权头
 
+### 跑测试（mongomock 全隔离，Day 32+ 治理）
+
+```cmd
+cd C:\projects\mls\backend && venv\Scripts\activate
+python -m pytest -q
+REM 期望:209 passed / 46 skipped(smoke) / 0 failed
+```
+
+**关键：测试已 hermetic，无需起 Mongo、无需起后端**。`backend/conftest.py` 做三件事：
+1. 把 `pymongo.MongoClient` 换成 **mongomock 内存库**（在 import database 前打补丁）→ 测试完全不碰真 Mongo，与生产数据隔离
+2. **每个测试前清空内存库**（autouse fixture）→ 用例间隔离
+3. **smoke 自动跳过**：`test_smoke` 用 requests 打 `localhost:8000`，检测不到后端就 skip（不计失败）。想真跑 smoke：先起后端，再 `pytest`
+
+⚠️ **写新测试的防复发铁律**（Day 32 治理踩过的坑，76 个失败的真凶）：
+- **绝不 `sys.modules["database"] = mock` 永久替换**——会毒化其后所有测试（`from database import db` 全拿到 MagicMock）。要 mock 用 autouse fixture，结束 `finally` 还原
+- **别假设真库为空**，但也**别依赖真实数据**：mongomock 每次全新，assert 只能基于本测试自己 seed 的数据（曾因 `orientation="朝南"` 撞真库 11 条遗留 → `assert 11==1`）
+- DB 类 fixture 用 **function-scoped + 自清理**（teardown delete）
+- 模块重构搬家后，**全局 grep 测试里的旧 import 路径**（`listings` → `services.listings` 这类失活曾造成 39 个 ModuleNotFoundError）
+- **别在测试里写死日期当"更晚/更早"**（`datetime(2026,5,15)` 过了就翻车），用固定远期或相对时间
+
 ---
 
 ## 十八、附录
