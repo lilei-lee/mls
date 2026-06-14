@@ -457,3 +457,44 @@ def test_dispute_reject(client):
     assert r.status_code == 303
     d = db["disputes"].find_one({"_id": did})
     assert d["status"] == "rejected" and d["ruling"] == "证据不足"
+
+
+# ── 定金异常审查 ──
+
+def test_deposit_watch_requires_auth(client):
+    r = client.get("/admin/deposit-watch", follow_redirects=False)
+    assert r.status_code == 303
+
+
+def test_deposit_watch_flags_repeated(client):
+    from bson import ObjectId
+    now = datetime.now()
+    db["listings"].insert_one({"_id": ObjectId(), "community": "频繁小区", "building": "1", "room_no": "1",
+                               "owner_agent_name": "张三", "created_at": now,
+                               "deposit_events": [{"type": "deposit", "at": now} for _ in range(3)]})
+    db["listings"].insert_one({"_id": ObjectId(), "community": "正常小区", "building": "2", "room_no": "2",
+                               "owner_agent_name": "李红", "created_at": now,
+                               "deposit_events": [{"type": "deposit", "at": now}]})
+    _login(client)
+    r = client.get("/admin/deposit-watch", follow_redirects=False)
+    assert r.status_code == 200 and "频繁小区" in r.text and "正常小区" in r.text
+
+
+def test_mark_deposit_pushes_event(client):
+    """mark_listing_deposit_paid 写入 deposit_events(供定金监控统计)"""
+    from bson import ObjectId
+    from services.listings import mark_listing_deposit_paid, MarkDepositPaidBody
+    aid = ObjectId()
+    lid = db["listings"].insert_one({
+        "owner_agent_id": aid, "owner_agent_name": "张三", "owner_agent_phone": "139",
+        "status": "on_sale", "house_code": "HC-DEP-1",
+        "community": "测", "building": "1", "unit": "1", "room_no": "1", "district": "桥东区",
+        "orientation": "南", "price_wan": 80.0, "bonus_yuan": 0,
+        "photos": [], "photo_count": 0, "sale_points": [],
+        "public_remarks": "", "agent_remarks": "", "showing_instructions": "",
+        "price_history": [], "created_at": datetime.now(), "updated_at": datetime.now(),
+    }).inserted_id
+    mark_listing_deposit_paid(str(lid), MarkDepositPaidBody(), aid)
+    l = db["listings"].find_one({"_id": lid})
+    assert l["status"] == "deposit_paid"
+    assert any(e.get("type") == "deposit" for e in l.get("deposit_events", []))

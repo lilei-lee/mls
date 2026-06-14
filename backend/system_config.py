@@ -20,6 +20,8 @@ CONFIG_SPEC = [
      "note": "同手机号连续输错多少次锁定登录"},
     {"key": "password_lock_minutes", "label": "密码锁定时长(分钟)", "default": 15,
      "note": "触发锁定后的持续时间"},
+    {"key": "deposit_watch_days", "label": "定金异常监控窗口(天)", "default": 30,
+     "note": "统计此窗口内定金标记/回退次数,超 2 次在'定金监控'标红"},
 ]
 
 _DEFAULTS = {c["key"]: c["default"] for c in CONFIG_SPEC}

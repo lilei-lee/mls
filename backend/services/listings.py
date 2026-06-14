@@ -965,7 +965,10 @@ def mark_listing_deposit_paid(
     if body.note:
         update["deposit_note"] = body.note.strip()
 
-    listings_collection.update_one({"_id": oid}, {"$set": update})
+    listings_collection.update_one({"_id": oid}, {
+        "$set": update,
+        "$push": {"deposit_events": {"type": "deposit", "at": datetime.now()}},
+    })
     return _format_listing_full(listings_collection.find_one({"_id": oid}))
 
 
@@ -1042,12 +1045,15 @@ def rollback_listing_to_on_sale(
     reason = body.reason.strip()
     listings_collection.update_one(
         {"_id": oid},
-        {"$set": {
-            "status": "on_sale",
-            "updated_at": datetime.now(),
-            "last_rollback_reason": reason,
-            "last_rollback_at": datetime.now(),
-        }}
+        {
+            "$set": {
+                "status": "on_sale",
+                "updated_at": datetime.now(),
+                "last_rollback_reason": reason,
+                "last_rollback_at": datetime.now(),
+            },
+            "$push": {"deposit_events": {"type": "rollback", "at": datetime.now(), "reason": reason}},
+        }
     )
     return _format_listing_full(listings_collection.find_one({"_id": oid}))
 

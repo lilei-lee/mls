@@ -795,3 +795,29 @@ def admin_dispute_reject(dispute_id: str, _: bool = Depends(require_admin), ruli
     }})
     write_audit("dispute_reject", "dispute", dispute_id, {})
     return RedirectResponse(url=f"/admin/disputes/{dispute_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+# ── 定金异常审查(模块六 §5.3,只读监控) ──
+
+@admin_router.get("/deposit-watch", response_class=HTMLResponse)
+def admin_deposit_watch(request: Request, _: bool = Depends(require_admin)):
+    from system_config import get_config
+    window = get_config("deposit_watch_days", 30)
+    cutoff = datetime.now() - timedelta(days=window)
+    rows = []
+    for l in db["listings"].find({"deposit_events.0": {"$exists": True}}):
+        events = [e for e in l.get("deposit_events", [])
+                  if isinstance(e.get("at"), datetime) and e["at"] >= cutoff]
+        if not events:
+            continue
+        rows.append({
+            "id": str(l["_id"]),
+            "community": l.get("community", ""),
+            "building": l.get("building", ""), "room_no": l.get("room_no", ""),
+            "owner": l.get("owner_agent_name", ""),
+            "count": len(events),
+            "flagged": len(events) > 2,
+        })
+    rows.sort(key=lambda r: r["count"], reverse=True)
+    return templates.TemplateResponse(request, "admin/deposit_watch.html",
+                                      {"rows": rows, "window": window})

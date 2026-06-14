@@ -1,0 +1,28 @@
+{% extends "admin/base.html" %}
+{% block title %}定金异常审查 · MLS 管理后台{% endblock %}
+{% block content %}
+<h1>定金异常审查</h1>
+<p style="color:#64748b; font-size:13px; margin:0 0 14px;">
+  近 {{ window }} 天内有定金标记/回退记录的房源；<b style="color:#b91c1c;">合计超过 2 次标红</b>，供人工核实是否存在恶意反复操作。
+  （监控窗口可在「系统配置」调整；事件从本功能上线后开始累计）
+</p>
+
+<table>
+  <thead>
+    <tr><th>小区</th><th>楼栋-房号</th><th>归属</th><th>窗口内次数</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr{% if r.flagged %} style="background:#fef2f2;"{% endif %}>
+      <td>{{ r.community }}</td>
+      <td>{{ r.building }}-{{ r.room_no }}</td>
+      <td>{{ r.owner }}</td>
+      <td>{% if r.flagged %}<b style="color:#b91c1c;">{{ r.count }}</b>{% else %}{{ r.count }}{% endif %}</td>
+      <td><a href="/admin/listings/{{ r.id }}">查看房源</a></td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" style="color:#94a3b8;">窗口内暂无定金标记/回退记录</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
