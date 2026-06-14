@@ -41,4 +41,5 @@ ACTION_LABEL = {
     "ownership_create": "发起归属变更",
     "ownership_approve": "归属变更通过",
     "ownership_reject": "归属变更驳回",
+    "proxy_confirm": "代确认成交",
 }

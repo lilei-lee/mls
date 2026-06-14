@@ -429,6 +429,56 @@ def la_confirm_transaction(
     return _format(new_doc, la_agent_id)
 
 
+def proxy_confirm_transaction(transaction_id: str, la_price_yuan: int, la_date_str: str, reason: str) -> dict:
+    """后台代确认成交(模块六 §5.3 / 模块五 §3.4b)。反作弊护栏(极重要):
+
+    - **前置**:仅当房源归属人(LA)被暂停/踢出(status ∈ suspended/banned)导致 pending_la_confirm
+      卡住时才允许。LA 仍 active → 拒绝(必须本人独立填)。
+    - **B 模型(独立填+比对照旧)**:admin 从核实的真实成交合同独立录入 LA 侧 price/date,
+      走完全相同的 _compare_and_finalize ——分毫不差才 confirmed,不一致照样 rejected。
+      admin 不是"批准 BA 的数字",是"替卡住的 LA 独立填真实值"。比对机制一点不削弱。
+    - 调用方(后台路由)的表单**不得回显 BA 已提交值**,防止照抄(那会退化成按对方价成交=套利)。
+    - 重留痕:proxy_by/proxy_reason/proxy_at 落库 + 后台 audit_log。
+    """
+    oid = _to_oid(transaction_id, "无效的成交ID")
+    doc = transactions_collection.find_one({"_id": oid})
+    if not doc:
+        raise HTTPException(status_code=404, detail="成交记录不存在")
+    if doc["status"] != "pending_la_confirm":
+        raise HTTPException(status_code=400,
+                            detail=f"当前状态不支持代确认(status={doc['status']})")
+    la_agent = db["agents"].find_one({"_id": doc["la_agent_id"]})
+    if not la_agent or la_agent.get("status") not in ("suspended", "banned"):
+        raise HTTPException(
+            status_code=400,
+            detail="仅当房源归属人(LA)被暂停/踢出导致卡住时才可代确认;LA 正常时必须本人填报",
+        )
+
+    deal_dt = _parse_date(la_date_str)
+    now = datetime.now()
+    _compare_and_finalize(
+        oid=oid,
+        doc=doc,
+        ba_price_yuan=doc["ba_deal_price_yuan"],
+        ba_date=doc["ba_deal_date"],
+        la_price_yuan=la_price_yuan,
+        la_date=deal_dt,
+        expected_status="pending_la_confirm",
+        extra_set={
+            "la_deal_price_yuan": la_price_yuan,
+            "la_deal_date": deal_dt,
+            "la_submitted_at": now,
+            "proxy_confirmed": True,
+            "proxy_by": "admin",
+            "proxy_reason": (reason or "").strip(),
+            "proxy_at": now,
+        },
+        now=now,
+    )
+    new_doc = transactions_collection.find_one({"_id": oid})
+    return {"status": new_doc["status"], "transaction_id": str(oid)}
+
+
 def la_reject_transaction(
     transaction_id: str,
     body: LaRejectTransactionBody,

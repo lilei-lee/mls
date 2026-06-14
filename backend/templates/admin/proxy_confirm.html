@@ -1,0 +1,43 @@
+{% extends "admin/base.html" %}
+{% block title %}代确认成交 · MLS 管理后台{% endblock %}
+{% block content %}
+<p style="margin:0 0 12px;"><a href="/admin/transactions" style="color:#64748b; font-size:13px;">← 返回成交管理</a></p>
+<h1>代确认成交</h1>
+{% if t.msg %}<div class="msg">{{ t.msg }}</div>{% endif %}
+
+<div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; padding:16px; max-width:640px; margin-bottom:16px;">
+  <p style="margin:0 0 6px;"><b>⚠️ 反作弊提示</b></p>
+  <p style="margin:0; font-size:13px; color:#475569;">
+    代确认 = 你<b>替被暂停/踢出的房源归属人(LA)独立填报真实成交值</b>（从核实的成交合同录入），
+    系统走与正常确认<b>完全相同的比对</b>：与 BA 提交值<b>分毫不差才生效</b>，不一致照样驳回。
+    本页<b>故意不显示 BA 已提交的价格/日期</b>——请勿照抄，按真实合同填。
+  </p>
+</div>
+
+<div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:18px; max-width:640px;">
+  <p style="margin:0 0 8px;"><b>小区：</b>{{ t.community }} · <b>BA：</b>{{ t.ba }} · <b>LA：</b>{{ t.la }}（{{ t.la_status }}）</p>
+
+  {% if t.status != 'pending_la_confirm' %}
+  <p style="color:#94a3b8;">当前状态 {{ t.status }}，不支持代确认。</p>
+  {% elif not t.stuck %}
+  <p style="color:#b91c1c;">房源归属人(LA)当前为「{{ t.la_status }}」，<b>未被暂停/踢出</b>，不可代确认——必须由 LA 本人独立填报。</p>
+  {% else %}
+  <form method="post" action="/admin/transactions/{{ t.id }}/proxy-confirm"
+        onsubmit="return confirm('确认按真实合同代 LA 填报？与 BA 不一致将被系统驳回。');">
+    <div style="margin-bottom:12px;">
+      <label>成交价（元，整数，按真实合同）</label>
+      <input name="la_price_yuan" type="number" min="1" style="width:200px;" required>
+    </div>
+    <div style="margin-bottom:12px;">
+      <label>成交日期</label>
+      <input name="la_date" type="date" required>
+    </div>
+    <div style="margin-bottom:16px;">
+      <label>代确认依据 / 原因（如：LA 已被踢出，依据 XX 合同）</label>
+      <input name="reason" style="width:100%;" required>
+    </div>
+    <button type="submit" style="background:#0f172a;">提交代确认（走比对）</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

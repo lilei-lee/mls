@@ -642,3 +642,50 @@ def test_ownership_admin_flow(client):
     l = db["listings"].find_one({"_id": lid})
     assert l["owner_agent_id"] == to and l["ownership_locked"] is False
     assert db["audit_log"].find_one({"action": "ownership_approve"}) is not None
+
+
+# ── 代确认成交(admin,⚠️反作弊) ──
+
+def _seed_pending_tx(la_status="suspended", ba_price=800000):
+    from bson import ObjectId
+    la_id = db["agents"].insert_one({"_id": ObjectId(), "name": "张三", "status": la_status}).inserted_id
+    return str(db["transactions"].insert_one({
+        "_id": ObjectId(), "status": "pending_la_confirm",
+        "la_agent_id": la_id, "ba_agent_id": ObjectId(),
+        "la_agent_name": "张三", "ba_agent_name": "李红",
+        "ba_deal_price_yuan": ba_price, "ba_deal_date": datetime(2026, 5, 1),
+        "listing_id": ObjectId(), "showing_id": ObjectId(),
+        "listing_snapshot": {"community": "代确认小区"},
+        "created_at": datetime.now(), "ba_submitted_at": datetime.now(),
+        "reject_kind": None,
+    }).inserted_id)
+
+
+def test_proxy_form_is_blind(client):
+    """代确认表单不回显 BA 已提交价(防照抄)"""
+    tx_id = _seed_pending_tx(ba_price=812345)
+    _login(client)
+    r = client.get(f"/admin/transactions/{tx_id}/proxy-confirm", follow_redirects=False)
+    assert r.status_code == 200
+    assert "代确认" in r.text
+    assert "812345" not in r.text  # BA 价不出现
+
+
+def test_proxy_confirm_match(client):
+    tx_id = _seed_pending_tx(la_status="suspended", ba_price=800000)
+    _login(client)
+    r = client.post(f"/admin/transactions/{tx_id}/proxy-confirm",
+                    data={"la_price_yuan": "800000", "la_date": "2026-05-01", "reason": "依据合同"},
+                    follow_redirects=False)
+    assert r.status_code == 303
+    from bson import ObjectId
+    assert db["transactions"].find_one({"_id": ObjectId(tx_id)})["status"] == "confirmed"
+    assert db["audit_log"].find_one({"action": "proxy_confirm"}) is not None
+
+
+def test_proxy_confirm_active_la_refused(client):
+    tx_id = _seed_pending_tx(la_status="active")
+    _login(client)
+    # POST 直接打,后端守卫应拒(500/400 视 HTTPException);用 GET 表单也会提示
+    r = client.get(f"/admin/transactions/{tx_id}/proxy-confirm", follow_redirects=False)
+    assert "未被暂停/踢出" in r.text or "不可代确认" in r.text

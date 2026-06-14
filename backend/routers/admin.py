@@ -955,7 +955,13 @@ def admin_transactions(request: Request, _: bool = Depends(require_admin), view:
         snap = t.get("listing_snapshot", {})
         created = t.get("ba_submitted_at") or t.get("created_at")
         wait_days = (now - created).days if isinstance(created, datetime) else None
+        # 卡住判定:LA 被暂停/踢出 → 待确认无法推进,可代确认
+        la_stuck = False
+        if view == "pending":
+            la = db["agents"].find_one({"_id": t.get("la_agent_id")}, {"status": 1})
+            la_stuck = bool(la) and la.get("status") in ("suspended", "banned")
         rows.append({
+            "id": str(t["_id"]),
             "community": snap.get("community", ""),
             "ba": t.get("ba_agent_name", ""),
             "la": t.get("la_agent_name", ""),
@@ -965,10 +971,51 @@ def admin_transactions(request: Request, _: bool = Depends(require_admin), view:
             "la_date": _fmt_deal_date(t.get("la_deal_date")) or "-",
             "wait_days": wait_days,
             "overdue": wait_days is not None and wait_days >= 6,
+            "la_stuck": la_stuck,
             "reject_reason": t.get("reject_reason", ""),
             "cancel_reason": t.get("cancel_reason", ""),
         })
     return templates.TemplateResponse(request, "admin/transactions.html", {"rows": rows, "view": view})
+
+
+# ── 代确认成交(模块六 §5.3,⚠️反作弊:B 模型,见 transactions.proxy_confirm_transaction) ──
+
+@admin_router.get("/transactions/{tx_id}/proxy-confirm", response_class=HTMLResponse)
+def admin_proxy_confirm_form(tx_id: str, request: Request, _: bool = Depends(require_admin), msg: str = ""):
+    try:
+        oid = ObjectId(tx_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的成交 ID")
+    t = db["transactions"].find_one({"_id": oid})
+    if not t:
+        raise HTTPException(status_code=404, detail="成交记录不存在")
+    la = db["agents"].find_one({"_id": t.get("la_agent_id")}, {"status": 1, "name": 1})
+    la_status = la.get("status") if la else None
+    snap = t.get("listing_snapshot", {})
+    # ⚠️ 故意不回显 BA 已提交的成交价/日期 —— admin 必须从真实合同独立录入,防止照抄
+    ctx = {
+        "id": str(oid),
+        "community": snap.get("community", ""),
+        "ba": t.get("ba_agent_name", ""),
+        "la": t.get("la_agent_name", ""),
+        "la_status": la_status,
+        "stuck": la_status in ("suspended", "banned"),
+        "status": t.get("status", ""),
+        "msg": msg,
+    }
+    return templates.TemplateResponse(request, "admin/proxy_confirm.html", {"t": ctx})
+
+
+@admin_router.post("/transactions/{tx_id}/proxy-confirm")
+def admin_proxy_confirm(tx_id: str, _: bool = Depends(require_admin),
+                        la_price_yuan: int = Form(...), la_date: str = Form(...), reason: str = Form(...)):
+    from transactions import proxy_confirm_transaction
+    res = proxy_confirm_transaction(tx_id, la_price_yuan, la_date, reason)
+    write_audit("proxy_confirm", "transaction", tx_id,
+                {"result": res["status"], "la_price_yuan": la_price_yuan})
+    note = "代确认成功,成交已生效" if res["status"] == "confirmed" else "已代填,但与 BA 不一致,系统驳回(请核实真实成交值)"
+    return RedirectResponse(url=f"/admin/transactions/{tx_id}/proxy-confirm?msg={quote(note)}",
+                            status_code=status.HTTP_303_SEE_OTHER)
 
 
 # ── 归属变更(模块六 §5.3:发起→锁定→复核→确认) ──

@@ -14,7 +14,7 @@
 <table>
   <thead>
     {% if view == 'pending' %}
-    <tr><th>小区</th><th>BA</th><th>LA</th><th>BA 报价(元)</th><th>BA 成交日</th><th>等待天数</th></tr>
+    <tr><th>小区</th><th>BA</th><th>LA</th><th>BA 报价(元)</th><th>BA 成交日</th><th>等待天数</th><th></th></tr>
     {% elif view == 'mismatch' %}
     <tr><th>小区</th><th>BA</th><th>LA</th><th>BA 报价</th><th>LA 报价</th><th>驳回原因</th></tr>
     {% else %}
@@ -31,6 +31,7 @@
       <td>{{ r.ba_price }}</td>
       <td>{{ r.ba_date }}</td>
       <td>{% if r.overdue %}<b style="color:#b91c1c;">{{ r.wait_days }}</b>{% else %}{{ r.wait_days }}{% endif %}</td>
+      <td>{% if r.la_stuck %}<a href="/admin/transactions/{{ r.id }}/proxy-confirm" style="color:#b91c1c;">代确认</a>{% endif %}</td>
       {% elif view == 'mismatch' %}
       <td>{{ r.ba_price }} / {{ r.ba_date }}</td>
       <td>{{ r.la_price }} / {{ r.la_date }}</td>
