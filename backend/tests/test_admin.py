@@ -304,11 +304,38 @@ def test_export_agents_csv(client):
     assert db["audit_log"].find_one({"action": "export", "target_type": "agents"}) is not None
 
 
-def test_export_listings_csv(client):
+def test_export_listings_selected_csv(client):
+    lid = _seed_listing(community="阳光小区", house_code="HC-001")
+    _seed_listing(community="月亮花园", house_code="HC-002")
+    _login(client)
+    # 只勾「阳光小区」→ 导出里有它、没有月亮花园;且含扩展字段(归属手机)
+    r = client.post("/admin/export/listings.csv", data={"ids": [str(lid)]}, follow_redirects=False)
+    assert r.status_code == 200
+    assert "阳光小区" in r.text and "MLS编号" in r.text and "归属手机" in r.text
+    assert "13912345678" in r.text  # 归属手机字段值
+    assert "月亮花园" not in r.text
+    e = db["audit_log"].find_one({"action": "export", "target_type": "listings"})
+    assert e is not None and e["detail"]["mode"] == "selected" and e["detail"]["count"] == 1
+
+
+def test_export_listings_none_selected_gives_header_only(client):
     _seed_listing(community="阳光小区")
     _login(client)
-    r = client.get("/admin/export/listings.csv", follow_redirects=False)
-    assert r.status_code == 200 and "阳光小区" in r.text and "MLS编号" in r.text
+    r = client.post("/admin/export/listings.csv", data={}, follow_redirects=False)
+    assert r.status_code == 200
+    assert "MLS编号" in r.text and "阳光小区" not in r.text
+
+
+def test_export_listings_empty_template(client):
+    _seed_listing(community="不该出现小区")
+    _login(client)
+    r = client.get("/admin/export/listings.csv", params={"empty": 1}, follow_redirects=False)
+    assert r.status_code == 200
+    assert "MLS编号" in r.text and "公开备注" in r.text  # 表头齐
+    assert "不该出现小区" not in r.text  # 空白模板无数据
+    assert "listings_template.csv" in r.headers["content-disposition"]
+    e = db["audit_log"].find_one({"action": "export", "target_type": "listings"})
+    assert e is not None and e["detail"]["mode"] == "template"
 
 
 # ── 系统配置 ──

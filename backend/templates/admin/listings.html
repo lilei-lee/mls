@@ -2,7 +2,7 @@
 {% block title %}房源 · MLS 管理后台{% endblock %}
 {% block content %}
 <h1>房源管理
-  <a href="/admin/export/listings.csv" style="font-size:13px; font-weight:400; color:#0f172a;">⤓ 导出 CSV</a>
+  <a href="/admin/export/listings.csv?empty=1" style="font-size:13px; font-weight:400; color:#0f172a;">⤓ 导出空白模板</a>
   <a href="/admin/deposit-watch" style="font-size:13px; font-weight:400; color:#b91c1c; margin-left:10px;">⚠ 定金异常审查</a>
   <a href="/admin/deposit-proofs" style="font-size:13px; font-weight:400; color:#0f172a; margin-left:10px;">🧾 定金凭证审核</a>
 </h1>
@@ -32,25 +32,35 @@
   <button type="submit">筛选</button>
 </form>
 
-<table>
-  <thead>
-    <tr><th>MLS编号</th><th>小区</th><th>楼栋-房号</th><th>区域</th><th>挂牌价(万)</th><th>状态</th><th>归属</th><th></th></tr>
-  </thead>
-  <tbody>
-    {% for r in rows %}
-    <tr>
-      <td>{{ r.house_code }}</td>
-      <td>{{ r.community }}</td>
-      <td>{{ r.building }}-{{ r.room_no }}</td>
-      <td>{{ r.district }}</td>
-      <td>{{ r.price_wan }}</td>
-      <td>{{ r.status_label }}</td>
-      <td>{{ r.owner }}</td>
-      <td><a href="/admin/listings/{{ r.id }}">详情</a></td>
-    </tr>
-    {% else %}
-    <tr><td colspan="8" style="color:#94a3b8;">无匹配房源</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
+<form method="post" action="/admin/export/listings.csv">
+  <div style="margin:6px 0 8px;">
+    <button type="submit">⤓ 导出选中(CSV)</button>
+    <span style="color:#94a3b8; font-size:12px; margin-left:8px;">勾选下表的房源后点此导出（含全部字段），不勾则只导出表头。</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:32px;"><input type="checkbox" onclick="for(const c of document.getElementsByName('ids'))c.checked=this.checked;"></th>
+        <th>MLS编号</th><th>小区</th><th>楼栋-房号</th><th>区域</th><th>挂牌价(万)</th><th>状态</th><th>归属</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td><input type="checkbox" name="ids" value="{{ r.id }}"></td>
+        <td>{{ r.house_code }}</td>
+        <td>{{ r.community }}</td>
+        <td>{{ r.building }}-{{ r.room_no }}</td>
+        <td>{{ r.district }}</td>
+        <td>{{ r.price_wan }}</td>
+        <td>{{ r.status_label }}</td>
+        <td>{{ r.owner }}</td>
+        <td><a href="/admin/listings/{{ r.id }}">详情</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="9" style="color:#94a3b8;">无匹配房源</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</form>
 {% endblock %}

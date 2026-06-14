@@ -621,20 +621,50 @@ def export_agents(_: bool = Depends(require_admin)):
                          ["姓名", "手机号", "门店", "类型", "状态", "联卖审核", "会员到期", "注册时间"], rows)
 
 
+# 房源导出字段集(表头 + 取值,两处共用,保证模板与数据列一致)
+_LISTING_EXPORT_HEADER = [
+    "MLS编号", "小区", "楼栋", "单元", "房号", "区域", "户型", "朝向",
+    "挂牌价(万)", "合作奖金(元)", "状态", "产权号", "归属经纪人", "归属手机",
+    "公开备注", "录入时间",
+]
+
+
+def _listing_export_row(l: dict) -> list:
+    return [
+        l.get("house_code", ""), l.get("community", ""), l.get("building", ""),
+        l.get("unit", ""), l.get("room_no", ""), l.get("district", ""),
+        l.get("layout", ""), l.get("orientation", ""),
+        l.get("price_wan", ""), l.get("bonus_yuan", 0),
+        _LISTING_STATUS_LABEL.get(l.get("status", ""), l.get("status", "")),
+        l.get("property_code", ""), l.get("owner_agent_name", ""),
+        l.get("owner_agent_phone", ""), l.get("public_remarks", ""),
+        _fmt_date(l.get("created_at")),
+    ]
+
+
 @admin_router.get("/export/listings.csv")
-def export_listings(_: bool = Depends(require_admin)):
+def export_listings(_: bool = Depends(require_admin), empty: int = 0):
+    """空白模板导出:只给表头(无数据行)。不再一键全量,要导数据请在列表勾选后走 POST。"""
+    write_audit("export", "listings", "-", {"mode": "template"})
+    return _csv_response("listings_template.csv", _LISTING_EXPORT_HEADER, [])
+
+
+@admin_router.post("/export/listings.csv")
+async def export_listings_selected(request: Request, _: bool = Depends(require_admin)):
+    """选择性导出:只导出列表里勾选的房源(表单字段 ids),一个都没勾 → 只给表头。"""
+    form = await request.form()
+    oids = []
+    for i in form.getlist("ids"):
+        try:
+            oids.append(ObjectId(i))
+        except Exception:
+            continue
     rows = []
-    for l in db["listings"].find().sort("created_at", -1):
-        rows.append([
-            l.get("house_code", ""), l.get("community", ""), l.get("building", ""),
-            l.get("unit", ""), l.get("room_no", ""), l.get("district", ""),
-            l.get("price_wan", ""), l.get("bonus_yuan", 0), l.get("status", ""),
-            l.get("owner_agent_name", ""), _fmt_date(l.get("created_at")),
-        ])
-    write_audit("export", "listings", "-", {"count": len(rows)})
-    return _csv_response("listings.csv",
-                         ["MLS编号", "小区", "楼栋", "单元", "房号", "区域", "挂牌价(万)",
-                          "合作奖金", "状态", "归属经纪人", "录入时间"], rows)
+    if oids:
+        for l in db["listings"].find({"_id": {"$in": oids}}).sort("created_at", -1):
+            rows.append(_listing_export_row(l))
+    write_audit("export", "listings", "-", {"mode": "selected", "count": len(rows)})
+    return _csv_response("listings.csv", _LISTING_EXPORT_HEADER, rows)
 
 
 @admin_router.get("/export/transactions.csv")
