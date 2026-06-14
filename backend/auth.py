@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field, field_validator
 import fakeredis
 from config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_HOURS, REFRESH_TOKEN_EXPIRE_DAYS, DEV_SMS_CODE
 from database import agents_collection
+from membership import initial_membership_expiry, membership_info
 from bson import ObjectId
 from jose import jwt, JWTError
 
@@ -157,6 +158,21 @@ def get_current_agent(
         raise HTTPException(status_code=403, detail="账号已被禁用")
     return agent
 
+
+def get_agent_from_token(token: str):
+    """从 access token 解出 agent(任何失败返 None,不抛)。供会员中间件用。"""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("type") != "access":
+            return None
+        agent_id = payload.get("sub")
+        if not agent_id:
+            return None
+        return agents_collection.find_one({"_id": ObjectId(agent_id)})
+    except Exception:
+        return None
+
+
 auth_router = APIRouter(prefix="/api/v1", tags=['auth'])
 
 # ═══════════════════ 认证 ═══════════════════
@@ -242,6 +258,7 @@ def register(req: RegisterRequest):
         "role": "agent",
         "status": "active",
         "coop_verified": False,
+        "membership_expires_at": initial_membership_expiry(),
         "created_at": datetime.now(),
         "updated_at": datetime.now(),
         "last_login_at": datetime.now(),
@@ -512,6 +529,7 @@ class MeResponse(BaseModel):
     status: str
     coop_verified: bool
     has_password: bool  # 前端据此提示用户"去设置密码"
+    membership: dict    # {enforced, active, read_only, expires_at, days_left}
 
 
 @auth_router.get("/me", response_model=MeResponse)
@@ -525,4 +543,11 @@ def get_me(agent: dict = Depends(get_current_agent)):
         status=agent.get("status", "active"),
         coop_verified=agent.get("coop_verified", False),
         has_password=bool(agent.get("password_hash")),
+        membership=membership_info(agent),
     )
+
+
+@auth_router.get("/membership")
+def get_membership(agent: dict = Depends(get_current_agent)):
+    """查询当前经纪人的会员状态(前端展示 + 过期横幅)。"""
+    return {"success": True, "data": membership_info(agent)}

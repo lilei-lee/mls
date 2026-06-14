@@ -41,3 +41,14 @@ MINIO_SECURE: bool = os.getenv("MINIO_SECURE", "false").lower() == "true"
 # ==================== 开发模式 ====================
 
 DEV_SMS_CODE: str = os.getenv("DEV_SMS_CODE", "123456")
+
+
+# ==================== 会员费机制 ====================
+
+# 默认 false = 免费试用期(人人完整可用,不拦任何写操作)。
+# 想开始收费时设环境变量 MEMBERSHIP_ENFORCED=true:
+#   到期日在未来的经纪人 = 有效会员;否则 = 只读(写操作返 402)。
+MEMBERSHIP_ENFORCED: bool = os.getenv("MEMBERSHIP_ENFORCED", "false").lower() == "true"
+
+# 注册时是否自动送固定天数试用(0 = 不送,完全靠开关 + 后台手动开通)
+MEMBERSHIP_TRIAL_DAYS: int = int(os.getenv("MEMBERSHIP_TRIAL_DAYS", "0"))

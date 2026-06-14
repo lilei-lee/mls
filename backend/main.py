@@ -21,7 +21,10 @@ MLS 后端 — 应用入口（thin shell, <100 行）
   backend/showing_requests.py / showings.py / transactions.py ...
 """
 from datetime import datetime
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+import config
+from membership import is_member_active
 from database import ping
 
 from services.listings import ensure_indexes
@@ -62,6 +65,27 @@ def root():
         "status": "running",
         "time": datetime.now().isoformat()
     }
+
+
+@app.middleware("http")
+async def membership_guard(request: Request, call_next):
+    """会员费机制:开关开启时,过期会员的写操作返 402(全功能只读)。
+    放行:GET/HEAD/OPTIONS(看) + /api/v1/auth/*(登录/注册/重置)。
+    开关关闭(免费期)时本中间件不拦任何请求。
+    """
+    if config.MEMBERSHIP_ENFORCED and request.method not in ("GET", "HEAD", "OPTIONS"):
+        path = request.url.path
+        if not path.startswith("/api/v1/auth/"):
+            from auth import get_agent_from_token  # 延迟导入避免环
+            authz = request.headers.get("authorization", "")
+            if authz.lower().startswith("bearer "):
+                agent = get_agent_from_token(authz[7:])
+                if agent is not None and not is_member_active(agent):
+                    return JSONResponse(
+                        status_code=402,
+                        content={"detail": "会员已过期,当前为只读模式,请联系续费后继续"},
+                    )
+    return await call_next(request)
 
 # ── Register all routers ──
 app.include_router(auth_router)
