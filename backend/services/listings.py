@@ -220,7 +220,7 @@ def create_listing(req, physical_attrs: dict, agent: dict) -> dict:
     流程: 生成 house_code → 查重 → 调辞典 identify+claim → 写本地 listing
     (仅营销字段 + property_code)。辞典不可达或冲突均不写入。
     """
-    from dictionary_client import DictionaryClient, DictionaryUnavailableError, DictionaryForbiddenError
+    from dictionary_client import DictionaryClient, DictionaryUnavailableError, DictionaryForbiddenError, DictionaryNotFoundError
 
     house_code = generate_house_code(
         req.community, req.building, req.unit, req.room_no

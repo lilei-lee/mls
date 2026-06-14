@@ -189,7 +189,7 @@ def api_dashboard_todos(
         })
 
     # --- 7. 等待 LA 回答(BA) ---
-    from qna import _count_ba_pending_questions
+    from routers.qna import _count_ba_pending_questions
     my_pending = _count_ba_pending_questions(agent_id)
     if my_pending > 0:
         todos.append({
