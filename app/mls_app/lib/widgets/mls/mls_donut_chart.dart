@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../../theme/mls_colors.dart';
 import '../../theme/mls_typography.dart';
 
 /// 甜甜圈单段数据

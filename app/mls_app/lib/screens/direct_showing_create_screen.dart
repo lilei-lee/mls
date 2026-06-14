@@ -137,7 +137,7 @@ class _DirectShowingCreateScreenState extends State<DirectShowingCreateScreen> {
 
     setState(() => _submitting = true);
     try {
-      final showingId = await ShowingService.instance.createDirect(
+      await ShowingService.instance.createDirect(
         listingId: widget.listingId,
         showingTime: _showingTime!,
         photos: _photos,

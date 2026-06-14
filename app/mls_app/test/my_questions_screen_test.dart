@@ -14,11 +14,10 @@ void main() {
     ];
 
     test('空态:0 个 thread → 两组都为空', () {
-      final pending = sampleThreads.where((t) => t.status == 'pending').toList();
-      final answered = sampleThreads.where((t) => t.status == 'answered').toList();
-      // 全空场景
-      expect([].where((t) => t.status == 'pending'), isEmpty);
-      expect([].where((t) => t.status == 'answered'), isEmpty);
+      // 全空场景:空 thread 列表过滤后两组都为空
+      final empty = <QnaThread>[];
+      expect(empty.where((t) => t.status == 'pending'), isEmpty);
+      expect(empty.where((t) => t.status == 'answered'), isEmpty);
     });
 
     test('只有 pending:2 个 → pending 组有值,answered 组隐藏', () {
