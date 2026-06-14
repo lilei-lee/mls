@@ -1,0 +1,46 @@
+{% extends "admin/base.html" %}
+{% block title %}经纪人 · MLS 管理后台{% endblock %}
+{% block content %}
+<h1>经纪人管理</h1>
+{% if msg %}<div class="msg">{{ msg }}</div>{% endif %}
+
+<form class="inline" method="get" action="/admin/agents">
+  <div>
+    <label>搜索(姓名/手机/门店)</label>
+    <input name="q" value="{{ q }}" placeholder="关键词">
+  </div>
+  <div>
+    <label>账号状态</label>
+    <select name="status_f" style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px;">
+      <option value="" {% if not status_f %}selected{% endif %}>全部</option>
+      <option value="active" {% if status_f=='active' %}selected{% endif %}>正常</option>
+      <option value="suspended" {% if status_f=='suspended' %}selected{% endif %}>暂停</option>
+      <option value="banned" {% if status_f=='banned' %}selected{% endif %}>已踢出</option>
+    </select>
+  </div>
+  <button type="submit">筛选</button>
+</form>
+
+<table>
+  <thead>
+    <tr><th>姓名</th><th>手机号</th><th>门店</th><th>类型</th><th>状态</th><th>联卖审核</th><th>房源数</th><th>会员</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r.name }}</td>
+      <td>{{ r.phone }}</td>
+      <td>{{ r.store_name }}</td>
+      <td>{{ '门店老板' if r.role=='boss' else '经纪人' }}</td>
+      <td>{{ r.status_label }}</td>
+      <td>{% if r.coop_verified %}<span class="tag ok">已通过</span>{% else %}<span class="tag no">未审核</span>{% endif %}</td>
+      <td>{{ r.listing_count }}</td>
+      <td>{% if r.member_active %}<span class="tag ok">有效</span>{% else %}<span class="tag no">无</span>{% endif %}</td>
+      <td><a href="/admin/agents/{{ r.id }}">详情</a></td>
+    </tr>
+    {% else %}
+    <tr><td colspan="9" style="color:#94a3b8;">无匹配经纪人</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

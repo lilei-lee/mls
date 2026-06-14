@@ -7,7 +7,8 @@ import os
 from datetime import datetime, timedelta
 from urllib.parse import quote
 
-from fastapi import APIRouter, Request, Form, Depends, status
+from bson import ObjectId
+from fastapi import APIRouter, Request, Form, Depends, status, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -108,3 +109,96 @@ def admin_grant_member(_: bool = Depends(require_admin), phone: str = Form(...),
     msg = (f"已为 {res['agent_name']}({phone}) 开通至 {res['expires_at']}"
            if res.get("matched") else f"未找到手机号 {phone}")
     return RedirectResponse(url=f"/admin/members?msg={quote(msg)}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+# ── 经纪人管理(只读 + 联卖审核) ──
+
+_AGENT_STATUS_LABEL = {"active": "正常", "suspended": "暂停", "banned": "已踢出", "deleted": "已删除"}
+
+
+@admin_router.get("/agents", response_class=HTMLResponse)
+def admin_agents(request: Request, _: bool = Depends(require_admin),
+                 q: str = "", status_f: str = "", msg: str = ""):
+    now = datetime.now()
+    query: dict = {}
+    if status_f:
+        query["status"] = status_f
+    if q:
+        query["$or"] = [
+            {"name": {"$regex": q, "$options": "i"}},
+            {"phone": {"$regex": q}},
+            {"store_name": {"$regex": q, "$options": "i"}},
+        ]
+    rows = []
+    for a in db["agents"].find(query).sort("created_at", -1):
+        aid = a["_id"]
+        exp = a.get("membership_expires_at")
+        rows.append({
+            "id": str(aid),
+            "name": a.get("name", ""),
+            "phone": a.get("phone", ""),
+            "store_name": a.get("store_name", ""),
+            "role": a.get("role", "agent"),
+            "status": a.get("status", ""),
+            "status_label": _AGENT_STATUS_LABEL.get(a.get("status", ""), a.get("status", "")),
+            "coop_verified": bool(a.get("coop_verified")),
+            "listing_count": db["listings"].count_documents({"owner_agent_id": aid}),
+            "member_active": isinstance(exp, datetime) and exp > now,
+        })
+    return templates.TemplateResponse(request, "admin/agents.html",
+                                      {"rows": rows, "q": q, "status_f": status_f, "msg": msg})
+
+
+@admin_router.get("/agents/{agent_id}", response_class=HTMLResponse)
+def admin_agent_detail(agent_id: str, request: Request, _: bool = Depends(require_admin)):
+    now = datetime.now()
+    try:
+        aid = ObjectId(agent_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的经纪人 ID")
+    a = db["agents"].find_one({"_id": aid})
+    if not a:
+        raise HTTPException(status_code=404, detail="经纪人不存在")
+    exp = a.get("membership_expires_at")
+    listings = list(db["listings"].find({"owner_agent_id": aid}).sort("created_at", -1).limit(50))
+    deal_count = db["transactions"].count_documents({
+        "status": "confirmed",
+        "$or": [{"la_agent_id": aid}, {"ba_agent_id": aid}],
+    })
+    agent = {
+        "id": str(aid),
+        "name": a.get("name", ""),
+        "phone": a.get("phone", ""),
+        "store_name": a.get("store_name", ""),
+        "role": a.get("role", "agent"),
+        "status": a.get("status", ""),
+        "status_label": _AGENT_STATUS_LABEL.get(a.get("status", ""), a.get("status", "")),
+        "coop_verified": bool(a.get("coop_verified")),
+        "created_at": a["created_at"].strftime("%Y-%m-%d") if isinstance(a.get("created_at"), datetime) else "-",
+        "member_active": isinstance(exp, datetime) and exp > now,
+        "expires_at": exp.strftime("%Y-%m-%d") if isinstance(exp, datetime) else "-",
+        "deal_count": deal_count,
+    }
+    listing_rows = [{
+        "community": l.get("community", ""),
+        "building": l.get("building", ""), "room_no": l.get("room_no", ""),
+        "price_wan": l.get("price_wan", ""),
+        "status": l.get("status", ""),
+    } for l in listings]
+    return templates.TemplateResponse(request, "admin/agent_detail.html",
+                                      {"a": agent, "listings": listing_rows})
+
+
+@admin_router.post("/agents/{agent_id}/coop")
+def admin_agent_coop(agent_id: str, _: bool = Depends(require_admin), action: str = Form(...)):
+    """联卖审核:通过(approve)/拒绝(reject),记录 coop_verified + 审核时间。"""
+    try:
+        aid = ObjectId(agent_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的经纪人 ID")
+    db["agents"].update_one({"_id": aid}, {"$set": {
+        "coop_verified": action == "approve",
+        "coop_reviewed_at": datetime.now(),
+        "updated_at": datetime.now(),
+    }})
+    return RedirectResponse(url=f"/admin/agents/{agent_id}", status_code=status.HTTP_303_SEE_OTHER)
