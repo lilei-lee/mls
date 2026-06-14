@@ -927,3 +927,43 @@ def admin_review_proof(listing_id: str, _: bool = Depends(require_admin),
     write_audit("deposit_proof_review", "listing", listing_id, {"result": result})
     return RedirectResponse(url=f"/admin/deposit-proofs?msg={quote('已审核')}",
                             status_code=status.HTTP_303_SEE_OTHER)
+
+
+# ── 待确认成交管理(模块六 §7.6,只读监控) ──
+
+def _fmt_deal_date(v) -> str:
+    if isinstance(v, datetime):
+        return v.strftime("%Y-%m-%d")
+    return str(v) if v else ""
+
+
+@admin_router.get("/transactions", response_class=HTMLResponse)
+def admin_transactions(request: Request, _: bool = Depends(require_admin), view: str = "pending"):
+    now = datetime.now()
+    if view == "mismatch":
+        query = {"status": "rejected", "reject_kind": "price_mismatch"}
+    elif view == "cancelled":
+        query = {"status": "cancelled"}
+    else:
+        view = "pending"
+        query = {"status": "pending_la_confirm"}
+
+    rows = []
+    for t in db["transactions"].find(query).sort("created_at", -1).limit(200):
+        snap = t.get("listing_snapshot", {})
+        created = t.get("ba_submitted_at") or t.get("created_at")
+        wait_days = (now - created).days if isinstance(created, datetime) else None
+        rows.append({
+            "community": snap.get("community", ""),
+            "ba": t.get("ba_agent_name", ""),
+            "la": t.get("la_agent_name", ""),
+            "ba_price": t.get("ba_deal_price_yuan", ""),
+            "ba_date": _fmt_deal_date(t.get("ba_deal_date")),
+            "la_price": t.get("la_deal_price_yuan") or "-",
+            "la_date": _fmt_deal_date(t.get("la_deal_date")) or "-",
+            "wait_days": wait_days,
+            "overdue": wait_days is not None and wait_days >= 6,
+            "reject_reason": t.get("reject_reason", ""),
+            "cancel_reason": t.get("cancel_reason", ""),
+        })
+    return templates.TemplateResponse(request, "admin/transactions.html", {"rows": rows, "view": view})

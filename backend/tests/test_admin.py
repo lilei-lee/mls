@@ -567,3 +567,47 @@ def test_review_proof_records_and_audits(client):
     assert l["deposit_proof_review"]["result"] == "reject"
     assert l["deposit_proof_review"]["reason"] == "凭证模糊"
     assert db["audit_log"].find_one({"action": "deposit_proof_review"}) is not None
+
+
+# ── 待确认成交管理(只读) ──
+
+def _seed_tx(status="pending_la_confirm", **extra):
+    from bson import ObjectId
+    doc = {
+        "_id": ObjectId(), "status": status,
+        "ba_agent_name": "李红", "la_agent_name": "张三",
+        "ba_deal_price_yuan": 800000, "ba_deal_date": datetime(2026, 5, 1),
+        "ba_submitted_at": datetime.now(), "created_at": datetime.now(),
+        "listing_snapshot": {"community": "成交小区"},
+    }
+    doc.update(extra)
+    return db["transactions"].insert_one(doc).inserted_id
+
+
+def test_transactions_requires_auth(client):
+    r = client.get("/admin/transactions", follow_redirects=False)
+    assert r.status_code == 303
+
+
+def test_transactions_pending_view(client):
+    _seed_tx(status="pending_la_confirm")
+    _login(client)
+    r = client.get("/admin/transactions", follow_redirects=False)
+    assert r.status_code == 200 and "成交小区" in r.text and "待确认" in r.text
+
+
+def test_transactions_mismatch_view(client):
+    _seed_tx(status="rejected", reject_kind="price_mismatch",
+             reject_reason="成交价格不一致,请双方核实",
+             la_deal_price_yuan=790000, la_deal_date=datetime(2026, 5, 1))
+    _seed_tx(status="pending_la_confirm")  # 不应出现在 mismatch
+    _login(client)
+    r = client.get("/admin/transactions", params={"view": "mismatch"}, follow_redirects=False)
+    assert r.status_code == 200 and "成交价格不一致" in r.text
+
+
+def test_transactions_overdue_red(client):
+    _seed_tx(status="pending_la_confirm", ba_submitted_at=datetime.now() - timedelta(days=8))
+    _login(client)
+    r = client.get("/admin/transactions", follow_redirects=False)
+    assert r.status_code == 200 and "fef2f2" in r.text  # 超时标红背景

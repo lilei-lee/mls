@@ -1,0 +1,50 @@
+{% extends "admin/base.html" %}
+{% block title %}成交确认管理 · MLS 管理后台{% endblock %}
+{% block content %}
+<h1>成交确认管理</h1>
+
+<div style="display:flex; gap:8px; margin-bottom:16px;">
+  {% for k, label in [('pending','待确认'),('mismatch','价格/日期不一致'),('cancelled','已撤回')] %}
+  <a href="/admin/transactions?view={{ k }}"
+     style="padding:7px 14px; border-radius:8px; font-size:13px; text-decoration:none;
+            {% if view==k %}background:#0f172a; color:#fff;{% else %}background:#fff; color:#0f172a; border:1px solid #e2e8f0;{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+<table>
+  <thead>
+    {% if view == 'pending' %}
+    <tr><th>小区</th><th>BA</th><th>LA</th><th>BA 报价(元)</th><th>BA 成交日</th><th>等待天数</th></tr>
+    {% elif view == 'mismatch' %}
+    <tr><th>小区</th><th>BA</th><th>LA</th><th>BA 报价</th><th>LA 报价</th><th>驳回原因</th></tr>
+    {% else %}
+    <tr><th>小区</th><th>BA</th><th>LA</th><th>撤回原因</th></tr>
+    {% endif %}
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr{% if r.overdue %} style="background:#fef2f2;"{% endif %}>
+      <td>{{ r.community }}</td>
+      <td>{{ r.ba }}</td>
+      <td>{{ r.la }}</td>
+      {% if view == 'pending' %}
+      <td>{{ r.ba_price }}</td>
+      <td>{{ r.ba_date }}</td>
+      <td>{% if r.overdue %}<b style="color:#b91c1c;">{{ r.wait_days }}</b>{% else %}{{ r.wait_days }}{% endif %}</td>
+      {% elif view == 'mismatch' %}
+      <td>{{ r.ba_price }} / {{ r.ba_date }}</td>
+      <td>{{ r.la_price }} / {{ r.la_date }}</td>
+      <td>{{ r.reject_reason }}</td>
+      {% else %}
+      <td>{{ r.cancel_reason }}</td>
+      {% endif %}
+    </tr>
+    {% else %}
+    <tr><td colspan="6" style="color:#94a3b8;">该分类暂无记录</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+<p style="color:#94a3b8; font-size:12px; margin-top:12px;">
+  只读监控。待确认列表等待 ≥6 天标红（7 天超时机制待实现）。"超时自动生效记录 / 代确认记录 / 驳回超限冻结"对应功能未实现，后续纳入。
+</p>
+{% endblock %}
