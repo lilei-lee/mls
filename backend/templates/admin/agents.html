@@ -1,7 +1,7 @@
 {% extends "admin/base.html" %}
 {% block title %}经纪人 · MLS 管理后台{% endblock %}
 {% block content %}
-<h1>经纪人管理</h1>
+<h1>经纪人管理 <a href="/admin/export/agents.csv" style="font-size:13px; font-weight:400; color:#0f172a;">⤓ 导出 CSV</a></h1>
 {% if msg %}<div class="msg">{{ msg }}</div>{% endif %}
 
 <form class="inline" method="get" action="/admin/agents">

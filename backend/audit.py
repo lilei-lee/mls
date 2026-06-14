@@ -29,4 +29,5 @@ ACTION_LABEL = {
     "agent_ban": "踢出经纪人",
     "agent_restore": "恢复经纪人",
     "community_edit": "编辑小区",
+    "export": "数据导出",
 }

@@ -3,13 +3,15 @@
 技术:FastAPI + Jinja2 服务端渲染。管理员会话见 admin_auth.py。
 仅运营(磊)使用,经纪人不可访问。后续增量扩:经纪人管理 / 房源审核 / 争议仲裁。
 """
+import csv
+import io
 import os
 from datetime import datetime, timedelta
 from urllib.parse import quote
 
 from bson import ObjectId
 from fastapi import APIRouter, Request, Form, Depends, status, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from database import db
@@ -497,3 +499,65 @@ def admin_community_save(community_id: str, _: bool = Depends(require_admin),
                 {"name": name, "district": district})
     return RedirectResponse(url=f"/admin/communities/{community_id}?msg={quote('已保存')}",
                             status_code=status.HTTP_303_SEE_OTHER)
+
+
+# ── 数据导出(CSV,UTF-8 BOM 兼容 Excel) ──
+
+def _csv_response(filename: str, header: list, rows: list) -> Response:
+    buf = io.StringIO()
+    buf.write("﻿")  # BOM,Excel 正确识别 UTF-8 中文
+    w = csv.writer(buf)
+    w.writerow(header)
+    w.writerows(rows)
+    return Response(content=buf.getvalue(), media_type="text/csv; charset=utf-8",
+                    headers={"Content-Disposition": f'attachment; filename="{filename}"'})
+
+
+def _fmt_date(v) -> str:
+    return v.strftime("%Y-%m-%d") if isinstance(v, datetime) else ""
+
+
+@admin_router.get("/export/agents.csv")
+def export_agents(_: bool = Depends(require_admin)):
+    rows = []
+    for a in db["agents"].find().sort("created_at", -1):
+        rows.append([
+            a.get("name", ""), a.get("phone", ""), a.get("store_name", ""),
+            "门店老板" if a.get("role") == "boss" else "经纪人",
+            a.get("status", ""), "是" if a.get("coop_verified") else "否",
+            _fmt_date(a.get("membership_expires_at")), _fmt_date(a.get("created_at")),
+        ])
+    write_audit("export", "agents", "-", {"count": len(rows)})
+    return _csv_response("agents.csv",
+                         ["姓名", "手机号", "门店", "类型", "状态", "联卖审核", "会员到期", "注册时间"], rows)
+
+
+@admin_router.get("/export/listings.csv")
+def export_listings(_: bool = Depends(require_admin)):
+    rows = []
+    for l in db["listings"].find().sort("created_at", -1):
+        rows.append([
+            l.get("house_code", ""), l.get("community", ""), l.get("building", ""),
+            l.get("unit", ""), l.get("room_no", ""), l.get("district", ""),
+            l.get("price_wan", ""), l.get("bonus_yuan", 0), l.get("status", ""),
+            l.get("owner_agent_name", ""), _fmt_date(l.get("created_at")),
+        ])
+    write_audit("export", "listings", "-", {"count": len(rows)})
+    return _csv_response("listings.csv",
+                         ["MLS编号", "小区", "楼栋", "单元", "房号", "区域", "挂牌价(万)",
+                          "合作奖金", "状态", "归属经纪人", "录入时间"], rows)
+
+
+@admin_router.get("/export/transactions.csv")
+def export_transactions(_: bool = Depends(require_admin)):
+    rows = []
+    for t in db["transactions"].find({"status": "confirmed"}).sort("confirmed_at", -1):
+        snap = t.get("listing_snapshot", {})
+        rows.append([
+            snap.get("community", ""), t.get("ba_agent_name", ""), t.get("la_agent_name", ""),
+            t.get("ba_deal_price_yuan", ""), t.get("bonus_yuan_snapshot", ""),
+            _fmt_date(t.get("confirmed_at")),
+        ])
+    write_audit("export", "transactions", "-", {"count": len(rows)})
+    return _csv_response("transactions.csv",
+                         ["小区", "BA", "LA", "成交价(元)", "合作奖金(元)", "成交确认时间"], rows)

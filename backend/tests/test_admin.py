@@ -284,3 +284,28 @@ def test_community_rename_duplicate_rejected(client):
     client.post(f"/admin/communities/{cid2}",
                 data={"name": "阳光花园", "district": "桥东区"}, follow_redirects=False)
     assert db["communities"].find_one({"_id": cid2})["name"] == "月亮湾"  # 未变
+
+
+# ── 数据导出 ──
+
+def test_export_requires_auth(client):
+    r = client.get("/admin/export/agents.csv", follow_redirects=False)
+    assert r.status_code == 303
+
+
+def test_export_agents_csv(client):
+    _seed_agent(name="张三", phone="13912345678")
+    _login(client)
+    r = client.get("/admin/export/agents.csv", follow_redirects=False)
+    assert r.status_code == 200
+    assert "text/csv" in r.headers["content-type"]
+    assert "attachment" in r.headers["content-disposition"]
+    assert "张三" in r.text and "姓名" in r.text
+    assert db["audit_log"].find_one({"action": "export", "target_type": "agents"}) is not None
+
+
+def test_export_listings_csv(client):
+    _seed_listing(community="阳光小区")
+    _login(client)
+    r = client.get("/admin/export/listings.csv", follow_redirects=False)
+    assert r.status_code == 200 and "阳光小区" in r.text and "MLS编号" in r.text
