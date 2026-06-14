@@ -1,0 +1,25 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ c.name }} · 编辑小区{% endblock %}
+{% block content %}
+<p style="margin:0 0 12px;"><a href="/admin/communities" style="color:#64748b; font-size:13px;">← 返回小区库</a></p>
+<h1>编辑小区 <span style="font-size:14px; color:#64748b;">名下房源 {{ c.listing_count }}</span></h1>
+{% if msg %}<div class="msg">{{ msg }}</div>{% endif %}
+
+<form method="post" action="/admin/communities/{{ c.id }}"
+      style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:20px; max-width:480px;">
+  <div style="margin-bottom:14px;">
+    <label>小区标准名</label>
+    <input name="name" value="{{ c.name }}" style="width:100%;" required>
+  </div>
+  <div style="margin-bottom:14px;">
+    <label>所属区域</label>
+    <input name="district" value="{{ c.district }}" style="width:100%;" required>
+  </div>
+  <div style="display:flex; gap:12px; margin-bottom:18px;">
+    <div style="flex:1;"><label>建成年代</label><input name="built_year" type="number" value="{{ c.built_year }}" style="width:100%;" min="1900" max="2100"></div>
+    <div style="flex:1;"><label>楼栋数</label><input name="building_count" type="number" value="{{ c.building_count }}" style="width:100%;" min="1" max="1000"></div>
+  </div>
+  <button type="submit">保存</button>
+</form>
+<p style="color:#94a3b8; font-size:12px; margin-top:10px;">注：(小区名, 区域) 全局唯一，改名撞库会被拒绝。</p>
+{% endblock %}

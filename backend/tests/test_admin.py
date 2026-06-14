@@ -240,3 +240,47 @@ def test_listing_offline_writes_audit(client):
     client.post(f"/admin/listings/{lid}/offline", data={"reason": "照片不合规"}, follow_redirects=False)
     e = db["audit_log"].find_one({"action": "listing_offline", "target_id": str(lid)})
     assert e is not None and e["detail"]["reason"] == "照片不合规"
+
+
+# ── 小区库管理 ──
+
+def _seed_community(name="阳光花园", district="桥东区"):
+    from bson import ObjectId
+    return db["communities"].insert_one({
+        "_id": ObjectId(), "name": name, "district": district,
+        "built_year": 2010, "building_count": 8, "created_at": datetime.now(),
+    }).inserted_id
+
+
+def test_communities_requires_auth(client):
+    r = client.get("/admin/communities", follow_redirects=False)
+    assert r.status_code == 303
+
+
+def test_communities_list(client):
+    _seed_community("阳光花园", "桥东区")
+    _login(client)
+    r = client.get("/admin/communities", follow_redirects=False)
+    assert r.status_code == 200 and "阳光花园" in r.text
+
+
+def test_community_edit_save(client):
+    cid = _seed_community("阳光花园", "桥东区")
+    _login(client)
+    r = client.post(f"/admin/communities/{cid}",
+                    data={"name": "阳光花园", "district": "桥东区", "built_year": "2008", "building_count": "12"},
+                    follow_redirects=False)
+    assert r.status_code == 303
+    c = db["communities"].find_one({"_id": cid})
+    assert c["built_year"] == 2008 and c["building_count"] == 12
+    assert db["audit_log"].find_one({"action": "community_edit", "target_id": str(cid)}) is not None
+
+
+def test_community_rename_duplicate_rejected(client):
+    _seed_community("阳光花园", "桥东区")
+    cid2 = _seed_community("月亮湾", "桥东区")
+    _login(client)
+    # 把 月亮湾 改名成 阳光花园(同区)→ 撞唯一,应拒绝
+    client.post(f"/admin/communities/{cid2}",
+                data={"name": "阳光花园", "district": "桥东区"}, follow_redirects=False)
+    assert db["communities"].find_one({"_id": cid2})["name"] == "月亮湾"  # 未变

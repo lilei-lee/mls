@@ -1,0 +1,34 @@
+{% extends "admin/base.html" %}
+{% block title %}小区库 · MLS 管理后台{% endblock %}
+{% block content %}
+<h1>小区库管理</h1>
+{% if msg %}<div class="msg">{{ msg }}</div>{% endif %}
+
+<form class="inline" method="get" action="/admin/communities">
+  <div>
+    <label>搜索(小区名/区域)</label>
+    <input name="q" value="{{ q }}" placeholder="关键词">
+  </div>
+  <button type="submit">筛选</button>
+</form>
+
+<table>
+  <thead>
+    <tr><th>小区名</th><th>区域</th><th>建成年代</th><th>楼栋数</th><th>房源数</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r.name }}</td>
+      <td>{{ r.district }}</td>
+      <td>{{ r.built_year }}</td>
+      <td>{{ r.building_count }}</td>
+      <td>{{ r.listing_count }}</td>
+      <td><a href="/admin/communities/{{ r.id }}">编辑</a></td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6" style="color:#94a3b8;">无匹配小区</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

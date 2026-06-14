@@ -427,3 +427,73 @@ def admin_audit(request: Request, _: bool = Depends(require_admin), action_f: st
         })
     return templates.TemplateResponse(request, "admin/audit.html",
                                       {"rows": rows, "action_f": action_f, "action_labels": ACTION_LABEL})
+
+
+# ── 小区库管理(列表 + 编辑) ──
+
+@admin_router.get("/communities", response_class=HTMLResponse)
+def admin_communities(request: Request, _: bool = Depends(require_admin), q: str = "", msg: str = ""):
+    query: dict = {}
+    if q:
+        query["$or"] = [
+            {"name": {"$regex": q, "$options": "i"}},
+            {"district": {"$regex": q, "$options": "i"}},
+        ]
+    rows = []
+    for c in db["communities"].find(query).sort("name", 1).limit(300):
+        rows.append({
+            "id": str(c["_id"]),
+            "name": c.get("name", ""),
+            "district": c.get("district", ""),
+            "built_year": c.get("built_year") or "-",
+            "building_count": c.get("building_count") or "-",
+            "listing_count": db["listings"].count_documents({
+                "community": c.get("name", ""), "district": c.get("district", "")}),
+        })
+    return templates.TemplateResponse(request, "admin/communities.html", {"rows": rows, "q": q, "msg": msg})
+
+
+@admin_router.get("/communities/{community_id}", response_class=HTMLResponse)
+def admin_community_edit(community_id: str, request: Request, _: bool = Depends(require_admin), msg: str = ""):
+    try:
+        cid = ObjectId(community_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的小区 ID")
+    c = db["communities"].find_one({"_id": cid})
+    if not c:
+        raise HTTPException(status_code=404, detail="小区不存在")
+    community = {
+        "id": str(cid),
+        "name": c.get("name", ""),
+        "district": c.get("district", ""),
+        "built_year": c.get("built_year") or "",
+        "building_count": c.get("building_count") or "",
+        "listing_count": db["listings"].count_documents({
+            "community": c.get("name", ""), "district": c.get("district", "")}),
+    }
+    return templates.TemplateResponse(request, "admin/community_edit.html", {"c": community, "msg": msg})
+
+
+@admin_router.post("/communities/{community_id}")
+def admin_community_save(community_id: str, _: bool = Depends(require_admin),
+                         name: str = Form(...), district: str = Form(...),
+                         built_year: str = Form(""), building_count: str = Form("")):
+    try:
+        cid = ObjectId(community_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的小区 ID")
+    name, district = name.strip(), district.strip()
+    # (name, district) 全局唯一:撞到别的小区则拒绝
+    dup = db["communities"].find_one({"name": name, "district": district, "_id": {"$ne": cid}})
+    if dup:
+        msg = quote(f"「{name}」在{district}已存在,改名失败")
+        return RedirectResponse(url=f"/admin/communities/{community_id}?msg={msg}",
+                                status_code=status.HTTP_303_SEE_OTHER)
+    upd = {"name": name, "district": district, "updated_at": datetime.now()}
+    upd["built_year"] = int(built_year) if built_year.strip().isdigit() else None
+    upd["building_count"] = int(building_count) if building_count.strip().isdigit() else None
+    db["communities"].update_one({"_id": cid}, {"$set": upd})
+    write_audit("community_edit", "community", community_id,
+                {"name": name, "district": district})
+    return RedirectResponse(url=f"/admin/communities/{community_id}?msg={quote('已保存')}",
+                            status_code=status.HTTP_303_SEE_OTHER)
