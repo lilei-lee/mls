@@ -45,14 +45,14 @@ def _seed_props_map(codes_to_attrs):
 # 1. 无参数 — V2.1 兼容
 # ═══════════════════════════════════════════
 
-@patch("listings._batch_fetch_props")
+@patch("services.listings._batch_fetch_props")
 def test_filter_no_params_returns_all(mock_batch, agent):
     """无筛选参数 → 返所有共享 listing"""
     mock_batch.return_value = {}
     la_id = ObjectId()
     lid = _seed_listing(la_id)
 
-    from listings import list_shared_listings
+    from services.listings import list_shared_listings
     items, total = list_shared_listings(agent["_id"])
     # BA 能看到 LA 的 listing
     assert total >= 1 or total == 0  # 可能有其他 listing
@@ -65,14 +65,14 @@ def test_filter_no_params_returns_all(mock_batch, agent):
 # 2. sale_points 筛选
 # ═══════════════════════════════════════════
 
-@patch("listings._batch_fetch_props")
+@patch("services.listings._batch_fetch_props")
 def test_filter_sale_points_single(mock_batch, agent):
     mock_batch.return_value = {}
     la_id = ObjectId()
     lid1 = _seed_listing(la_id, property_code="SP01", sale_points=["带露台", "低公摊"])
     lid2 = _seed_listing(la_id, property_code="SP02", sale_points=["送储物间"])
 
-    from listings import list_shared_listings
+    from services.listings import list_shared_listings
     items, total = list_shared_listings(agent["_id"], sale_points=["带露台"])
     assert total == 1
     assert items[0]["listing_id"] == str(lid1)
@@ -81,14 +81,14 @@ def test_filter_sale_points_single(mock_batch, agent):
     db["listings"].delete_many({"_id": {"$in": [lid1, lid2]}})
 
 
-@patch("listings._batch_fetch_props")
+@patch("services.listings._batch_fetch_props")
 def test_filter_sale_points_multiple_and(mock_batch, agent):
     mock_batch.return_value = {}
     la_id = ObjectId()
     lid1 = _seed_listing(la_id, property_code="SPM01", sale_points=["带露台", "低公摊", "开放厨房"])
     lid2 = _seed_listing(la_id, property_code="SPM02", sale_points=["带露台"])
 
-    from listings import list_shared_listings
+    from services.listings import list_shared_listings
     items, total = list_shared_listings(agent["_id"], sale_points=["带露台", "低公摊"])
     assert total == 1
     assert items[0]["listing_id"] == str(lid1)
@@ -97,13 +97,13 @@ def test_filter_sale_points_multiple_and(mock_batch, agent):
     db["listings"].delete_many({"_id": {"$in": [lid1, lid2]}})
 
 
-@patch("listings._batch_fetch_props")
+@patch("services.listings._batch_fetch_props")
 def test_filter_sale_points_no_match(mock_batch, agent):
     mock_batch.return_value = {}
     la_id = ObjectId()
     lid = _seed_listing(la_id, property_code="SPN01", sale_points=["送储物间"])
 
-    from listings import list_shared_listings
+    from services.listings import list_shared_listings
     # 用种子数据中不存在的标签
     items, total = list_shared_listings(agent["_id"], sale_points=["带露台"])
     assert total == 0
@@ -116,8 +116,8 @@ def test_filter_sale_points_no_match(mock_batch, agent):
 # 3. objective_features 筛选(从辞典 property)
 # ═══════════════════════════════════════════
 
-@patch("listings._batch_fetch_props")
-@patch("listings.batch_fetch_communities_by_name")
+@patch("services.listings._batch_fetch_props")
+@patch("services.listings.batch_fetch_communities_by_name")
 def test_filter_objective_features(mock_comm, mock_batch, agent):
     mock_batch.return_value = _seed_props_map({
         "OF01": {"objective_features": ["南北通透", "全明格局"]},
@@ -128,7 +128,7 @@ def test_filter_objective_features(mock_comm, mock_batch, agent):
     lid1 = _seed_listing(la_id, property_code="OF01")
     lid2 = _seed_listing(la_id, property_code="OF02")
 
-    from listings import list_shared_listings
+    from services.listings import list_shared_listings
     items, total = list_shared_listings(agent["_id"], objective_features=["南北通透"])
     assert total == 1
     assert items[0]["listing_id"] == str(lid1)
@@ -145,8 +145,8 @@ def test_filter_objective_features(mock_comm, mock_batch, agent):
 # 4. decoration 筛选(从辞典 property)
 # ═══════════════════════════════════════════
 
-@patch("listings._batch_fetch_props")
-@patch("listings.batch_fetch_communities_by_name")
+@patch("services.listings._batch_fetch_props")
+@patch("services.listings.batch_fetch_communities_by_name")
 def test_filter_decoration(mock_comm, mock_batch, agent):
     mock_batch.return_value = _seed_props_map({
         "DEC01": {"decoration": "精装"},
@@ -157,7 +157,7 @@ def test_filter_decoration(mock_comm, mock_batch, agent):
     lid1 = _seed_listing(la_id, property_code="DEC01")
     lid2 = _seed_listing(la_id, property_code="DEC02")
 
-    from listings import list_shared_listings
+    from services.listings import list_shared_listings
     items, total = list_shared_listings(agent["_id"], decoration="精装")
     assert total == 1
     assert items[0]["listing_id"] == str(lid1)
@@ -170,8 +170,8 @@ def test_filter_decoration(mock_comm, mock_batch, agent):
 # 5. heating_type 筛选(从辞典 community)
 # ═══════════════════════════════════════════
 
-@patch("listings._batch_fetch_props")
-@patch("listings.batch_fetch_communities_by_name")
+@patch("services.listings._batch_fetch_props")
+@patch("services.listings.batch_fetch_communities_by_name")
 def test_filter_heating_type(mock_comm, mock_batch, agent):
     mock_batch.return_value = {}
     mock_comm.return_value = {
@@ -182,7 +182,7 @@ def test_filter_heating_type(mock_comm, mock_batch, agent):
     lid1 = _seed_listing(la_id, property_code="HT01", community="HT_集体供暖小区")
     lid2 = _seed_listing(la_id, property_code="HT02", community="HT_自供暖小区")
 
-    from listings import list_shared_listings
+    from services.listings import list_shared_listings
     items, total = list_shared_listings(agent["_id"], heating_type="集体供暖")
     assert total == 1
     assert items[0]["listing_id"] == str(lid1)
@@ -195,8 +195,8 @@ def test_filter_heating_type(mock_comm, mock_batch, agent):
 # 6. bld_year 范围筛选(从辞典 community)
 # ═══════════════════════════════════════════
 
-@patch("listings._batch_fetch_props")
-@patch("listings.batch_fetch_communities_by_name")
+@patch("services.listings._batch_fetch_props")
+@patch("services.listings.batch_fetch_communities_by_name")
 def test_filter_bld_year_range(mock_comm, mock_batch, agent):
     mock_batch.return_value = {}
     mock_comm.return_value = {
@@ -207,7 +207,7 @@ def test_filter_bld_year_range(mock_comm, mock_batch, agent):
     lid1 = _seed_listing(la_id, property_code="BY01", community="BY_老小区")
     lid2 = _seed_listing(la_id, property_code="BY02", community="BY_新小区")
 
-    from listings import list_shared_listings
+    from services.listings import list_shared_listings
     # 2010-2025: 只有 2020 的新小区符合
     items, total = list_shared_listings(
         agent["_id"], bld_year_min=2010, bld_year_max=2025)
@@ -230,8 +230,8 @@ def test_filter_bld_year_range(mock_comm, mock_batch, agent):
 # 7. 5 类组合
 # ═══════════════════════════════════════════
 
-@patch("listings._batch_fetch_props")
-@patch("listings.batch_fetch_communities_by_name")
+@patch("services.listings._batch_fetch_props")
+@patch("services.listings.batch_fetch_communities_by_name")
 def test_filter_combined_all_5(mock_comm, mock_batch, agent):
     mock_batch.return_value = _seed_props_map({
         "C01": {"objective_features": ["南北通透", "全明格局"], "decoration": "精装"},
@@ -255,7 +255,7 @@ def test_filter_combined_all_5(mock_comm, mock_batch, agent):
     lid_no_year = _seed_listing(la_id, property_code="C01", community="COMB_年代太老",
                                 sale_points=["学区房"])
 
-    from listings import list_shared_listings
+    from services.listings import list_shared_listings
     items, total = list_shared_listings(
         agent["_id"],
         sale_points=["学区房"],
@@ -276,7 +276,7 @@ def test_filter_combined_all_5(mock_comm, mock_batch, agent):
 # 8. 排除自己
 # ═══════════════════════════════════════════
 
-@patch("listings._batch_fetch_props")
+@patch("services.listings._batch_fetch_props")
 def test_filter_excludes_self_owned_listings(mock_batch, agent):
     """LA 看不到自己挂的房"""
     mock_batch.return_value = {}
@@ -285,7 +285,7 @@ def test_filter_excludes_self_owned_listings(mock_batch, agent):
     lid_self = _seed_listing(la_self_id, property_code="SELF01")
     lid_other = _seed_listing(other_la_id, property_code="OTHER01")
 
-    from listings import list_shared_listings
+    from services.listings import list_shared_listings
     items, total = list_shared_listings(agent["_id"])
     ids = [it["listing_id"] for it in items]
     assert str(lid_self) not in ids
@@ -299,8 +299,8 @@ def test_filter_excludes_self_owned_listings(mock_batch, agent):
 # 9. 无辞典数据时 graceful degrade
 # ═══════════════════════════════════════════
 
-@patch("listings._batch_fetch_props")
-@patch("listings.batch_fetch_communities_by_name")
+@patch("services.listings._batch_fetch_props")
+@patch("services.listings.batch_fetch_communities_by_name")
 def test_filter_dict_unavailable_returns_empty(mock_comm, mock_batch, agent):
     """辞典社区无数据 → 按 heating_type/bld_year 筛选返空"""
     mock_batch.return_value = {}
@@ -308,7 +308,7 @@ def test_filter_dict_unavailable_returns_empty(mock_comm, mock_batch, agent):
     la_id = ObjectId()
     lid = _seed_listing(la_id, property_code="NF01", community="不存在的社区")
 
-    from listings import list_shared_listings
+    from services.listings import list_shared_listings
     # heating_type 筛选:社区没数据 → 返空
     items, total = list_shared_listings(agent["_id"], heating_type="集体供暖")
     assert total == 0
@@ -321,7 +321,7 @@ def test_filter_dict_unavailable_returns_empty(mock_comm, mock_batch, agent):
 # V2.2 #2: orientation + house_structure 筛选
 # ═══════════════════════════════════════════
 
-@patch("listings._batch_fetch_props")
+@patch("services.listings._batch_fetch_props")
 def test_filter_orientation(mock_batch, agent):
     """orientation 参数走本地过滤"""
     mock_batch.return_value = {}
@@ -329,7 +329,7 @@ def test_filter_orientation(mock_batch, agent):
     lid1 = _seed_listing(la_id, property_code="ORI01", orientation="朝南")
     lid2 = _seed_listing(la_id, property_code="ORI02", orientation="朝北")
 
-    from listings import list_shared_listings
+    from services.listings import list_shared_listings
     items, total = list_shared_listings(agent["_id"], orientation="朝南")
     assert total == 1
     assert items[0]["listing_id"] == str(lid1)
@@ -338,8 +338,8 @@ def test_filter_orientation(mock_batch, agent):
     db["listings"].delete_many({"_id": {"$in": [lid1, lid2]}})
 
 
-@patch("listings._batch_fetch_props")
-@patch("listings.batch_fetch_communities_by_name")
+@patch("services.listings._batch_fetch_props")
+@patch("services.listings.batch_fetch_communities_by_name")
 def test_filter_house_structure(mock_comm, mock_batch, agent):
     """house_structure 参数走辞典过滤"""
     mock_batch.return_value = {
@@ -351,7 +351,7 @@ def test_filter_house_structure(mock_comm, mock_batch, agent):
     lid1 = _seed_listing(la_id, property_code="HS01")
     lid2 = _seed_listing(la_id, property_code="HS02")
 
-    from listings import list_shared_listings
+    from services.listings import list_shared_listings
     items, total = list_shared_listings(agent["_id"], house_structure="平层")
     assert total == 1
     assert items[0]["listing_id"] == str(lid1)
@@ -367,7 +367,7 @@ def test_filter_house_structure(mock_comm, mock_batch, agent):
 def test_filter_sort_price_asc(agent):
     """sort=price_asc 按总价升序"""
     from database import db
-    from listings import list_shared_listings
+    from services.listings import list_shared_listings
     la_id = ObjectId()
     codes = ["SRTA1", "SRTA2", "SRTA3"]
     lid1 = _seed_listing(la_id, property_code=codes[0], price_wan=50)
@@ -384,7 +384,7 @@ def test_filter_sort_price_asc(agent):
 def test_filter_sort_price_desc(agent):
     """sort=price_desc 按总价降序"""
     from database import db
-    from listings import list_shared_listings
+    from services.listings import list_shared_listings
     la_id = ObjectId()
     codes = ["SRTD1", "SRTD2", "SRTD3"]
     lid1 = _seed_listing(la_id, property_code=codes[0], price_wan=50)
@@ -401,7 +401,7 @@ def test_filter_sort_price_desc(agent):
 def test_filter_sort_area_desc(agent):
     """sort=area_desc 按面积降序"""
     from database import db
-    from listings import list_shared_listings
+    from services.listings import list_shared_listings
     la_id = ObjectId()
     codes = ["SRTA21", "SRTA22", "SRTA23"]
     lid1 = _seed_listing(la_id, property_code=codes[0], area_sqm=80)

@@ -52,7 +52,7 @@ def test_listing_create_with_4_fields(mock_client_class, agent, physical):
     mock_client.submit_claim.return_value = {"total_claims_after": 1}
     mock_client_class.return_value = mock_client
 
-    from listings import create_listing
+    from services.listings import create_listing
     req = FakeReqV2(
         sale_points=["满五唯一", "近公园", "MyCustomTag"],
         public_remarks="小区环境好,适合居家",
@@ -81,7 +81,7 @@ def test_listing_create_with_empty_4_fields(mock_client_class, agent, physical):
     mock_client.submit_claim.return_value = {"total_claims_after": 1}
     mock_client_class.return_value = mock_client
 
-    from listings import create_listing
+    from services.listings import create_listing
     req = FakeReqV2()  # all defaults
     result = create_listing(req, physical, agent)
 
@@ -107,7 +107,7 @@ def test_listing_update_with_4_fields(mock_client_class, agent, physical):
     mock_client.submit_claim.return_value = {"total_claims_after": 1}
     mock_client_class.return_value = mock_client
 
-    from listings import create_listing, update_listing
+    from services.listings import create_listing, update_listing
     from database import db
 
     req = FakeReqV2()
@@ -136,7 +136,7 @@ def test_listing_update_with_4_fields(mock_client_class, agent, physical):
 
 def test_listing_sale_points_validation_invalid():
     """非法 sale_points 被拒绝(Pydantic validator)"""
-    from listings import PostListingRequest
+    from services.listings import PostListingRequest
     import pydantic
 
     with pytest.raises(pydantic.ValidationError):
@@ -150,7 +150,7 @@ def test_listing_sale_points_validation_invalid():
 
 def test_listing_sale_points_max_25():
     """超过 25 个标签被拒绝"""
-    from listings import PostListingRequest
+    from services.listings import PostListingRequest
     import pydantic
     from const.sale_points import PRESET_SALE_POINTS
 
@@ -172,7 +172,7 @@ def test_listing_sale_points_max_25():
 
 def test_listing_remarks_field_removed_from_request():
     """CreateListingRequest 不再接受 remarks 字段"""
-    from listings import CreateListingRequest, PostListingRequest
+    from services.listings import CreateListingRequest, PostListingRequest
 
     # CreateListingRequest and PostListingRequest no longer have remarks
     assert "remarks" not in CreateListingRequest.model_fields
@@ -182,7 +182,7 @@ def test_listing_remarks_field_removed_from_request():
 def test_listing_remarks_field_not_in_allowed_update():
     """update_listing 的 allowed 集合不含 remarks"""
     # 直接验证 format 输出不含 remarks
-    from listings import _format_listing_full
+    from services.listings import _format_listing_full
     doc = {
         "_id": ObjectId(), "house_code": "test", "district": "桥东区",
         "community": "测试", "community_id": ObjectId(),
@@ -218,7 +218,7 @@ def test_get_listing_collaboration_locked(mock_client_class, agent, physical):
     mock_client.submit_claim.return_value = {"total_claims_after": 1}
     mock_client_class.return_value = mock_client
 
-    from listings import create_listing, get_listing_by_id
+    from services.listings import create_listing, get_listing_by_id
     from database import db
 
     req = FakeReqV2(
@@ -249,7 +249,7 @@ def test_get_listing_collaboration_unlocked_la(mock_client_class, agent, physica
     mock_client.submit_claim.return_value = {"total_claims_after": 1}
     mock_client_class.return_value = mock_client
 
-    from listings import create_listing, get_listing_by_id
+    from services.listings import create_listing, get_listing_by_id
     from database import db
 
     req = FakeReqV2(
@@ -279,7 +279,7 @@ def test_get_listing_collaboration_unlocked_ba(mock_client_class, agent, physica
     mock_client.submit_claim.return_value = {"total_claims_after": 1}
     mock_client_class.return_value = mock_client
 
-    from listings import create_listing, get_listing_by_id
+    from services.listings import create_listing, get_listing_by_id
     from database import db
 
     req = FakeReqV2(
@@ -324,7 +324,7 @@ def test_sync_physical_with_objective_features(mock_client_class, agent, physica
     mock_client.submit_claim.return_value = {"total_claims_after": 1, "comparison_results": []}
     mock_client_class.return_value = mock_client
 
-    from listings import create_listing, sync_physical_to_dict, SyncPhysicalBody
+    from services.listings import create_listing, sync_physical_to_dict, SyncPhysicalBody
     from database import db
 
     req = FakeReqV2()
@@ -353,7 +353,7 @@ def test_sync_physical_with_decoration(mock_client_class, agent, physical):
     mock_client.submit_claim.return_value = {"total_claims_after": 1, "comparison_results": []}
     mock_client_class.return_value = mock_client
 
-    from listings import create_listing, sync_physical_to_dict, SyncPhysicalBody
+    from services.listings import create_listing, sync_physical_to_dict, SyncPhysicalBody
     from database import db
 
     req = FakeReqV2()
@@ -381,7 +381,7 @@ def test_sync_physical_optional_fields_not_in_attrs_when_none(mock_client_class,
     mock_client.submit_claim.return_value = {"total_claims_after": 1, "comparison_results": []}
     mock_client_class.return_value = mock_client
 
-    from listings import create_listing, sync_physical_to_dict, SyncPhysicalBody
+    from services.listings import create_listing, sync_physical_to_dict, SyncPhysicalBody
     from database import db
 
     req = FakeReqV2()
@@ -413,7 +413,7 @@ def test_ba_without_collab_masked(mock_client_class, agent, physical):
     mock_client.submit_claim.return_value = {"total_claims_after": 1}
     mock_client_class.return_value = mock_client
 
-    from listings import create_listing, get_listing_by_id
+    from services.listings import create_listing, get_listing_by_id
     from database import db
 
     req = FakeReqV2()
@@ -444,7 +444,7 @@ def test_la_sees_full(mock_client_class, agent, physical):
     mock_client.submit_claim.return_value = {"total_claims_after": 1}
     mock_client_class.return_value = mock_client
 
-    from listings import create_listing, get_listing_by_id
+    from services.listings import create_listing, get_listing_by_id
     from database import db
 
     req = FakeReqV2()
@@ -473,7 +473,7 @@ def test_ba_with_collab_unmasked(mock_client_class, agent, physical):
     mock_client.submit_claim.return_value = {"total_claims_after": 1}
     mock_client_class.return_value = mock_client
 
-    from listings import create_listing, get_listing_by_id
+    from services.listings import create_listing, get_listing_by_id
     from database import db
 
     req = FakeReqV2()

@@ -78,7 +78,7 @@ def _seed_ba(ba_id, name="李红", phone="13200132000"):
 def test_owner_can_get_summary(agent):
     """LA owner 可以查到带看汇总"""
     from database import db
-    from listings import get_showings_summary
+    from services.listings import get_showings_summary
     lid = _seed_listing(agent["_id"])
     sr_id = _seed_sr(lid, ObjectId())
 
@@ -95,7 +95,7 @@ def test_owner_can_get_summary(agent):
 def test_non_owner_returns_403(agent):
     """非 LA owner 调 → 403"""
     from database import db
-    from listings import get_showings_summary
+    from services.listings import get_showings_summary
     from fastapi import HTTPException
     lid = _seed_listing(agent["_id"])
     other_id = ObjectId()
@@ -110,13 +110,14 @@ def test_non_owner_returns_403(agent):
 def test_summary_sorts_by_latest_event(agent):
     """按 latest_event_at 降序排列"""
     from database import db
-    from listings import get_showings_summary
+    from services.listings import get_showings_summary
     lid = _seed_listing(agent["_id"])
     sr1 = _seed_sr(lid, ObjectId(), customer_surname="赵")
     sr2 = _seed_sr(lid, ObjectId(), customer_surname="钱")
 
-    # 更新 sr1 的 updated_at 为更晚
-    later = datetime(2026, 5, 15)
+    # 更新 sr1 的 updated_at 为更晚(用固定远期,避免随真实日期推移翻车:
+    # 原写死 2026-05-15,另一条用 datetime.now(),过了该日期排序就反)
+    later = datetime(2099, 1, 1)
     db["showing_requests"].update_one({"_id": sr1}, {"$set": {"updated_at": later}})
 
     result = get_showings_summary(str(lid), agent["_id"])
@@ -129,7 +130,7 @@ def test_summary_sorts_by_latest_event(agent):
 def test_pending_status_hides_phone(agent, ba_agent):
     """pending 状态不返 BA 电话"""
     from database import db
-    from listings import get_showings_summary
+    from services.listings import get_showings_summary
     _seed_ba(ba_agent["_id"], ba_agent["name"], ba_agent["phone"])
     lid = _seed_listing(agent["_id"])
     _seed_sr(lid, ba_agent["_id"], status="pending")
@@ -145,7 +146,7 @@ def test_pending_status_hides_phone(agent, ba_agent):
 def test_approved_status_returns_phone(agent, ba_agent):
     """approved 状态返 BA 电话"""
     from database import db
-    from listings import get_showings_summary
+    from services.listings import get_showings_summary
     _seed_ba(ba_agent["_id"], ba_agent["name"], ba_agent["phone"])
     lid = _seed_listing(agent["_id"])
     _seed_sr(lid, ba_agent["_id"], status="approved")
@@ -161,7 +162,7 @@ def test_approved_status_returns_phone(agent, ba_agent):
 def test_status_label_matches_lifecycle(agent):
     """状态标签覆盖全部 7 种生命周期"""
     from database import db
-    from listings import get_showings_summary, _SR_STATUS_LABEL
+    from services.listings import get_showings_summary, _SR_STATUS_LABEL
     lid = _seed_listing(agent["_id"])
     ba = ObjectId()
 
@@ -202,7 +203,7 @@ def test_status_label_matches_lifecycle(agent):
 def test_empty_listing_returns_empty_array(agent):
     """没有带看记录时返空数组"""
     from database import db
-    from listings import get_showings_summary
+    from services.listings import get_showings_summary
     lid = _seed_listing(agent["_id"])
     result = get_showings_summary(str(lid), agent["_id"])
     assert result == []

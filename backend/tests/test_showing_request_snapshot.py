@@ -38,12 +38,18 @@ def test_create_showing_request_snapshot_enriched(mock_client_class):
     db["agents"].insert_one({"_id": ba["_id"], "phone": "139", "name": "BA"})
     db["agents"].insert_one({"_id": la["_id"], "phone": "138", "name": "LA"})
 
+    # V2.1: customer_id 必填,插一条归属 BA 的客户
+    cid = db["customers"].insert_one({
+        "owner_agent_id": ba["_id"], "customer_surname": "测", "customer_gender": "male",
+    }).inserted_id
+
     # Create showing request
     from showing_requests import create_showing_request, CreateShowingRequestBody
     req = CreateShowingRequestBody(
         listing_id=str(lid),
         customer_surname="测", customer_gender="male",
         requirements="测试需求",
+        customer_id=str(cid),
     )
 
     result = create_showing_request(req, ba)
@@ -59,3 +65,4 @@ def test_create_showing_request_snapshot_enriched(mock_client_class):
     db["showing_requests"].delete_one({"_id": ObjectId(rid)})
     db["listings"].delete_one({"_id": lid})
     db["agents"].delete_many({"phone": {"$in": ["139", "138"]}})
+    db["customers"].delete_one({"_id": cid})
