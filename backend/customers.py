@@ -11,12 +11,52 @@ MLS 模块:客户管理(Day 10 新建,Day 15 1:N 带看重构)
 """
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List, Literal
 from bson import ObjectId
 from fastapi import HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from database import db
+
+
+# ============= 枚举 / 常量 =============
+
+PURPOSE_OPTIONS = ("刚需", "改善", "投资", "婚房", "学区", "养老")
+PAYMENT_OPTIONS = ("全款", "商贷", "公积金", "组合贷")
+SOURCE_OPTIONS = ("门店", "转介绍", "网络", "老客户", "其他")
+GRADE_OPTIONS = ("A", "B", "C")
+# 状态流水:新客 → 跟进中 → 已带看 → 成交 / 战败
+STATUS_OPTIONS = ("new", "following", "viewed", "deal", "lost")
+ACTIVE_STATUSES = ("new", "following", "viewed")  # 在跟客户(未成交未战败)
+
+PurposeT = Literal["刚需", "改善", "投资", "婚房", "学区", "养老"]
+PaymentT = Literal["全款", "商贷", "公积金", "组合贷"]
+SourceT = Literal["门店", "转介绍", "网络", "老客户", "其他"]
+GradeT = Literal["A", "B", "C"]
+StatusT = Literal["new", "following", "viewed", "deal", "lost"]
+
+
+def _parse_ymd(s: Optional[str]) -> Optional[datetime]:
+    """'YYYY-MM-DD' → datetime(当天 00:00);None/空 → None。"""
+    if not s:
+        return None
+    return datetime.strptime(s, "%Y-%m-%d")
+
+
+class IntentCommunity(BaseModel):
+    """意向小区:可关联小区库(community_id)或仅存名称(新建/自由填)。"""
+    community_id: Optional[str] = None
+    name: str = Field(..., min_length=1, max_length=50)
+    district: Optional[str] = Field(None, max_length=20)
+
+
+# 升级新增字段集合(create / update 共用,统一抽取/落库)
+_PROFILE_FIELDS = (
+    "phone_alt", "wechat", "source", "intent_grade",
+    "budget_min_wan", "budget_max_wan", "intent_districts",
+    "rooms_need", "halls_need", "baths_need", "area_need",
+    "purpose", "payment", "tags",
+)
 
 
 # ============= 集合索引 =============
@@ -26,30 +66,95 @@ def ensure_customers_indexes():
     customers = db["customers"]
     customers.create_index("owner_agent_id")
     customers.create_index([("owner_agent_id", 1), ("status", 1)])
+    customers.create_index([("owner_agent_id", 1), ("next_follow_up_at", 1)])
+    customers.create_index([("owner_agent_id", 1), ("intent_grade", 1)])
     customers.create_index("created_at")
 
 
 # ============= Pydantic 模型 =============
 
-class CreateCustomerRequest(BaseModel):
+class _CustomerProfileMixin(BaseModel):
+    """Create / Update 共用的客户档案字段(均可选)。"""
+    phone: Optional[str] = Field(None, pattern=r"^1[3-9]\d{9}$", description="手机号")
+    requirements: Optional[str] = Field(None, max_length=200, description="需求简述")
+    phone_alt: Optional[str] = Field(None, pattern=r"^1[3-9]\d{9}$", description="备用电话")
+    wechat: Optional[str] = Field(None, max_length=50, description="微信")
+    source: Optional[SourceT] = Field(None, description="客户来源")
+    intent_grade: Optional[GradeT] = Field(None, description="意向等级 A/B/C")
+    budget_min_wan: Optional[int] = Field(None, ge=0, le=100000, description="预算最低(万)")
+    budget_max_wan: Optional[int] = Field(None, ge=0, le=100000, description="预算最高(万)")
+    intent_districts: Optional[List[str]] = Field(None, max_length=17, description="意向区域")
+    intent_communities: Optional[List[IntentCommunity]] = Field(None, max_length=20, description="意向小区(关联小区库或新建)")
+    rooms_need: Optional[int] = Field(None, ge=0, le=20, description="室")
+    halls_need: Optional[int] = Field(None, ge=0, le=10, description="厅")
+    baths_need: Optional[int] = Field(None, ge=0, le=10, description="卫")
+    area_need: Optional[str] = Field(None, max_length=30, description="面积需求,如80-100㎡")
+    purpose: Optional[PurposeT] = Field(None, description="购房目的")
+    payment: Optional[PaymentT] = Field(None, description="付款方式")
+    tags: Optional[List[str]] = Field(None, max_length=20, description="标签")
+    next_follow_up_at: Optional[str] = Field(None, pattern=r"^\d{4}-\d{2}-\d{2}$", description="下次跟进日期")
+
+    @field_validator("tags")
+    @classmethod
+    def _check_tags(cls, v):
+        if v is not None:
+            for t in v:
+                if not t or not t.strip() or len(t) > 12:
+                    raise ValueError("每个标签需 1-12 字")
+        return v
+
+    @model_validator(mode="after")
+    def _check_budget(self):
+        lo, hi = self.budget_min_wan, self.budget_max_wan
+        if lo is not None and hi is not None and lo > hi:
+            raise ValueError("预算最低不能高于最高")
+        return self
+
+
+class CreateCustomerRequest(_CustomerProfileMixin):
     surname: str = Field(..., min_length=1, max_length=10, description="客户姓氏")
     gender: str = Field(..., pattern="^(male|female)$", description="性别")
-    phone: Optional[str] = Field(None, pattern=r"^1[3-9]\d{9}$", description="手机号(可选)")
-    requirements: Optional[str] = Field(None, max_length=200, description="需求简述")
+
+
+class UpdateCustomerRequest(_CustomerProfileMixin):
+    surname: Optional[str] = Field(None, min_length=1, max_length=10)
+    gender: Optional[str] = Field(None, pattern="^(male|female)$")
+    status: Optional[StatusT] = Field(None, description="客户状态流水")
+    lost_reason: Optional[str] = Field(None, max_length=100, description="战败原因(status=lost 时)")
 
 
 # ============= 辅助函数 =============
 
 def _format_customer(doc: dict) -> dict:
     """格式化客户文档给前端"""
+    nf = doc.get("next_follow_up_at")
+    nf_is_dt = isinstance(nf, datetime)
     return {
         "customer_id": str(doc["_id"]),
         "surname": doc.get("surname", ""),
         "gender": doc.get("gender", ""),
         "phone": doc.get("phone") or "",
+        "phone_alt": doc.get("phone_alt") or "",
+        "wechat": doc.get("wechat") or "",
         "requirements": doc.get("requirements") or "",
+        "source": doc.get("source"),
+        "intent_grade": doc.get("intent_grade"),
+        "budget_min_wan": doc.get("budget_min_wan"),
+        "budget_max_wan": doc.get("budget_max_wan"),
+        "intent_districts": doc.get("intent_districts", []),
+        "intent_communities": doc.get("intent_communities", []),
+        "rooms_need": doc.get("rooms_need"),
+        "halls_need": doc.get("halls_need"),
+        "baths_need": doc.get("baths_need"),
+        "area_need": doc.get("area_need") or "",
+        "purpose": doc.get("purpose"),
+        "payment": doc.get("payment"),
+        "tags": doc.get("tags", []),
+        "next_follow_up_at": nf.strftime("%Y-%m-%d") if nf_is_dt else None,
+        "is_follow_up_due": bool(nf_is_dt and nf <= datetime.now()),
         "memo_entries": doc.get("memo_entries", []),
-        "status": doc.get("status", "active"),
+        "status": doc.get("status", "new"),
+        "lost_reason": doc.get("lost_reason"),
         "created_at": doc["created_at"].isoformat() if doc.get("created_at") else None,
         "updated_at": doc["updated_at"].isoformat() if doc.get("updated_at") else None,
     }
@@ -57,8 +162,25 @@ def _format_customer(doc: dict) -> dict:
 
 # ============= 业务函数 =============
 
+def _profile_to_doc(req) -> dict:
+    """从 Create/Update 请求抽取已设置的档案字段 → DB 字段 dict。
+    None = 未提供(跳过);空列表 = 显式清空(保留)。"""
+    out = {}
+    for f in _PROFILE_FIELDS:
+        v = getattr(req, f, None)
+        if v is not None:
+            out[f] = v
+    ics = getattr(req, "intent_communities", None)
+    if ics is not None:
+        out["intent_communities"] = [ic.model_dump() for ic in ics]
+    nf = getattr(req, "next_follow_up_at", None)
+    if nf is not None:
+        out["next_follow_up_at"] = _parse_ymd(nf)
+    return out
+
+
 def create_customer(current_agent_id: str, req: CreateCustomerRequest) -> dict:
-    """BA 创建一个新客户"""
+    """BA 创建一个新客户(初始状态:新客)"""
     now = datetime.now()
     doc = {
         "owner_agent_id": ObjectId(current_agent_id),
@@ -67,28 +189,50 @@ def create_customer(current_agent_id: str, req: CreateCustomerRequest) -> dict:
         "phone": req.phone,
         "requirements": (req.requirements or "").strip(),
         "memo_entries": [],
-        "status": "active",
+        "status": "new",
+        "lost_reason": None,
+        "tags": [],
+        "intent_districts": [],
+        "intent_communities": [],
         "created_at": now,
         "updated_at": now,
     }
+    doc.update(_profile_to_doc(req))
     result = db["customers"].insert_one(doc)
     doc["_id"] = result.inserted_id
     return _format_customer(doc)
 
 
-def list_my_customers(current_agent_id: str) -> list[dict]:
-    """BA 查自己的客户列表,按 updated_at 降序"""
-    cursor = db["customers"].find(
-        {"owner_agent_id": ObjectId(current_agent_id)}
-    ).sort("updated_at", -1)
+def list_my_customers(
+    current_agent_id: str,
+    status: Optional[str] = None,
+    grade: Optional[str] = None,
+    due_only: bool = False,
+    sort: str = "updated_at",
+) -> list[dict]:
+    """BA 客户列表,支持按状态/等级/待跟进筛选 + 多种排序。"""
+    q: dict = {"owner_agent_id": ObjectId(current_agent_id)}
+    if status:
+        q["status"] = status
+    if grade:
+        q["intent_grade"] = grade
+    if due_only:
+        q["next_follow_up_at"] = {"$ne": None, "$lte": datetime.now()}
+    sort_map = {
+        "updated_at": [("updated_at", -1)],
+        "created_at": [("created_at", -1)],
+        "grade": [("intent_grade", 1), ("updated_at", -1)],
+        "follow_up": [("next_follow_up_at", 1)],
+    }
+    cursor = db["customers"].find(q).sort(sort_map.get(sort, sort_map["updated_at"]))
     return [_format_customer(doc) for doc in cursor]
 
 
 def count_my_customers(current_agent_id: str) -> int:
-    """BA 客户总数(active 状态)"""
+    """BA 在跟客户数(新客/跟进中/已带看,不含成交与战败)"""
     return db["customers"].count_documents({
         "owner_agent_id": ObjectId(current_agent_id),
-        "status": "active",
+        "status": {"$in": list(ACTIVE_STATUSES)},
     })
 
 
@@ -107,11 +251,7 @@ def get_customer_by_id(current_agent_id: str, customer_id: str) -> dict:
     return _format_customer(doc)
 
 
-class UpdateCustomerRequest(BaseModel):
-    surname: Optional[str] = Field(None, min_length=1, max_length=10)
-    gender: Optional[str] = Field(None, pattern="^(male|female)$")
-    phone: Optional[str] = Field(None, pattern=r"^1[3-9]\d{9}$")
-    requirements: Optional[str] = Field(None, max_length=200)
+# UpdateCustomerRequest 已上移到顶部(继承 _CustomerProfileMixin)
 
 
 def update_customer(
@@ -141,6 +281,17 @@ def update_customer(
         updates["phone"] = req.phone
     if req.requirements is not None:
         updates["requirements"] = req.requirements.strip()
+
+    # 档案字段(预算/区域/小区/户型/目的/付款/来源/微信/等级/标签/跟进日期…)
+    updates.update(_profile_to_doc(req))
+
+    # 状态流水:战败必须带原因(本次或库里已有)
+    if req.status is not None:
+        if req.status == "lost" and not (req.lost_reason or doc.get("lost_reason")):
+            raise HTTPException(status_code=400, detail="标记战败需填写原因")
+        updates["status"] = req.status
+        if req.lost_reason is not None:
+            updates["lost_reason"] = req.lost_reason.strip()
 
     if not updates:
         return _format_customer(doc)  # 空 PATCH 返回当前状态
@@ -200,10 +351,55 @@ def close_customer(current_agent_id: str, customer_id: str) -> dict:
 
     db["customers"].update_one(
         {"_id": oid},
-        {"$set": {"status": "closed", "updated_at": datetime.now()}},
+        {"$set": {
+            "status": "lost",
+            "lost_reason": doc.get("lost_reason") or "经纪人手动关闭",
+            "updated_at": datetime.now(),
+        }},
     )
     doc = db["customers"].find_one({"_id": oid})
     return _format_customer(doc)
+
+
+def get_customer_showings(current_agent_id: str, customer_id: str) -> dict:
+    """客户已看房源列表(带每次带看的反馈)。
+    从 showing_requests(customer_id) → showings 聚合,按带看时间倒序。
+    """
+    try:
+        oid = ObjectId(customer_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="客户ID格式错误")
+
+    customer = db["customers"].find_one({"_id": oid})
+    if not customer:
+        raise HTTPException(status_code=404, detail="客户不存在")
+    if str(customer["owner_agent_id"]) != current_agent_id:
+        raise HTTPException(status_code=403, detail="无权查看他人客户")
+
+    requests = list(db["showing_requests"].find({
+        "customer_id": oid,
+        "status": {"$ne": "merged_into_prior"},
+    }))
+    request_ids = [r["_id"] for r in requests]
+    showings = list(
+        db["showings"].find({"showing_request_id": {"$in": request_ids}})
+    ) if request_ids else []
+
+    items = []
+    for s in showings:
+        st = s.get("showing_time")
+        items.append({
+            "showing_id": str(s["_id"]),
+            "listing_id": str(s["listing_id"]) if s.get("listing_id") else None,
+            "listing_snapshot": s.get("listing_snapshot", {}),
+            "showing_time": st.isoformat() if isinstance(st, datetime) else None,
+            "status": s.get("status"),
+            # Phase 2 会正式写 customer_feedback;暂回退到 notes
+            "customer_feedback": s.get("customer_feedback") or s.get("notes", ""),
+            "notes": s.get("notes", ""),
+        })
+    items.sort(key=lambda x: x["showing_time"] or "", reverse=True)
+    return {"items": items, "total": len(items)}
 
 
 def get_customer_timeline(current_agent_id: str, customer_id: str) -> dict:
