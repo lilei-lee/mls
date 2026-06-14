@@ -52,3 +52,10 @@ MEMBERSHIP_ENFORCED: bool = os.getenv("MEMBERSHIP_ENFORCED", "false").lower() ==
 
 # 注册时是否自动送固定天数试用(0 = 不送,完全靠开关 + 后台手动开通)
 MEMBERSHIP_TRIAL_DAYS: int = int(os.getenv("MEMBERSHIP_TRIAL_DAYS", "0"))
+
+
+# ==================== Web 管理后台(模块六) ====================
+
+# 种子期单管理员账号(账号密码登录)。生产务必用环境变量覆盖默认值。
+ADMIN_USERNAME: str = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "admin123")

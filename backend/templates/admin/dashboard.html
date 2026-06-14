@@ -1,0 +1,34 @@
+{% extends "admin/base.html" %}
+{% block title %}数据看板 · MLS 管理后台{% endblock %}
+{% block content %}
+<h1>数据看板</h1>
+<div class="cards">
+  <div class="card">
+    <div class="label">注册经纪人</div>
+    <div class="value">{{ m.agent_total }}</div>
+    <div class="sub">正常 {{ m.agent_by_status.active }} · 暂停 {{ m.agent_by_status.suspended }} · 踢出 {{ m.agent_by_status.banned }}</div>
+  </div>
+  <div class="card">
+    <div class="label">有效会员</div>
+    <div class="value">{{ m.member_active }}</div>
+    <div class="sub">到期日在未来的经纪人</div>
+  </div>
+  <div class="card">
+    <div class="label">在库房源</div>
+    <div class="value">{{ m.listing_total }}</div>
+    <div class="sub">在售 {{ m.listing_by_status.on_sale }} · 定金 {{ m.listing_by_status.deposit_paid }} · 进行中 {{ m.listing_by_status.transaction_ongoing }} · 已售 {{ m.listing_by_status.sold }}</div>
+  </div>
+  <div class="card">
+    <div class="label">本月新增房源</div>
+    <div class="value">{{ m.new_listings_month }}</div>
+  </div>
+  <div class="card">
+    <div class="label">本月成交量</div>
+    <div class="value">{{ m.deal_count_month }}</div>
+  </div>
+  <div class="card">
+    <div class="label">本月成交总额</div>
+    <div class="value">{{ m.deal_amount_wan }}<span style="font-size:14px;"> 万</span></div>
+  </div>
+</div>
+{% endblock %}

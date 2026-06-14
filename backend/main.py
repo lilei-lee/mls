@@ -50,6 +50,7 @@ from routers.customers import customers_router
 from routers.collaborations import collaborations_router
 from routers.qna import qna_router
 from routers.photos import photos_router
+from routers.admin import admin_router
 
 app = FastAPI(
     title="MLS 后端 API",
@@ -100,6 +101,7 @@ app.include_router(customers_router)
 app.include_router(collaborations_router)
 app.include_router(qna_router)
 app.include_router(photos_router)
+app.include_router(admin_router)
 
 
 @app.on_event("startup")

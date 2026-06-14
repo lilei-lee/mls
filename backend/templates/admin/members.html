@@ -1,0 +1,38 @@
+{% extends "admin/base.html" %}
+{% block title %}会员管理 · MLS 管理后台{% endblock %}
+{% block content %}
+<h1>会员管理</h1>
+{% if msg %}<div class="msg">{{ msg }}</div>{% endif %}
+
+<form class="inline" method="post" action="/admin/members/grant">
+  <div>
+    <label>手机号</label>
+    <input name="phone" placeholder="13912345678" required>
+  </div>
+  <div>
+    <label>开通天数</label>
+    <input name="days" type="number" value="365" min="1" required>
+  </div>
+  <button type="submit">开通 / 续期</button>
+</form>
+
+<table>
+  <thead>
+    <tr><th>姓名</th><th>手机号</th><th>门店</th><th>账号状态</th><th>会员到期日</th><th>会员</th></tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r.name }}</td>
+      <td>{{ r.phone }}</td>
+      <td>{{ r.store_name }}</td>
+      <td>{{ r.status }}</td>
+      <td>{{ r.expires_at }}</td>
+      <td>{% if r.active %}<span class="tag ok">有效</span>{% else %}<span class="tag no">无 / 过期</span>{% endif %}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6" style="color:#94a3b8;">暂无经纪人</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
