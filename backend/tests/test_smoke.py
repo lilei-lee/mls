@@ -78,12 +78,13 @@ def listing_id(tokens):
 
 
 @pytest.fixture(scope="module")
-def showing_request_id(tokens, listing_id):
+def showing_request_id(tokens, listing_id, customer_id):
     """李红对测试房源发起带客申请"""
     r = _post("/api/v1/showing-requests", json={
         "listing_id": listing_id,
         "customer_surname": f"s{SUFFIX}", "customer_gender": "male",
         "requirements": "smoke test requirement",
+        "customer_id": customer_id,
     }, token=tokens["lihong"]["token"])
     # 400 if already has pending request
     assert r.status_code in (200, 400), f"create request: {r.text}"
@@ -130,7 +131,7 @@ def customer_id(tokens):
 
 
 @pytest.fixture(scope="module")
-def tx_pending_id(tokens, listing_id):
+def tx_pending_id(tokens, listing_id, customer_id):
     """创建一条 pending_la_confirm 的 transaction"""
     la = tokens["zhangsan"]["token"]
     ba = tokens["lihong"]["token"]
@@ -144,6 +145,7 @@ def tx_pending_id(tokens, listing_id):
         "listing_id": listing_id,
         "customer_surname": f"t{SUFFIX}", "customer_gender": "male",
         "requirements": "tx smoke test",
+        "customer_id": customer_id,
     }, token=ba)
     # 可能已有 active request
     if r.status_code != 200:
@@ -301,12 +303,13 @@ class TestShowingRequests:
                  token=tokens["lihong"]["token"])
         assert r.status_code == 200
 
-    def test_reject(self, tokens, listing_id):
+    def test_reject(self, tokens, listing_id, customer_id):
         """新建申请后审批拒绝"""
         r = _post("/api/v1/showing-requests", {
             "listing_id": listing_id,
             "customer_surname": f"r{SUFFIX}", "customer_gender": "female",
             "requirements": "to reject smoke",
+            "customer_id": customer_id,
         }, token=tokens["lihong"]["token"])
         if r.status_code == 200:
             rid = r.json()["request_id"]
