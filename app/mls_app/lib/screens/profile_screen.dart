@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../models/membership.dart';
+import '../services/membership_service.dart';
 import '../theme/mls_colors.dart';
 import '../theme/mls_radius.dart';
 import '../theme/mls_typography.dart';
@@ -22,17 +24,28 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _notif = true;
   String _name = '';
+  Membership? _membership;
 
   @override
   void initState() {
     super.initState();
     _loadProfile();
+    _loadMembership();
   }
 
   Future<void> _loadProfile() async {
     const storage = FlutterSecureStorage();
     final n = await storage.read(key: 'name');
     if (mounted) setState(() => _name = n ?? '经纪人');
+  }
+
+  Future<void> _loadMembership() async {
+    try {
+      final m = await MembershipService.instance.getMembership();
+      if (mounted) setState(() => _membership = m);
+    } catch (_) {
+      // 会员状态非关键,拉取失败静默(页面其余照常)
+    }
   }
 
   Future<void> _logout() async {
@@ -163,6 +176,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // 会员过期只读横幅(仅收费期且已过期时显示)
+        if (_membership?.readOnly == true) ...[
+          _buildReadOnlyBanner(),
+          const SizedBox(height: 14),
+        ],
         // 业务
         MlsCard(padding: EdgeInsets.zero, child: Column(children: [
           MlsSettingTile.link(icon: LucideIcons.home, iconBg: MlsColors.primaryBg, iconFg: MlsColors.primary, title: '我的房源', subtitle: '12 套', onTap: () => context.push('/listings/mine')),
@@ -176,6 +194,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(height: 14),
         // 账户
         MlsCard(padding: EdgeInsets.zero, child: Column(children: [
+          MlsSettingTile.link(
+            icon: LucideIcons.crown,
+            iconBg: MlsColors.goldBgStart,
+            iconFg: MlsColors.gold,
+            title: '会员状态',
+            subtitle: _membership?.badgeText ?? '加载中',
+            onTap: _loadMembership,
+          ),
+          _divider(),
           MlsSettingTile(icon: LucideIcons.shieldCheck, iconBg: MlsColors.successBg, iconFg: MlsColors.success, title: '实名认证', badgeText: '已认证', badgeColor: MlsColors.success),
           _divider(),
           MlsSettingTile.switchTile(icon: LucideIcons.bell, iconBg: MlsColors.primaryBg, iconFg: MlsColors.primary, title: '消息通知', value: _notif, onChanged: (v) => setState(() => _notif = v)),
@@ -194,6 +221,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(height: 10),
         Center(
           child: Text('张家口 MLS · v2.3.0', style: TextStyle(fontFamily: MlsTypography.monoFamily, fontFamilyFallback: MlsTypography.monoFallback, fontSize: 10, color: MlsColors.textTertiary, letterSpacing: 1)),
+        ),
+      ]),
+    );
+  }
+
+  Widget _buildReadOnlyBanner() {
+    final m = _membership;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: MlsColors.dangerBg,
+        borderRadius: MlsRadius.card,
+        border: Border.all(color: MlsColors.danger.withValues(alpha: 0.3), width: 0.5),
+      ),
+      child: Row(children: [
+        Icon(LucideIcons.alertTriangle, size: 18, color: MlsColors.danger),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('会员已过期 · 当前为只读模式',
+                style: TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 13, fontWeight: FontWeight.w600, color: MlsColors.danger)),
+            const SizedBox(height: 2),
+            Text(m?.subtitle ?? '续费后恢复全部功能',
+                style: TextStyle(fontFamilyFallback: MlsTypography.sansFallback, fontSize: 11, color: MlsColors.textSecondary)),
+          ]),
         ),
       ]),
     );

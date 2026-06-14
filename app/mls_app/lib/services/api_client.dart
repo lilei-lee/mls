@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
@@ -56,6 +57,19 @@ class ApiClient {
       },
       // ===== 响应错误拦截器(401 自动续 token) =====
       onError: (err, handler) async {
+        // 402 = 会员已过期(收费期只读)。全局提示一次,错误照常向上传。
+        if (err.response?.statusCode == 402) {
+          final detail = err.response?.data is Map
+              ? (err.response?.data['detail'] as String?)
+              : null;
+          rootScaffoldMessengerKey.currentState
+            ?..hideCurrentSnackBar()
+            ..showSnackBar(SnackBar(
+              content: Text(detail ?? '会员已过期,当前为只读模式,请联系续费后继续'),
+              backgroundColor: const Color(0xFFB91C1C),
+            ));
+          return handler.next(err);
+        }
         if (err.response?.statusCode != 401) {
           return handler.next(err);
         }

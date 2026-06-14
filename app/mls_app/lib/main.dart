@@ -32,6 +32,7 @@ class MlsApp extends StatelessWidget {
         Locale('en', 'US'),
       ],
       locale: const Locale('zh', 'CN'),
+      scaffoldMessengerKey: rootScaffoldMessengerKey,
       routerConfig: appRouter,
       debugShowCheckedModeBanner: false,
     );
