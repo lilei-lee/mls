@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../services/customer_service.dart';
 import '../widgets/mls/mls_card.dart';
 import '../utils/time_format.dart';
+import '../utils/customer_labels.dart';
 
 /// 客户列表页 · Day 12 新建
 ///
@@ -21,6 +22,18 @@ class CustomerListScreen extends StatefulWidget {
 
 class _CustomerListScreenState extends State<CustomerListScreen> {
   late Future<Map<String, dynamic>> _future;
+  String? _statusFilter; // null=全部
+  bool _dueOnly = false;
+  String _sort = 'updated_at';
+
+  static const _statusFilters = <(String?, String)>[
+    (null, '全部'),
+    ('new', '新客'),
+    ('following', '跟进中'),
+    ('viewed', '已带看'),
+    ('deal', '已成交'),
+    ('lost', '已战败'),
+  ];
 
   @override
   void initState() {
@@ -29,7 +42,11 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   }
 
   Future<Map<String, dynamic>> _load() {
-    return CustomerService.instance.listMine();
+    return CustomerService.instance.listMine(
+      status: _statusFilter,
+      dueOnly: _dueOnly,
+      sort: _sort,
+    );
   }
 
   Future<void> _refresh() async {
@@ -58,7 +75,9 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
       appBar: AppBar(
         title: const Text('我的客户'),
       ),
-      body: FutureBuilder<Map<String, dynamic>>(
+      body: Column(children: [
+        _buildFilterBar(),
+        Expanded(child: FutureBuilder<Map<String, dynamic>>(
         future: _future,
         builder: (ctx, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
@@ -98,11 +117,60 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
             ),
           );
         },
-      ),
+      )),
+      ]),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _goCreate,
         icon: const Icon(Icons.person_add),
         label: const Text('新建客户'),
+      ),
+    );
+  }
+
+  Widget _buildFilterBar() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+      color: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(children: [
+              for (final f in _statusFilters)
+                Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: ChoiceChip(
+                    label: Text(f.$2),
+                    selected: _statusFilter == f.$1,
+                    onSelected: (_) =>
+                        setState(() { _statusFilter = f.$1; _future = _load(); }),
+                  ),
+                ),
+            ]),
+          ),
+          Row(children: [
+            FilterChip(
+              label: const Text('待跟进'),
+              selected: _dueOnly,
+              onSelected: (v) => setState(() { _dueOnly = v; _future = _load(); }),
+            ),
+            const Spacer(),
+            DropdownButton<String>(
+              value: _sort,
+              underline: const SizedBox.shrink(),
+              items: const [
+                DropdownMenuItem(value: 'updated_at', child: Text('最近更新')),
+                DropdownMenuItem(value: 'grade', child: Text('按等级')),
+                DropdownMenuItem(value: 'follow_up', child: Text('按跟进日')),
+                DropdownMenuItem(value: 'created_at', child: Text('最新建档')),
+              ],
+              onChanged: (v) {
+                if (v != null) setState(() { _sort = v; _future = _load(); });
+              },
+            ),
+          ]),
+        ],
       ),
     );
   }
@@ -170,6 +238,17 @@ class _CustomerCard extends StatelessWidget {
 
   const _CustomerCard({required this.data, required this.onTap});
 
+  Widget _badge(String text, Color color) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(4.0),
+        ),
+        child: Text(text,
+            style: TextStyle(
+                color: color, fontSize: 11.0, fontWeight: FontWeight.w600)),
+      );
+
   @override
   Widget build(BuildContext context) {
     final surname = (data['surname'] ?? '') as String;
@@ -178,13 +257,14 @@ class _CustomerCard extends StatelessWidget {
     final requirements = (data['requirements'] ?? '') as String;
     final memoEntries =
         (data['memo_entries'] as List?)?.cast<dynamic>() ?? [];
-    final status = (data['status'] ?? 'active') as String;
+    final status = (data['status'] ?? 'new') as String;
+    final grade = data['intent_grade'] as String?;
+    final dueFollow = data['is_follow_up_due'] == true;
     final updatedAt = data['updated_at'] as String?;
 
-    final displayName =
-        '$surname${gender == 'male' ? '先生' : gender == 'female' ? '女士' : ''}';
+    final displayName = '$surname${genderLabel(gender)}';
     final memoCount = memoEntries.length;
-    final isClosed = status == 'closed';
+    final isClosed = status == 'lost' || status == 'closed' || status == 'deal';
 
     final avatarColor = gender == 'male' ? MlsColors.primary : MlsColors.avatarPink;
 
@@ -216,27 +296,29 @@ class _CustomerCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          displayName,
-                          style: TextStyle(
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                            color: isClosed ? MlsColors.textTertiary : null,
+                        Flexible(
+                          child: Text(
+                            displayName,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                              color: isClosed ? MlsColors.textTertiary : null,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 6),
-                        if (isClosed)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 5, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: MlsColors.textTertiary.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(4.0),
-                            ),
-                            child: const Text('已结单',
-                                style: TextStyle(
-                                    color: Colors.grey, fontSize: 11.0)),
-                          ),
+                        if (grade != null) ...[
+                          _badge('$grade类', customerGradeColor(grade)),
+                          const SizedBox(width: 4),
+                        ],
+                        _badge(customerStatusLabel(status),
+                            customerStatusColor(status)),
+                        if (dueFollow) ...[
+                          const SizedBox(width: 4),
+                          const Icon(Icons.notifications_active,
+                              size: 14, color: MlsColors.danger),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 3),
