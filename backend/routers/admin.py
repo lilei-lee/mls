@@ -13,7 +13,6 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from database import db
-from membership import set_membership_by_phone
 from admin_auth import COOKIE_NAME, MAX_AGE, make_admin_cookie, check_credentials, require_admin
 
 _TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), "..", "templates")
@@ -146,35 +145,22 @@ def admin_dashboard(request: Request, _: bool = Depends(require_admin)):
                                       {"m": _dashboard_metrics(), "x": _dashboard_extra()})
 
 
-# ── 会员管理 ──
+# ── 会员开通/续期(挂在经纪人详情页) ──
 
-@admin_router.get("/members", response_class=HTMLResponse)
-def admin_members(request: Request, _: bool = Depends(require_admin), msg: str = ""):
-    now = datetime.now()
-    rows = []
-    cur = db["agents"].find(
-        {}, {"name": 1, "phone": 1, "store_name": 1, "status": 1, "membership_expires_at": 1}
-    ).sort("created_at", -1)
-    for a in cur:
-        exp = a.get("membership_expires_at")
-        rows.append({
-            "name": a.get("name", ""),
-            "phone": a.get("phone", ""),
-            "store_name": a.get("store_name", ""),
-            "status": a.get("status", ""),
-            "expires_at": exp.strftime("%Y-%m-%d") if isinstance(exp, datetime) else "-",
-            "active": isinstance(exp, datetime) and exp > now,
-        })
-    return templates.TemplateResponse(request, "admin/members.html", {"rows": rows, "msg": msg})
-
-
-@admin_router.post("/members/grant")
-def admin_grant_member(_: bool = Depends(require_admin), phone: str = Form(...), days: int = Form(...)):
-    expires = datetime.now() + timedelta(days=days)
-    res = set_membership_by_phone(phone.strip(), expires)
-    msg = (f"已为 {res['agent_name']}({phone}) 开通至 {res['expires_at']}"
-           if res.get("matched") else f"未找到手机号 {phone}")
-    return RedirectResponse(url=f"/admin/members?msg={quote(msg)}", status_code=status.HTTP_303_SEE_OTHER)
+@admin_router.post("/agents/{agent_id}/membership")
+def admin_agent_membership(agent_id: str, _: bool = Depends(require_admin), days: int = Form(...)):
+    """给指定经纪人开通/续期会员(从其详情页操作)。"""
+    try:
+        aid = ObjectId(agent_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的经纪人 ID")
+    if not db["agents"].find_one({"_id": aid}):
+        raise HTTPException(status_code=404, detail="经纪人不存在")
+    db["agents"].update_one({"_id": aid}, {"$set": {
+        "membership_expires_at": datetime.now() + timedelta(days=days),
+        "updated_at": datetime.now(),
+    }})
+    return RedirectResponse(url=f"/admin/agents/{agent_id}", status_code=status.HTTP_303_SEE_OTHER)
 
 
 # ── 经纪人管理(只读 + 联卖审核) ──

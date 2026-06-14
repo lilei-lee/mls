@@ -57,12 +57,6 @@ def test_dashboard_requires_auth(client):
     assert r.headers["location"] == "/admin/login"
 
 
-def test_members_requires_auth(client):
-    r = client.get("/admin/members", follow_redirects=False)
-    assert r.status_code == 303
-    assert r.headers["location"] == "/admin/login"
-
-
 # ── 看板 ──
 
 def test_dashboard_authed(client):
@@ -72,36 +66,17 @@ def test_dashboard_authed(client):
     assert "数据看板" in r.text
 
 
-# ── 会员管理 ──
+# ── 会员开通(经纪人详情页) ──
 
-def test_members_grant_flow(client):
-    db["agents"].insert_one({
-        "name": "张三", "phone": "13912345678", "store_name": "测试门店",
-        "status": "active", "created_at": datetime.now(),
-    })
+def test_agent_membership_grant(client):
+    aid = _seed_agent()
     _login(client)
-
-    r = client.post("/admin/members/grant",
-                    data={"phone": "13912345678", "days": "365"},
-                    follow_redirects=False)
+    r = client.post(f"/admin/agents/{aid}/membership",
+                    data={"days": "365"}, follow_redirects=False)
     assert r.status_code == 303
-
-    a = db["agents"].find_one({"phone": "13912345678"})
+    a = db["agents"].find_one({"_id": aid})
     assert isinstance(a.get("membership_expires_at"), datetime)
     assert a["membership_expires_at"] > datetime.now()
-
-    r2 = client.get("/admin/members", follow_redirects=False)
-    assert r2.status_code == 200
-    assert "张三" in r2.text
-    assert "有效" in r2.text
-
-
-def test_grant_unknown_phone(client):
-    _login(client)
-    r = client.post("/admin/members/grant",
-                    data={"phone": "10000000000", "days": "30"},
-                    follow_redirects=False)
-    assert r.status_code == 303  # 优雅重定向回列表(带未找到提示)
 
 
 # ── 经纪人管理 ──
