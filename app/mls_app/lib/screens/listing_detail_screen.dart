@@ -1114,7 +1114,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                               : () async {
                                   setSheet(() => submitting = true);
                                   try {
-                                    await TransactionService.instance.markDepositPaid(
+                                    await ListingStatusService.instance.markDepositPaid(
                                       widget.listingId,
                                       depositAmountYuan:
                                           int.tryParse(amountCtrl.text.trim()),
