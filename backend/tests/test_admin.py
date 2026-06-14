@@ -523,3 +523,47 @@ def test_suspend_only_active(client):
     _login(client)
     client.post(f"/admin/agents/{aid}/suspend", data={"reason": "x"}, follow_redirects=False)
     assert db["agents"].find_one({"_id": aid})["status"] == "banned"  # 未变
+
+
+# ── 定金凭证审核 ──
+
+def test_proof_src_helper():
+    from routers.admin import _proof_src
+    assert _proof_src("data:image/png;base64,xxx").startswith("data:")
+    assert _proof_src("abc123key") == "/admin/photo/abc123key"
+    assert _proof_src("/api/v1/photos/k/e/y") == "/admin/photo/k/e/y"
+    assert _proof_src("") == ""
+
+
+def test_deposit_proofs_requires_auth(client):
+    r = client.get("/admin/deposit-proofs", follow_redirects=False)
+    assert r.status_code == 303
+
+
+def test_deposit_proofs_list(client):
+    from bson import ObjectId
+    db["listings"].insert_one({
+        "_id": ObjectId(), "status": "deposit_paid", "community": "押小区",
+        "building": "1", "room_no": "1", "owner_agent_name": "张三",
+        "deposit_amount_yuan": 50000, "deposit_proof_url": "proofkey123",
+        "deposit_paid_at": datetime.now(),
+    })
+    _login(client)
+    r = client.get("/admin/deposit-proofs", follow_redirects=False)
+    assert r.status_code == 200 and "押小区" in r.text and "查看凭证" in r.text
+
+
+def test_review_proof_records_and_audits(client):
+    from bson import ObjectId
+    lid = db["listings"].insert_one({
+        "_id": ObjectId(), "status": "deposit_paid", "community": "押",
+        "deposit_proof_url": "k", "deposit_paid_at": datetime.now(),
+    }).inserted_id
+    _login(client)
+    r = client.post(f"/admin/listings/{lid}/review-proof",
+                    data={"result": "reject", "reason": "凭证模糊"}, follow_redirects=False)
+    assert r.status_code == 303
+    l = db["listings"].find_one({"_id": lid})
+    assert l["deposit_proof_review"]["result"] == "reject"
+    assert l["deposit_proof_review"]["reason"] == "凭证模糊"
+    assert db["audit_log"].find_one({"action": "deposit_proof_review"}) is not None

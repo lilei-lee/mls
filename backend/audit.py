@@ -37,4 +37,5 @@ ACTION_LABEL = {
     "dispute_accept": "受理争议",
     "dispute_resolve": "争议裁决",
     "dispute_reject": "驳回争议",
+    "deposit_proof_review": "定金凭证审核",
 }

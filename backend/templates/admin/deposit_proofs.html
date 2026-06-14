@@ -1,0 +1,41 @@
+{% extends "admin/base.html" %}
+{% block title %}定金凭证审核 · MLS 管理后台{% endblock %}
+{% block content %}
+<h1>定金凭证审核</h1>
+{% if msg %}<div class="msg">{{ msg }}</div>{% endif %}
+<p style="color:#64748b; font-size:13px; margin:0 0 14px;">
+  当前「定金已付」房源的凭证巡检。虚假凭证按严重违规处理（标记不合规后，可在经纪人详情踢出 / 走争议仲裁）。
+</p>
+
+<table>
+  <thead>
+    <tr><th>小区</th><th>楼栋-房号</th><th>归属</th><th>定金(元)</th><th>凭证</th><th>审核</th></tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r.community }}</td>
+      <td>{{ r.building }}-{{ r.room_no }}</td>
+      <td>{{ r.owner }}</td>
+      <td>{{ r.amount }}</td>
+      <td>
+        {% if r.has_proof %}<a href="{{ r.proof_src }}" target="_blank">查看凭证</a>{% else %}<span style="color:#b91c1c;">未上传</span>{% endif %}
+      </td>
+      <td>
+        {% if r.reviewed == 'ok' %}<span class="tag ok">合规</span>
+        {% elif r.reviewed == 'reject' %}<span class="tag no">不合规</span>
+        {% else %}
+        <form method="post" action="/admin/listings/{{ r.id }}/review-proof" style="display:flex; gap:6px; align-items:center; margin:0;">
+          <input name="reason" placeholder="理由(选填)" style="width:120px; padding:5px 7px;">
+          <button type="submit" name="result" value="ok" style="padding:5px 10px;">合规</button>
+          <button type="submit" name="result" value="reject" style="padding:5px 10px; background:#b91c1c;">不合规</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6" style="color:#94a3b8;">暂无「定金已付」房源</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

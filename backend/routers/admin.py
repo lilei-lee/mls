@@ -862,3 +862,68 @@ def admin_deposit_watch(request: Request, _: bool = Depends(require_admin)):
     rows.sort(key=lambda r: r["count"], reverse=True)
     return templates.TemplateResponse(request, "admin/deposit_watch.html",
                                       {"rows": rows, "window": window})
+
+
+# ── 定金凭证审核(模块六 §5.3) ──
+
+def _proof_src(deposit_proof_url: str) -> str:
+    """把存的凭证值转成后台可显示的 <img src>。"""
+    if not deposit_proof_url:
+        return ""
+    if deposit_proof_url.startswith("data:"):
+        return deposit_proof_url  # base64 内联
+    if "/photos/" in deposit_proof_url:
+        key = deposit_proof_url.split("/photos/", 1)[1]
+        return f"/admin/photo/{key}"
+    return f"/admin/photo/{deposit_proof_url}"  # 裸 key
+
+
+@admin_router.get("/photo/{key:path}")
+def admin_photo_proxy(key: str, _: bool = Depends(require_admin)):
+    """后台专用图片读取(cookie 鉴权;经纪人端 /api/v1/photos 需 JWT,后台用不了)。"""
+    from starlette.responses import StreamingResponse
+    from storage import get_photo, PhotoNotFound
+    try:
+        stream, content_type = get_photo(key)
+    except PhotoNotFound:
+        raise HTTPException(status_code=404, detail="照片不存在")
+    return StreamingResponse(stream, media_type=content_type,
+                             headers={"Cache-Control": "private, max-age=86400"})
+
+
+@admin_router.get("/deposit-proofs", response_class=HTMLResponse)
+def admin_deposit_proofs(request: Request, _: bool = Depends(require_admin), msg: str = ""):
+    rows = []
+    for l in db["listings"].find({"status": "deposit_paid"}).sort("deposit_paid_at", -1).limit(200):
+        review = l.get("deposit_proof_review") or {}
+        proof = l.get("deposit_proof_url", "")
+        rows.append({
+            "id": str(l["_id"]),
+            "community": l.get("community", ""),
+            "building": l.get("building", ""), "room_no": l.get("room_no", ""),
+            "owner": l.get("owner_agent_name", ""),
+            "amount": l.get("deposit_amount_yuan", "-"),
+            "has_proof": bool(proof),
+            "proof_src": _proof_src(proof),
+            "reviewed": review.get("result", ""),
+        })
+    return templates.TemplateResponse(request, "admin/deposit_proofs.html", {"rows": rows, "msg": msg})
+
+
+@admin_router.post("/listings/{listing_id}/review-proof")
+def admin_review_proof(listing_id: str, _: bool = Depends(require_admin),
+                       result: str = Form(...), reason: str = Form("")):
+    """审核定金凭证:result=ok(合规)/reject(不合规)。不合规仅记录+留痕,处罚走踢出/争议。"""
+    try:
+        lid = ObjectId(listing_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的房源 ID")
+    if not db["listings"].find_one({"_id": lid}):
+        raise HTTPException(status_code=404, detail="房源不存在")
+    result = result if result in ("ok", "reject") else "ok"
+    db["listings"].update_one({"_id": lid}, {"$set": {"deposit_proof_review": {
+        "result": result, "reason": reason.strip(), "at": datetime.now(),
+    }, "updated_at": datetime.now()}})
+    write_audit("deposit_proof_review", "listing", listing_id, {"result": result})
+    return RedirectResponse(url=f"/admin/deposit-proofs?msg={quote('已审核')}",
+                            status_code=status.HTTP_303_SEE_OTHER)
