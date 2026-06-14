@@ -31,4 +31,40 @@
     <div class="value">{{ m.deal_amount_wan }}<span style="font-size:14px;"> 万</span></div>
   </div>
 </div>
+
+<h1 style="font-size:16px; margin-top:28px;">环比趋势（本月 vs 上月）</h1>
+<div class="cards">
+  {% for t in x.mom %}
+  <div class="card">
+    <div class="label">{{ t.label }}</div>
+    <div class="value">{{ t.cur }}</div>
+    <div class="sub">
+      上月 {{ t.prev }} ·
+      {% if t.pct is none %}<span style="color:#94a3b8;">无基数</span>
+      {% elif t.pct >= 0 %}<span style="color:#166534;">↑ {{ t.pct }}%</span>
+      {% else %}<span style="color:#991b1b;">↓ {{ t.pct|abs }}%</span>{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<h1 style="font-size:16px; margin-top:28px;">区域分布</h1>
+<table>
+  <thead><tr><th>区域</th><th>房源数</th><th>已成交</th><th>均价(万)</th></tr></thead>
+  <tbody>
+    {% for r in x.regions %}
+    <tr><td>{{ r.district }}</td><td>{{ r.count }}</td><td>{{ r.sold }}</td><td>{{ r.avg_price }}</td></tr>
+    {% else %}<tr><td colspan="4" style="color:#94a3b8;">暂无数据</td></tr>{% endfor %}
+  </tbody>
+</table>
+
+<h1 style="font-size:16px; margin-top:28px;">门店维度</h1>
+<table>
+  <thead><tr><th>门店</th><th>经纪人数</th><th>在库房源</th><th>本月成交</th></tr></thead>
+  <tbody>
+    {% for s in x.stores %}
+    <tr><td>{{ s.store }}</td><td>{{ s.agents }}</td><td>{{ s.listings }}</td><td>{{ s.deals }}</td></tr>
+    {% else %}<tr><td colspan="4" style="color:#94a3b8;">暂无数据</td></tr>{% endfor %}
+  </tbody>
+</table>
 {% endblock %}

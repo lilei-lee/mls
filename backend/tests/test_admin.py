@@ -213,3 +213,15 @@ def test_listing_offline_guard_non_on_sale(client):
     _login(client)
     client.post(f"/admin/listings/{lid}/offline", data={"reason": "x"}, follow_redirects=False)
     assert db["listings"].find_one({"_id": lid})["status"] == "deposit_paid"  # 未变
+
+
+# ── 看板增强 ──
+
+def test_dashboard_enhanced_sections(client):
+    _seed_listing(community="阳光小区", district="桥东区")
+    _login(client)
+    r = client.get("/admin/", follow_redirects=False)
+    assert r.status_code == 200
+    assert "环比趋势" in r.text
+    assert "区域分布" in r.text
+    assert "门店维度" in r.text

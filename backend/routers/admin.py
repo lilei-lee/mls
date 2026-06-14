@@ -49,6 +49,71 @@ def _dashboard_metrics() -> dict:
     }
 
 
+def _month_ranges():
+    """返回 (上月起, 本月起, 现在)。"""
+    now = datetime.now()
+    this_start = datetime(now.year, now.month, 1)
+    last_start = (datetime(now.year - 1, 12, 1) if now.month == 1
+                  else datetime(now.year, now.month - 1, 1))
+    return last_start, this_start, now
+
+
+def _delta_pct(cur: int, prev: int):
+    """环比百分比;上月为 0 时返回 None(无基数)。"""
+    if prev == 0:
+        return None
+    return round((cur - prev) / prev * 100, 1)
+
+
+def _dashboard_extra() -> dict:
+    agents, listings, txs, srs = db["agents"], db["listings"], db["transactions"], db["showing_requests"]
+    last_start, this_start, now = _month_ranges()
+
+    def _cnt(coll, field, lo, hi):
+        return coll.count_documents({field: {"$gte": lo, "$lt": hi}})
+
+    def _deal_cnt(lo, hi):
+        return txs.count_documents({"status": "confirmed", "confirmed_at": {"$gte": lo, "$lt": hi}})
+
+    mom = []
+    for label, cur, prev in [
+        ("新增房源", _cnt(listings, "created_at", this_start, now), _cnt(listings, "created_at", last_start, this_start)),
+        ("成交量", _deal_cnt(this_start, now), _deal_cnt(last_start, this_start)),
+        ("带客申请", _cnt(srs, "created_at", this_start, now), _cnt(srs, "created_at", last_start, this_start)),
+    ]:
+        mom.append({"label": label, "cur": cur, "prev": prev, "pct": _delta_pct(cur, prev)})
+
+    regions = []
+    for d in [x for x in listings.distinct("district") if x]:
+        prices = [l["price_wan"] for l in listings.find({"district": d}, {"price_wan": 1})
+                  if isinstance(l.get("price_wan"), (int, float))]
+        regions.append({
+            "district": d,
+            "count": listings.count_documents({"district": d}),
+            "sold": listings.count_documents({"district": d, "status": "sold"}),
+            "avg_price": round(sum(prices) / len(prices), 1) if prices else 0,
+        })
+    regions.sort(key=lambda r: r["count"], reverse=True)
+
+    stores = []
+    for s in agents.distinct("store_name"):
+        ids = [a["_id"] for a in agents.find({"store_name": s}, {"_id": 1})]
+        if not ids:
+            continue
+        stores.append({
+            "store": s or "(未填)",
+            "agents": len(ids),
+            "listings": listings.count_documents({"owner_agent_id": {"$in": ids}}),
+            "deals": txs.count_documents({
+                "status": "confirmed", "confirmed_at": {"$gte": this_start},
+                "$or": [{"la_agent_id": {"$in": ids}}, {"ba_agent_id": {"$in": ids}}],
+            }),
+        })
+    stores.sort(key=lambda r: r["listings"], reverse=True)
+
+    return {"mom": mom, "regions": regions, "stores": stores}
+
+
 # ── 登录 / 登出 ──
 
 @admin_router.get("/login", response_class=HTMLResponse)
@@ -77,7 +142,8 @@ def admin_logout():
 
 @admin_router.get("/", response_class=HTMLResponse)
 def admin_dashboard(request: Request, _: bool = Depends(require_admin)):
-    return templates.TemplateResponse(request, "admin/dashboard.html", {"m": _dashboard_metrics()})
+    return templates.TemplateResponse(request, "admin/dashboard.html",
+                                      {"m": _dashboard_metrics(), "x": _dashboard_extra()})
 
 
 # ── 会员管理 ──
