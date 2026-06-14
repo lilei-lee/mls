@@ -20,7 +20,7 @@ MVP 范围:
 - 带看反馈表单
 """
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Literal
 from bson import ObjectId
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
@@ -31,15 +31,38 @@ showings_collection = db["showings"]
 showing_requests_collection = db["showing_requests"]
 
 
+# ==================== 带看反馈(节点④,帮助分析客户真实需求) ====================
+
+SATISFACTION_OPTIONS = ("满意", "一般", "不满意")
+INTENT_RESULT_OPTIONS = ("有意", "再看看", "排除")
+SatisfactionT = Literal["满意", "一般", "不满意"]
+IntentResultT = Literal["有意", "再看看", "排除"]
+
+
+def feedback_fields_from(body) -> dict:
+    """从带看提交体抽取 4 项客户反馈 → DB 字段(两个写入口共用)。"""
+    return {
+        "satisfaction": getattr(body, "satisfaction", None),
+        "customer_feedback": (getattr(body, "customer_feedback", None) or "").strip(),
+        "true_needs": (getattr(body, "true_needs", None) or "").strip(),
+        "intent_result": getattr(body, "intent_result", None),
+    }
+
+
 # ==================== 数据模型 ====================
 
 class CreateShowingBody(BaseModel):
-    """BA 提交带看记录"""
+    """BA 提交带看记录(含客户反馈)"""
     showing_request_id: str = Field(..., description="关联的带客申请 ID")
     showing_time: datetime = Field(..., description="实际带看时间(ISO)")
     photos: list[str] = Field(..., min_length=1, max_length=3,
                               description="现场照片 base64 data URL,1-3 张")
-    notes: Optional[str] = Field(None, max_length=200, description="带看备注")
+    notes: Optional[str] = Field(None, max_length=200, description="带看备注(经纪人自留)")
+    # —— 客户反馈 4 项 ——
+    satisfaction: Optional[SatisfactionT] = Field(None, description="客户满意度")
+    customer_feedback: Optional[str] = Field(None, max_length=300, description="客户现场反馈")
+    true_needs: Optional[str] = Field(None, max_length=300, description="真实需求洞察")
+    intent_result: Optional[IntentResultT] = Field(None, description="对本房意向")
 
 
 class RejectShowingBody(BaseModel):
@@ -130,6 +153,7 @@ def submit_showing(body: CreateShowingBody, ba_agent: dict) -> dict:
         "photos": body.photos,
         "photo_count": len(body.photos),
         "notes": (body.notes or "").strip(),
+        **feedback_fields_from(body),
         "status": "pending_confirm",
         "reject_reason": None,
         "ba_submitted_at": now,
@@ -275,6 +299,11 @@ def _format_showing(doc: dict) -> dict:
         "photos": doc.get("photos", []),
         "photo_count": doc.get("photo_count", 0),
         "notes": doc.get("notes", ""),
+        # 客户反馈 4 项
+        "satisfaction": doc.get("satisfaction"),
+        "customer_feedback": doc.get("customer_feedback", ""),
+        "true_needs": doc.get("true_needs", ""),
+        "intent_result": doc.get("intent_result"),
         "status": doc["status"],
         "reject_reason": doc.get("reject_reason"),
         "ba_submitted_at": _iso_or_none(doc.get("ba_submitted_at")),

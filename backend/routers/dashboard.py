@@ -227,6 +227,27 @@ def api_dashboard_todos(
             "created_at": None,
         })
 
+    # --- 9. 今日待跟进客户(BA) ---
+    due_customers = list(db["customers"].find({
+        "owner_agent_id": agent_id,
+        "status": {"$in": ["new", "following", "viewed"]},
+        "next_follow_up_at": {"$ne": None, "$lte": datetime.now()},
+    }).sort("next_follow_up_at", 1).limit(5))
+
+    for cu in due_customers:
+        gender_label = "先生" if cu.get("gender") == "male" else "女士"
+        grade = cu.get("intent_grade")
+        todos.append({
+            "type": "customer_follow_up",
+            "priority": "high" if grade == "A" else "medium",
+            "icon": "person_pin",
+            "title": f"待跟进客户 · {cu.get('surname', '')}{gender_label}"
+                     + (f" [{grade}类]" if grade else ""),
+            "subtitle": cu.get("requirements") or "到跟进日期了,记得联系客户",
+            "action_route": f"/customer/{str(cu['_id'])}",
+            "created_at": None,
+        })
+
     return {
         "success": True,
         "data": {

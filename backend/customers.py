@@ -17,6 +17,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from database import db
+from showings import SatisfactionT, IntentResultT, feedback_fields_from
 
 
 # ============= 枚举 / 常量 =============
@@ -394,8 +395,11 @@ def get_customer_showings(current_agent_id: str, customer_id: str) -> dict:
             "listing_snapshot": s.get("listing_snapshot", {}),
             "showing_time": st.isoformat() if isinstance(st, datetime) else None,
             "status": s.get("status"),
-            # Phase 2 会正式写 customer_feedback;暂回退到 notes
+            # 客户反馈 4 项(老数据无 customer_feedback 时回退到 notes)
+            "satisfaction": s.get("satisfaction"),
             "customer_feedback": s.get("customer_feedback") or s.get("notes", ""),
+            "true_needs": s.get("true_needs", ""),
+            "intent_result": s.get("intent_result"),
             "notes": s.get("notes", ""),
         })
     items.sort(key=lambda x: x["showing_time"] or "", reverse=True)
@@ -523,7 +527,12 @@ class DirectShowingRequest(BaseModel):
     listing_id: str = Field(..., description="目标房源 ID")
     showing_time: str = Field(..., description="实际带看时间 ISO8601")
     photos: list[str] = Field(..., min_length=1, max_length=3, description="现场照片 base64 1-3 张")
-    notes: Optional[str] = Field(None, max_length=200, description="备注")
+    notes: Optional[str] = Field(None, max_length=200, description="备注(经纪人自留)")
+    # —— 客户反馈 4 项(与 showings.CreateShowingBody 对齐) ——
+    satisfaction: Optional[SatisfactionT] = Field(None, description="客户满意度")
+    customer_feedback: Optional[str] = Field(None, max_length=300, description="客户现场反馈")
+    true_needs: Optional[str] = Field(None, max_length=300, description="真实需求洞察")
+    intent_result: Optional[IntentResultT] = Field(None, description="对本房意向")
 
 
 def create_direct_showing(current_agent_id: str, req: DirectShowingRequest) -> dict:
@@ -618,6 +627,7 @@ def create_direct_showing(current_agent_id: str, req: DirectShowingRequest) -> d
         "photos": req.photos,
         "photo_count": len(req.photos),
         "notes": req.notes or "",
+        **feedback_fields_from(req),
         # 状态机字段(对齐 submit_showing)
         "status": "pending_confirm",
         "reject_reason": None,
