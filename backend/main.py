@@ -62,6 +62,10 @@ app = FastAPI(
     version="0.1.0"
 )
 
+# 管理后台:把当前管理员用户名写进 ContextVar(审计日志归属到人)
+from admin_auth import ActorContextMiddleware
+app.add_middleware(ActorContextMiddleware)
+
 
 @app.get("/")
 def root():
@@ -134,6 +138,10 @@ def startup_check():
     print("[OK] 争议举报索引已建立")
     ensure_ownership_indexes()
     print("[OK] 归属变更索引已建立")
+    from admin_users import ensure_admin_indexes, ensure_seed_admin
+    ensure_admin_indexes()
+    ensure_seed_admin()
+    print("[OK] 管理员账号索引/种子已就绪")
     ensure_bucket()
     start_scheduler()
 

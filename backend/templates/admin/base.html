@@ -47,16 +47,13 @@
   <header>
     <span class="brand">MLS 管理后台</span>
     <nav>
-      <a href="/admin/">数据看板</a>
-      <a href="/admin/agents">经纪人</a>
-      <a href="/admin/listings">房源</a>
-      <a href="/admin/transactions">成交</a>
-      <a href="/admin/communities">小区库</a>
-      <a href="/admin/ownership-changes">归属</a>
-      <a href="/admin/disputes">争议</a>
-      <a href="/admin/config">系统配置</a>
-      <a href="/admin/audit">审计日志</a>
+      {% for s in nav_sections %}
+      <a href="{{ s.url }}" {% if active_path == s.url or (s.url != '/admin/' and active_path.startswith(s.url)) %}class="active"{% endif %}>{{ s.label }}</a>
+      {% endfor %}
     </nav>
+    {% if current_admin %}
+    <span style="color:#94a3b8; font-size:12px;">{{ current_admin.name }}（{{ current_admin.role_label }}）</span>
+    {% endif %}
     <a class="logout" href="/admin/logout">退出登录</a>
   </header>
   {% endblock %}

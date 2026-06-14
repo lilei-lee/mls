@@ -1,0 +1,36 @@
+{% extends "admin/base.html" %}
+{% block title %}登录日志 · MLS 管理后台{% endblock %}
+{% block content %}
+<h1>管理员登录日志 <a href="/admin/admins" style="font-size:13px; font-weight:400; color:#0f172a;">← 返回管理员</a></h1>
+
+<form class="inline" method="get" action="/admin/login-log">
+  <div>
+    <label>账号</label>
+    <select name="username_f" style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px;">
+      <option value="">全部</option>
+      {% for u in usernames %}<option value="{{ u }}" {% if username_f==u %}selected{% endif %}>{{ u }}</option>{% endfor %}
+    </select>
+  </div>
+  <button type="submit">筛选</button>
+</form>
+
+<p style="color:#94a3b8; font-size:12px; margin:-6px 0 12px;">标「陌生 IP」的是该账号首次从这个 IP 登录，留意是否本人操作。</p>
+<table>
+  <thead>
+    <tr><th>时间</th><th>账号</th><th>IP</th><th>风险</th><th>客户端</th></tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r.created_at }}</td>
+      <td>{{ r.username }}</td>
+      <td>{{ r.ip }}</td>
+      <td>{% if r.is_new_ip %}<span class="tag no">陌生 IP</span>{% else %}<span class="tag ok">常用</span>{% endif %}</td>
+      <td style="color:#64748b; font-size:12px; max-width:380px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ r.ua }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" style="color:#94a3b8;">暂无登录记录</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

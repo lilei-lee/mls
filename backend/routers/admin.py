@@ -16,10 +16,22 @@ from fastapi.templating import Jinja2Templates
 
 from database import db
 from audit import write_audit, ACTION_LABEL
-from admin_auth import COOKIE_NAME, MAX_AGE, make_admin_cookie, check_credentials, require_admin
+from admin_auth import COOKIE_NAME, MAX_AGE, make_admin_cookie, require_admin
+import admin_users
+
+
+def _nav_context(request: Request) -> dict:
+    """给所有 admin 模板注入:当前管理员 + 按权限过滤后的导航。"""
+    admin = getattr(request.state, "admin", None)
+    perms = admin.get("perms", set()) if admin else set()
+    nav = [{"key": k, "label": label, "url": url}
+           for k, label, url in admin_users.SECTIONS if k in perms]
+    return {"current_admin": admin, "nav_sections": nav,
+            "active_path": request.url.path}
+
 
 _TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), "..", "templates")
-templates = Jinja2Templates(directory=_TEMPLATES_DIR)
+templates = Jinja2Templates(directory=_TEMPLATES_DIR, context_processors=[_nav_context])
 
 admin_router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -125,11 +137,16 @@ def admin_login_page(request: Request, error: str = ""):
 
 @admin_router.post("/login")
 def admin_login(request: Request, username: str = Form(...), password: str = Form(...)):
-    if not check_credentials(username, password):
+    admin_users.ensure_seed_admin()
+    admin = admin_users.authenticate_admin(username, password)
+    if not admin:
         return templates.TemplateResponse(
-            request, "admin/login.html", {"error": "账号或密码错误"}, status_code=401)
+            request, "admin/login.html", {"error": "账号或密码错误,或账号已停用"}, status_code=401)
+    ip = request.client.host if request.client else "-"
+    admin_users.record_login(admin["username"], ip, request.headers.get("user-agent", ""))
     resp = RedirectResponse(url="/admin/", status_code=status.HTTP_303_SEE_OTHER)
-    resp.set_cookie(COOKIE_NAME, make_admin_cookie(), max_age=MAX_AGE, httponly=True, samesite="lax")
+    resp.set_cookie(COOKIE_NAME, make_admin_cookie(admin["username"]),
+                    max_age=MAX_AGE, httponly=True, samesite="lax")
     return resp
 
 
@@ -138,6 +155,12 @@ def admin_logout():
     resp = RedirectResponse(url="/admin/login", status_code=status.HTTP_303_SEE_OTHER)
     resp.delete_cookie(COOKIE_NAME)
     return resp
+
+
+@admin_router.get("/denied", response_class=HTMLResponse)
+def admin_denied(request: Request, _: bool = Depends(require_admin), p: str = ""):
+    label = dict((k, lb) for k, lb, _u in admin_users.SECTIONS).get(p, p or "该功能")
+    return templates.TemplateResponse(request, "admin/denied.html", {"perm_label": label})
 
 
 # ── 数据看板 ──
@@ -1336,3 +1359,95 @@ async def admin_community_import(_: bool = Depends(require_admin), file: UploadF
                 {"created": created, "updated": updated, "skipped": skipped})
     msg = quote(f"导入完成:新增 {created} · 更新 {updated} · 跳过 {skipped}")
     return RedirectResponse(url=f"/admin/communities?msg={msg}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+# ── 管理员账号 + 角色权限(超级管理员用) ──
+
+@admin_router.get("/admins", response_class=HTMLResponse)
+def admin_admins(request: Request, _: bool = Depends(require_admin), msg: str = ""):
+    rows = []
+    for a in admin_users.admin_users_collection.find().sort("created_at", 1):
+        rows.append({
+            "id": str(a["_id"]),
+            "username": a.get("username", ""),
+            "name": a.get("name", ""),
+            "role": a.get("role", ""),
+            "role_label": admin_users.role_label(a.get("role", "")),
+            "status": a.get("status", "active"),
+            "last_login_at": _fmt_date(a.get("last_login_at")),
+        })
+    roles = [{"key": k, "label": v["label"]} for k, v in admin_users.ROLES.items()]
+    # 权限矩阵(展示每个角色能看哪些功能区)
+    matrix = [{"label": v["label"],
+               "perms": "、".join(lb for k, lb, _u in admin_users.SECTIONS if k in v["perms"])}
+              for v in admin_users.ROLES.values()]
+    return templates.TemplateResponse(request, "admin/admins.html",
+                                      {"rows": rows, "roles": roles, "matrix": matrix, "msg": msg})
+
+
+def _admins_redirect(msg: str):
+    return RedirectResponse(url=f"/admin/admins?msg={quote(msg)}",
+                            status_code=status.HTTP_303_SEE_OTHER)
+
+
+@admin_router.post("/admins")
+def admin_admins_create(request: Request, _: bool = Depends(require_admin),
+                        username: str = Form(...), name: str = Form(""),
+                        password: str = Form(...), role: str = Form(...)):
+    by = request.state.admin["username"]
+    res = admin_users.create_admin(username, name, password, role, by)
+    if res["ok"]:
+        write_audit("admin_create", "admin", username, {"role": role})
+    return _admins_redirect(res["msg"])
+
+
+@admin_router.post("/admins/{admin_id}/role")
+def admin_admins_role(admin_id: str, request: Request, _: bool = Depends(require_admin),
+                      role: str = Form(...)):
+    res = admin_users.set_role(admin_id, role)
+    if res["ok"]:
+        write_audit("admin_role_change", "admin", admin_id, {"role": role})
+    return _admins_redirect(res["msg"])
+
+
+@admin_router.post("/admins/{admin_id}/status")
+def admin_admins_status(admin_id: str, request: Request, _: bool = Depends(require_admin),
+                        status_to: str = Form(...)):
+    # 不能停用自己,避免把自己锁在外面
+    me = request.state.admin
+    target = admin_users.admin_users_collection.find_one({"_id": ObjectId(admin_id)})
+    if target and target.get("username") == me["username"] and status_to == "disabled":
+        return _admins_redirect("不能停用当前登录的自己")
+    res = admin_users.set_status(admin_id, status_to)
+    if res["ok"]:
+        write_audit("admin_disable" if status_to == "disabled" else "admin_enable",
+                    "admin", admin_id, {})
+    return _admins_redirect(res["msg"])
+
+
+@admin_router.post("/admins/{admin_id}/reset-password")
+def admin_admins_reset_pwd(admin_id: str, request: Request, _: bool = Depends(require_admin),
+                           new_password: str = Form(...)):
+    res = admin_users.reset_password(admin_id, new_password)
+    if res["ok"]:
+        write_audit("admin_reset_pwd", "admin", admin_id, {})
+    return _admins_redirect(res["msg"])
+
+
+@admin_router.get("/login-log", response_class=HTMLResponse)
+def admin_login_log(request: Request, _: bool = Depends(require_admin), username_f: str = ""):
+    q = {}
+    if username_f:
+        q["username"] = username_f
+    rows = []
+    for e in admin_users.admin_login_log_collection.find(q).sort("created_at", -1).limit(200):
+        rows.append({
+            "username": e.get("username", ""),
+            "ip": e.get("ip", "-"),
+            "ua": e.get("ua", ""),
+            "is_new_ip": bool(e.get("is_new_ip")),
+            "created_at": e["created_at"].strftime("%Y-%m-%d %H:%M") if e.get("created_at") else "-",
+        })
+    usernames = admin_users.admin_login_log_collection.distinct("username")
+    return templates.TemplateResponse(request, "admin/login_log.html",
+                                      {"rows": rows, "usernames": usernames, "username_f": username_f})

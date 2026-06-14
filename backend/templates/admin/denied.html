@@ -1,0 +1,11 @@
+{% extends "admin/base.html" %}
+{% block title %}无权访问 · MLS 管理后台{% endblock %}
+{% block content %}
+<div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:32px; max-width:520px; margin:40px auto; text-align:center;">
+  <div style="font-size:40px;">🔒</div>
+  <h1 style="justify-content:center;">无权访问</h1>
+  <p style="color:#475569;">你的角色（{{ current_admin.role_label }}）没有「{{ perm_label }}」的访问权限。</p>
+  <p style="color:#94a3b8; font-size:13px;">如需开通，请联系超级管理员调整角色。</p>
+  <a href="/admin/"><button type="button">返回数据看板</button></a>
+</div>
+{% endblock %}

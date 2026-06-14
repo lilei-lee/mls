@@ -9,7 +9,13 @@ from database import db
 
 
 def write_audit(action: str, target_type: str, target_id, detail: dict | None = None,
-                actor: str = "admin") -> None:
+                actor: str | None = None) -> None:
+    if actor is None:
+        try:
+            from admin_auth import current_actor
+            actor = current_actor.get() or "admin"
+        except Exception:
+            actor = "admin"
     db["audit_log"].insert_one({
         "action": action,
         "actor": actor,
@@ -43,4 +49,9 @@ ACTION_LABEL = {
     "ownership_approve": "归属变更通过",
     "ownership_reject": "归属变更驳回",
     "proxy_confirm": "代确认成交",
+    "admin_create": "新建管理员",
+    "admin_role_change": "调整管理员角色",
+    "admin_disable": "停用管理员",
+    "admin_enable": "启用管理员",
+    "admin_reset_pwd": "重置管理员密码",
 }
