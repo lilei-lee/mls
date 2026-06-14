@@ -15,9 +15,14 @@
     <label>所属区域</label>
     <input name="district" value="{{ c.district }}" style="width:100%;" required>
   </div>
-  <div style="display:flex; gap:12px; margin-bottom:18px;">
+  <div style="display:flex; gap:12px; margin-bottom:14px;">
     <div style="flex:1;"><label>建成年代</label><input name="built_year" type="number" value="{{ c.built_year }}" style="width:100%;" min="1900" max="2100"></div>
     <div style="flex:1;"><label>楼栋数</label><input name="building_count" type="number" value="{{ c.building_count }}" style="width:100%;" min="1" max="1000"></div>
+  </div>
+  <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
+    {% for f in rich %}
+    <div style="flex:1 1 45%;"><label>{{ f.label }}</label><input name="{{ f.key }}" value="{{ f.value }}" style="width:100%;"></div>
+    {% endfor %}
   </div>
   <button type="submit">保存</button>
 </form>

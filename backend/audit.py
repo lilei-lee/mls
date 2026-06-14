@@ -32,6 +32,7 @@ ACTION_LABEL = {
     "agent_unsuspend": "解除暂停",
     "community_edit": "编辑小区",
     "community_merge": "合并小区",
+    "community_import": "批量导入小区",
     "export": "数据导出",
     "config_update": "修改系统配置",
     "dispute_accept": "受理争议",

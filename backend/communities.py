@@ -140,7 +140,7 @@ def get_community_by_id(community_id: str) -> dict:
 
 
 def _enrich_from_dict(result: dict, doc: dict) -> None:
-    """从 property_dict 按社区名查 18 字段,富化到社区详情。"""
+    """从 property_dict 按社区名查 18 字段,**只补 result 里还没有的**(MLS 本地/后台编辑的值优先)。"""
     name = doc.get("name")
     if not name:
         return
@@ -158,7 +158,8 @@ def _enrich_from_dict(result: dict, doc: dict) -> None:
             "nearby_hospital", "parking_total", "parking_ratio",
         ]:
             val = comm.get(field)
-            if val is not None:
+            # 只补缺:result 已有(后台在 MLS 库编辑过)则不覆盖
+            if val is not None and result.get(field) is None:
                 result[field] = val
     except Exception:
         pass
@@ -166,8 +167,22 @@ def _enrich_from_dict(result: dict, doc: dict) -> None:
 
 # ==================== 格式化器 ====================
 
+# 后台可编辑的小区"丰富字段"(存 MLS communities;辞典只补缺)
+COMMUNITY_RICH_FIELDS = [
+    {"key": "total_units", "label": "总户数", "type": "int"},
+    {"key": "plot_ratio", "label": "容积率", "type": "float"},
+    {"key": "green_ratio", "label": "绿化率(%)", "type": "float"},
+    {"key": "property_company", "label": "物业公司", "type": "str"},
+    {"key": "property_fee_yuan", "label": "物业费(元/㎡/月)", "type": "float"},
+    {"key": "heating_type", "label": "供暖方式", "type": "str"},
+    {"key": "parking_ratio", "label": "车位配比", "type": "str"},
+    {"key": "primary_school", "label": "学区小学", "type": "str"},
+    {"key": "middle_school", "label": "学区中学", "type": "str"},
+]
+
+
 def _format_community(doc: dict) -> dict:
-    return {
+    result = {
         "community_id": str(doc["_id"]),
         "name": doc["name"],
         "district": doc["district"],
@@ -176,6 +191,9 @@ def _format_community(doc: dict) -> dict:
         "created_at": doc["created_at"].isoformat()
         if doc.get("created_at") else None,
     }
+    for f in COMMUNITY_RICH_FIELDS:
+        result[f["key"]] = doc.get(f["key"])
+    return result
 
 
 # ==================== V2.2 #4: 社区 3-tab 详情 ====================

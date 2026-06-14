@@ -1,16 +1,26 @@
 {% extends "admin/base.html" %}
 {% block title %}小区库 · MLS 管理后台{% endblock %}
 {% block content %}
-<h1>小区库管理</h1>
+<h1>小区库管理 <a href="/admin/community-export.csv" style="font-size:13px; font-weight:400; color:#0f172a;">⤓ 导出 CSV</a></h1>
 {% if msg %}<div class="msg">{{ msg }}</div>{% endif %}
 
-<form class="inline" method="get" action="/admin/communities">
-  <div>
-    <label>搜索(小区名/区域)</label>
-    <input name="q" value="{{ q }}" placeholder="关键词">
-  </div>
-  <button type="submit">筛选</button>
-</form>
+<div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
+  <form class="inline" method="get" action="/admin/communities" style="margin:0;">
+    <div>
+      <label>搜索(小区名/区域)</label>
+      <input name="q" value="{{ q }}" placeholder="关键词">
+    </div>
+    <button type="submit">筛选</button>
+  </form>
+  <form class="inline" method="post" action="/admin/community-import" enctype="multipart/form-data" style="margin:0;">
+    <div>
+      <label>批量导入(CSV,按 名+区 upsert)</label>
+      <input type="file" name="file" accept=".csv" required>
+    </div>
+    <button type="submit">导入</button>
+  </form>
+</div>
+<p style="color:#94a3b8; font-size:12px; margin:-6px 0 12px;">提示：先「导出 CSV」拿到含全部参数的模板，用 Excel 批量编辑后再「导入」回传（表头不要改）。</p>
 
 <table>
   <thead>

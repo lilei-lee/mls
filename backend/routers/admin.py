@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from urllib.parse import quote
 
 from bson import ObjectId
-from fastapi import APIRouter, Request, Form, Depends, status, HTTPException
+from fastapi import APIRouter, Request, Form, Depends, status, HTTPException, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
@@ -500,6 +500,7 @@ def admin_communities(request: Request, _: bool = Depends(require_admin), q: str
 
 @admin_router.get("/communities/{community_id}", response_class=HTMLResponse)
 def admin_community_edit(community_id: str, request: Request, _: bool = Depends(require_admin), msg: str = ""):
+    from communities import COMMUNITY_RICH_FIELDS
     try:
         cid = ObjectId(community_id)
     except Exception:
@@ -516,18 +517,41 @@ def admin_community_edit(community_id: str, request: Request, _: bool = Depends(
         "listing_count": db["listings"].count_documents({
             "community": c.get("name", ""), "district": c.get("district", "")}),
     }
-    return templates.TemplateResponse(request, "admin/community_edit.html", {"c": community, "msg": msg})
+    rich = [{"key": f["key"], "label": f["label"], "value": c.get(f["key"]) if c.get(f["key"]) is not None else ""}
+            for f in COMMUNITY_RICH_FIELDS]
+    return templates.TemplateResponse(request, "admin/community_edit.html",
+                                      {"c": community, "rich": rich, "msg": msg})
+
+
+def _coerce_field(value: str, type_: str):
+    v = (value or "").strip()
+    if v == "":
+        return None
+    if type_ == "int":
+        try:
+            return int(v)
+        except ValueError:
+            return None
+    if type_ == "float":
+        try:
+            return float(v)
+        except ValueError:
+            return None
+    return v
 
 
 @admin_router.post("/communities/{community_id}")
-def admin_community_save(community_id: str, _: bool = Depends(require_admin),
-                         name: str = Form(...), district: str = Form(...),
-                         built_year: str = Form(""), building_count: str = Form("")):
+async def admin_community_save(community_id: str, request: Request, _: bool = Depends(require_admin)):
+    from communities import COMMUNITY_RICH_FIELDS
     try:
         cid = ObjectId(community_id)
     except Exception:
         raise HTTPException(status_code=400, detail="无效的小区 ID")
-    name, district = name.strip(), district.strip()
+    form = await request.form()
+    name = (form.get("name") or "").strip()
+    district = (form.get("district") or "").strip()
+    if not name or not district:
+        raise HTTPException(status_code=400, detail="小区名 / 区域必填")
     # (name, district) 全局唯一:撞到别的小区则拒绝
     dup = db["communities"].find_one({"name": name, "district": district, "_id": {"$ne": cid}})
     if dup:
@@ -535,11 +559,12 @@ def admin_community_save(community_id: str, _: bool = Depends(require_admin),
         return RedirectResponse(url=f"/admin/communities/{community_id}?msg={msg}",
                                 status_code=status.HTTP_303_SEE_OTHER)
     upd = {"name": name, "district": district, "updated_at": datetime.now()}
-    upd["built_year"] = int(built_year) if built_year.strip().isdigit() else None
-    upd["building_count"] = int(building_count) if building_count.strip().isdigit() else None
+    upd["built_year"] = _coerce_field(form.get("built_year"), "int")
+    upd["building_count"] = _coerce_field(form.get("building_count"), "int")
+    for f in COMMUNITY_RICH_FIELDS:
+        upd[f["key"]] = _coerce_field(form.get(f["key"]), f["type"])
     db["communities"].update_one({"_id": cid}, {"$set": upd})
-    write_audit("community_edit", "community", community_id,
-                {"name": name, "district": district})
+    write_audit("community_edit", "community", community_id, {"name": name, "district": district})
     return RedirectResponse(url=f"/admin/communities/{community_id}?msg={quote('已保存')}",
                             status_code=status.HTTP_303_SEE_OTHER)
 
@@ -1089,3 +1114,62 @@ def admin_ownership_reject(change_id: str, _: bool = Depends(require_admin), not
     reject_ownership_change(change_id, note)
     write_audit("ownership_reject", "ownership_change", change_id, {})
     return RedirectResponse(url=f"/admin/ownership-changes/{change_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+# ── 小区批量导入 / 导出(CSV) ──
+
+@admin_router.get("/community-export.csv")
+def admin_community_export(_: bool = Depends(require_admin)):
+    from communities import COMMUNITY_RICH_FIELDS
+    header = ["小区名", "区域", "建成年代", "楼栋数"] + [f["label"] for f in COMMUNITY_RICH_FIELDS]
+    rows = []
+    for c in db["communities"].find().sort("name", 1):
+        row = [c.get("name", ""), c.get("district", ""),
+               c.get("built_year") or "", c.get("building_count") or ""]
+        row += [c.get(f["key"]) if c.get(f["key"]) is not None else "" for f in COMMUNITY_RICH_FIELDS]
+        rows.append(row)
+    write_audit("export", "communities", "-", {"count": len(rows)})
+    return _csv_response("communities.csv", header, rows)
+
+
+@admin_router.post("/community-import")
+async def admin_community_import(_: bool = Depends(require_admin), file: UploadFile = File(...)):
+    """CSV 批量导入小区,按(小区名,区域)upsert。表头兼容中文 label 或英文 key(导出可直接回传)。"""
+    from communities import COMMUNITY_RICH_FIELDS
+    content = (await file.read()).decode("utf-8-sig", errors="replace")
+    reader = csv.DictReader(io.StringIO(content))
+    now = datetime.now()
+    created = updated = skipped = 0
+
+    def _pick(row, label, key):
+        v = row.get(label)
+        if v is None:
+            v = row.get(key)
+        return v
+
+    for row in reader:
+        name = (_pick(row, "小区名", "name") or "").strip()
+        district = (_pick(row, "区域", "district") or "").strip()
+        if not name or not district:
+            skipped += 1
+            continue
+        doc = {
+            "name": name, "district": district, "updated_at": now,
+            "built_year": _coerce_field(_pick(row, "建成年代", "built_year"), "int"),
+            "building_count": _coerce_field(_pick(row, "楼栋数", "building_count"), "int"),
+        }
+        for f in COMMUNITY_RICH_FIELDS:
+            doc[f["key"]] = _coerce_field(_pick(row, f["label"], f["key"]), f["type"])
+        existing = db["communities"].find_one({"name": name, "district": district})
+        if existing:
+            db["communities"].update_one({"_id": existing["_id"]}, {"$set": doc})
+            updated += 1
+        else:
+            doc["created_at"] = now
+            db["communities"].insert_one(doc)
+            created += 1
+
+    write_audit("community_import", "community", "-",
+                {"created": created, "updated": updated, "skipped": skipped})
+    msg = quote(f"导入完成:新增 {created} · 更新 {updated} · 跳过 {skipped}")
+    return RedirectResponse(url=f"/admin/communities?msg={msg}", status_code=status.HTTP_303_SEE_OTHER)

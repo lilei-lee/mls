@@ -689,3 +689,38 @@ def test_proxy_confirm_active_la_refused(client):
     # POST 直接打,后端守卫应拒(500/400 视 HTTPException);用 GET 表单也会提示
     r = client.get(f"/admin/transactions/{tx_id}/proxy-confirm", follow_redirects=False)
     assert "未被暂停/踢出" in r.text or "不可代确认" in r.text
+
+
+# ── 小区丰富字段 + 批量导入导出 ──
+
+def test_community_edit_rich_fields(client):
+    cid = _seed_community("富字段小区", "桥东区")
+    _login(client)
+    r = client.post(f"/admin/communities/{cid}", data={
+        "name": "富字段小区", "district": "桥东区", "built_year": "2010", "building_count": "8",
+        "property_company": "金科物业", "plot_ratio": "2.5", "green_ratio": "35",
+    }, follow_redirects=False)
+    assert r.status_code == 303
+    c = db["communities"].find_one({"_id": cid})
+    assert c["property_company"] == "金科物业" and c["plot_ratio"] == 2.5 and c["green_ratio"] == 35.0
+
+
+def test_community_export_csv(client):
+    cid = _seed_community("导出小区", "桥东区")
+    db["communities"].update_one({"_id": cid}, {"$set": {"property_company": "测试物业"}})
+    _login(client)
+    r = client.get("/admin/community-export.csv", follow_redirects=False)
+    assert r.status_code == 200
+    assert "导出小区" in r.text and "物业公司" in r.text and "测试物业" in r.text
+
+
+def test_community_import_csv(client):
+    _login(client)
+    csv_content = "小区名,区域,建成年代,物业公司\n新导入小区,桥东区,2015,导入物业\n"
+    r = client.post("/admin/community-import",
+                    files={"file": ("c.csv", csv_content.encode("utf-8"), "text/csv")},
+                    follow_redirects=False)
+    assert r.status_code == 303
+    c = db["communities"].find_one({"name": "新导入小区", "district": "桥东区"})
+    assert c is not None and c["built_year"] == 2015 and c["property_company"] == "导入物业"
+    assert db["audit_log"].find_one({"action": "community_import"}) is not None
