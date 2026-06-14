@@ -600,6 +600,16 @@ python -c "from database import db; print(db['transactions'].distinct('status'))
 
 REM 验证 viewer-aware 脱敏（用 LA token 打接口，期望返回里 ba_deal_* 是 null）
 curl -H "Authorization: Bearer <LA的token>" http://192.168.x.x:8000/api/v1/transactions/<id>
+
+REM ===== 会员费机制（Day 32+，真机待验）=====
+REM 进入收费期：起后端前设环境变量（默认不设 = 免费试用期，人人完整可用、不拦写操作）
+set MEMBERSHIP_ENFORCED=true && uvicorn main:app --reload --host 0.0.0.0 --port 8000
+REM 收费期内：到期日在未来 = 有效会员；否则全功能只读（写操作返 402）
+REM 后台开通/续期（无 Web 后台前的运维工具）
+python scripts\grant_membership.py --list                  REM 查看所有人会员状态
+python scripts\grant_membership.py 13912345678 365          REM 给某人开 365 天
+REM 回到免费期：清掉环境变量
+set MEMBERSHIP_ENFORCED=
 ```
 
 ### Swagger 调试流程
@@ -628,7 +638,7 @@ curl -H "Authorization: Bearer <LA的token>" http://192.168.x.x:8000/api/v1/tran
 
 | 模块 | 已实现 | 未实现（产品意图，但代码没写） |
 |---|---|---|
-| 模块一 注册登录 | 手机号 + 短信验证码登录、JWT、Token Rotation、退出黑名单 | 微信登录、生物识别、多设备策略、设备信任、异地登录二次验证 |
+| 模块一 注册登录 | 手机号 + 短信验证码登录、JWT、Token Rotation、退出黑名单、密码登录、**会员费机制（全局开关 MEMBERSHIP_ENFORCED + 过期只读 + 后台开通，真机待验）** | 微信登录、生物识别、多设备策略、设备信任、异地登录二次验证、Web 会员后台、自助续费支付 |
 | 模块二 房源管理 | 5/12 状态机、查重、奖金字段、共享开关 | 即将上市、撤牌、暂停、待审核、锁定、独家委托上传、定金凭证 EXIF 校验、COS 对象存储（用 base64 临时） |
 | 模块三 共享房源库 | 列表 + 筛选 + 卡片状态标签 + 防重复申请 + listing 状态徽章 | 高德地图、CMA 数据、关注小区、收藏通知、本地缓存离线查看、Excel 导出 |
 | 模块四 带客协作 | 申请审批、带看确认、1:N 再次带看、直接带看、客户选择器、详情页 pop 后自动刷新 | 7 天有效期定时任务、批量审批、地理围栏签到、本地通知兜底、深度链接审批、实时推送 |

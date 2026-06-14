@@ -264,6 +264,18 @@ App `lib/config/api_config.dart` 的 `baseUrl` 必须是 PC 局域网 IP(非 loc
 
 会员费收谁:个人经纪人 + 门店账号(broker)。**不向购房者收费**。
 
+**会员费收取的技术机制(Day 32+ 实现,真机待验)**:
+
+- 全局开关 `config.MEMBERSHIP_ENFORCED`(env,默认 `false`):
+    - `false` = 免费试用期 → 人人完整可用,不拦任何写操作
+    - `true` = 收费期 → `agents.membership_expires_at` 在未来 = 有效会员;否则**全功能只读**
+- **不设固定试用天数**(`MEMBERSHIP_TRIAL_DAYS=0`),完全靠开关 + 后台手动开通(磊 2026-06-14 决策)
+- 只读拦截:`main.py` HTTP 中间件,收费期内过期会员的「非 GET 且非 `/api/v1/auth/*`」请求返 **402**;放行登录/注册/看
+- 前端:dio 拦截器拦 402 → 全局 SnackBar 友好提示;「我的」页账户区显示会员状态 + 过期时红色只读横幅
+- 状态查询:`GET /api/v1/membership` + `/me` 增 `membership` 字段(`enforced/active/read_only/expires_at/days_left`)
+- 后台开通/续期:`backend/scripts/grant_membership.py <手机号> <天数>`(Web 会员后台做好前的运维工具)
+- 自测:9 纯单测 + mongomock+TestClient 10/10 端到端(免费期不拦 / 收费期过期写 402 / GET+auth 放行 / 后台开通恢复 / 状态接口)。**真机两条路径(免费期 / 收费期)待磊侧冷启验证**
+
 ### 3.5 核心理念
 
 **机制服务于信任的演化**。
@@ -564,7 +576,7 @@ V2.2 #1 新增:
 
 | 模块 | 完成度 | V9.0 关键增量 | 待办 |
 |---|---|---|---|
-| **模块一 注册登录** | 95% | 全局断网检测 + 登录页 FormState + field 红 * | 微信登录 / 生物识别 / 设备信任 |
+| **模块一 注册登录** | 95% | 全局断网检测 + 登录页 FormState + field 红 * + 密码登录 + **会员费机制(开关/过期只读/后台开通,真机待验)** | 微信登录 / 生物识别 / 设备信任 / Web 会员后台 / 自助续费支付 |
 | **模块二 房源管理** | 95% | 4 营销字段(sale_points 等)+ 14 obj_features + house_structure + 户型图 + 调价时间线 | COS 迁移 / 即将上市 / 撤牌 / 暂停 |
 | **模块三 共享房源库** | 95% | 5 类新筛选 + 6 排序 + 卡片视觉 v2 + community_id 过滤 + qna_count 角标 | 高德地图 / CMA / 关注小区 |
 | **模块四 带客协作 + Q&A** | 92% | Q&A 问答完整(4 API + UI + 待办) + customer_id 必填(WIP) | 7 天过期定时任务 / 批量审批 / 实时推送 |
