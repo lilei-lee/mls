@@ -1,0 +1,52 @@
+{% extends "admin/base.html" %}
+{% block title %}房源 · MLS 管理后台{% endblock %}
+{% block content %}
+<h1>房源管理</h1>
+{% if msg %}<div class="msg">{{ msg }}</div>{% endif %}
+
+<form class="inline" method="get" action="/admin/listings">
+  <div>
+    <label>搜索(小区/经纪人/编号)</label>
+    <input name="q" value="{{ q }}" placeholder="关键词">
+  </div>
+  <div>
+    <label>状态</label>
+    <select name="status_f" style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px;">
+      <option value="">全部</option>
+      {% for s, label in [('on_sale','在售'),('deposit_paid','定金已付'),('transaction_ongoing','成交进行中'),('sold','已售'),('offline','已下架')] %}
+      <option value="{{ s }}" {% if status_f==s %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label>区域</label>
+    <select name="district_f" style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px;">
+      <option value="">全部</option>
+      {% for d in districts %}<option value="{{ d }}" {% if district_f==d %}selected{% endif %}>{{ d }}</option>{% endfor %}
+    </select>
+  </div>
+  <button type="submit">筛选</button>
+</form>
+
+<table>
+  <thead>
+    <tr><th>MLS编号</th><th>小区</th><th>楼栋-房号</th><th>区域</th><th>挂牌价(万)</th><th>状态</th><th>归属</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r.house_code }}</td>
+      <td>{{ r.community }}</td>
+      <td>{{ r.building }}-{{ r.room_no }}</td>
+      <td>{{ r.district }}</td>
+      <td>{{ r.price_wan }}</td>
+      <td>{{ r.status_label }}</td>
+      <td>{{ r.owner }}</td>
+      <td><a href="/admin/listings/{{ r.id }}">详情</a></td>
+    </tr>
+    {% else %}
+    <tr><td colspan="8" style="color:#94a3b8;">无匹配房源</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -202,3 +202,107 @@ def admin_agent_coop(agent_id: str, _: bool = Depends(require_admin), action: st
         "updated_at": datetime.now(),
     }})
     return RedirectResponse(url=f"/admin/agents/{agent_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+# ── 房源管理(只读 + 手动下架/恢复) ──
+
+_LISTING_STATUS_LABEL = {
+    "on_sale": "在售", "deposit_paid": "定金已付", "transaction_ongoing": "成交进行中",
+    "sold": "已售", "offline": "已下架",
+}
+
+
+@admin_router.get("/listings", response_class=HTMLResponse)
+def admin_listings(request: Request, _: bool = Depends(require_admin),
+                   q: str = "", status_f: str = "", district_f: str = "", msg: str = ""):
+    query: dict = {}
+    if status_f:
+        query["status"] = status_f
+    if district_f:
+        query["district"] = district_f
+    if q:
+        query["$or"] = [
+            {"community": {"$regex": q, "$options": "i"}},
+            {"owner_agent_name": {"$regex": q, "$options": "i"}},
+            {"house_code": {"$regex": q, "$options": "i"}},
+        ]
+    rows = []
+    for l in db["listings"].find(query).sort("created_at", -1).limit(200):
+        rows.append({
+            "id": str(l["_id"]),
+            "house_code": l.get("house_code", "-"),
+            "community": l.get("community", ""),
+            "building": l.get("building", ""), "room_no": l.get("room_no", ""),
+            "district": l.get("district", ""),
+            "price_wan": l.get("price_wan", ""),
+            "status": l.get("status", ""),
+            "status_label": _LISTING_STATUS_LABEL.get(l.get("status", ""), l.get("status", "")),
+            "owner": l.get("owner_agent_name", ""),
+        })
+    districts = [d for d in db["listings"].distinct("district") if d]
+    return templates.TemplateResponse(request, "admin/listings.html", {
+        "rows": rows, "q": q, "status_f": status_f, "district_f": district_f,
+        "districts": districts, "msg": msg,
+    })
+
+
+@admin_router.get("/listings/{listing_id}", response_class=HTMLResponse)
+def admin_listing_detail(listing_id: str, request: Request, _: bool = Depends(require_admin), msg: str = ""):
+    try:
+        lid = ObjectId(listing_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的房源 ID")
+    l = db["listings"].find_one({"_id": lid})
+    if not l:
+        raise HTTPException(status_code=404, detail="房源不存在")
+    listing = {
+        "id": str(lid),
+        "house_code": l.get("house_code", "-"),
+        "community": l.get("community", ""),
+        "building": l.get("building", ""), "unit": l.get("unit", ""), "room_no": l.get("room_no", ""),
+        "district": l.get("district", ""),
+        "price_wan": l.get("price_wan", ""),
+        "bonus_yuan": l.get("bonus_yuan", 0),
+        "status": l.get("status", ""),
+        "status_label": _LISTING_STATUS_LABEL.get(l.get("status", ""), l.get("status", "")),
+        "owner": l.get("owner_agent_name", ""),
+        "owner_phone": l.get("owner_agent_phone", ""),
+        "photo_count": l.get("photo_count", len(l.get("photos", []) or [])),
+        "property_code": l.get("property_code", "-"),
+        "public_remarks": l.get("public_remarks", ""),
+        "created_at": l["created_at"].strftime("%Y-%m-%d") if isinstance(l.get("created_at"), datetime) else "-",
+        "can_offline": l.get("status") == "on_sale",
+        "can_restore": l.get("status") == "offline",
+    }
+    return templates.TemplateResponse(request, "admin/listing_detail.html", {"l": listing, "msg": msg})
+
+
+def _set_listing_status(listing_id: str, allowed_from: str, new_status: str, reason: str) -> str:
+    try:
+        lid = ObjectId(listing_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的房源 ID")
+    l = db["listings"].find_one({"_id": lid})
+    if not l:
+        raise HTTPException(status_code=404, detail="房源不存在")
+    if l.get("status") != allowed_from:
+        return f"当前状态({_LISTING_STATUS_LABEL.get(l.get('status'), l.get('status'))})不可执行该操作"
+    upd = {"status": new_status, "updated_at": datetime.now()}
+    if new_status == "offline":
+        upd["offline_reason"] = reason
+    db["listings"].update_one({"_id": lid}, {"$set": upd})
+    return "已下架" if new_status == "offline" else "已恢复上架"
+
+
+@admin_router.post("/listings/{listing_id}/offline")
+def admin_listing_offline(listing_id: str, _: bool = Depends(require_admin), reason: str = Form("")):
+    msg = _set_listing_status(listing_id, "on_sale", "offline", reason.strip())
+    return RedirectResponse(url=f"/admin/listings/{listing_id}?msg={quote(msg)}",
+                            status_code=status.HTTP_303_SEE_OTHER)
+
+
+@admin_router.post("/listings/{listing_id}/restore")
+def admin_listing_restore(listing_id: str, _: bool = Depends(require_admin)):
+    msg = _set_listing_status(listing_id, "offline", "on_sale", "")
+    return RedirectResponse(url=f"/admin/listings/{listing_id}?msg={quote(msg)}",
+                            status_code=status.HTTP_303_SEE_OTHER)

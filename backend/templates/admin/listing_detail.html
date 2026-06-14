@@ -1,0 +1,40 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ l.community }} · 房源详情{% endblock %}
+{% block content %}
+<p style="margin:0 0 12px;"><a href="/admin/listings" style="color:#64748b; font-size:13px;">← 返回房源列表</a></p>
+<h1>{{ l.community }} {{ l.building }}-{{ l.unit }}-{{ l.room_no }}</h1>
+{% if msg %}<div class="msg">{{ msg }}</div>{% endif %}
+
+<div class="cards" style="margin-bottom:18px;">
+  <div class="card"><div class="label">MLS编号</div><div class="value" style="font-size:15px;">{{ l.house_code }}</div></div>
+  <div class="card"><div class="label">区域</div><div class="value" style="font-size:16px;">{{ l.district }}</div></div>
+  <div class="card"><div class="label">挂牌价</div><div class="value">{{ l.price_wan }}<span style="font-size:13px;"> 万</span></div></div>
+  <div class="card"><div class="label">合作奖金</div><div class="value" style="font-size:16px;">¥{{ l.bonus_yuan }}</div></div>
+  <div class="card"><div class="label">状态</div><div class="value" style="font-size:16px;">{{ l.status_label }}</div></div>
+  <div class="card"><div class="label">归属经纪人</div><div class="value" style="font-size:16px;">{{ l.owner }} {{ l.owner_phone }}</div></div>
+  <div class="card"><div class="label">照片数</div><div class="value">{{ l.photo_count }}</div></div>
+  <div class="card"><div class="label">录入时间</div><div class="value" style="font-size:16px;">{{ l.created_at }}</div></div>
+</div>
+
+{% if l.public_remarks %}
+<div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:16px; margin-bottom:18px;">
+  <div class="label" style="margin-bottom:6px;">公开备注</div>{{ l.public_remarks }}
+</div>
+{% endif %}
+
+<div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:16px;">
+  <div class="label" style="margin-bottom:10px;">管理操作（仅在售↔已下架，不影响交易中/已售房源）</div>
+  {% if l.can_offline %}
+  <form method="post" action="/admin/listings/{{ l.id }}/offline" style="display:flex; gap:10px; align-items:end; margin:0;">
+    <div><label>下架原因(选填)</label><input name="reason" placeholder="如:照片不合规"></div>
+    <button type="submit" style="background:#b91c1c;">手动下架</button>
+  </form>
+  {% elif l.can_restore %}
+  <form method="post" action="/admin/listings/{{ l.id }}/restore" style="margin:0;">
+    <button type="submit">恢复上架</button>
+  </form>
+  {% else %}
+  <span style="color:#94a3b8; font-size:13px;">当前状态不支持手动下架/恢复</span>
+  {% endif %}
+</div>
+{% endblock %}

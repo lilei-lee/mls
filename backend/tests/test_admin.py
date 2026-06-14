@@ -159,3 +159,57 @@ def test_agent_coop_approve(client):
     a = db["agents"].find_one({"_id": aid})
     assert a["coop_verified"] is True
     assert isinstance(a.get("coop_reviewed_at"), datetime)
+
+
+# ── 房源管理 ──
+
+def _seed_listing(community="阳光小区", status="on_sale", district="桥东区", house_code="HC-001"):
+    from bson import ObjectId
+    return db["listings"].insert_one({
+        "_id": ObjectId(), "house_code": house_code, "community": community,
+        "building": "3", "unit": "1", "room_no": "501", "district": district,
+        "price_wan": 95.0, "bonus_yuan": 3000, "status": status,
+        "owner_agent_name": "张三", "owner_agent_phone": "13912345678",
+        "created_at": datetime.now(),
+    }).inserted_id
+
+
+def test_listings_requires_auth(client):
+    r = client.get("/admin/listings", follow_redirects=False)
+    assert r.status_code == 303
+
+
+def test_listings_list_and_filter(client):
+    _seed_listing(community="阳光小区", district="桥东区")
+    _seed_listing(community="月亮花园", district="桥西区", house_code="HC-002")
+    _login(client)
+    r = client.get("/admin/listings", follow_redirects=False)
+    assert r.status_code == 200 and "阳光小区" in r.text and "月亮花园" in r.text
+    r2 = client.get("/admin/listings", params={"district_f": "桥西区"}, follow_redirects=False)
+    assert "月亮花园" in r2.text and "阳光小区" not in r2.text
+
+
+def test_listing_detail(client):
+    lid = _seed_listing()
+    _login(client)
+    r = client.get(f"/admin/listings/{lid}", follow_redirects=False)
+    assert r.status_code == 200 and "阳光小区" in r.text and "HC-001" in r.text
+
+
+def test_listing_offline_then_restore(client):
+    lid = _seed_listing(status="on_sale")
+    _login(client)
+    r = client.post(f"/admin/listings/{lid}/offline", data={"reason": "照片不合规"}, follow_redirects=False)
+    assert r.status_code == 303
+    assert db["listings"].find_one({"_id": lid})["status"] == "offline"
+    r2 = client.post(f"/admin/listings/{lid}/restore", follow_redirects=False)
+    assert r2.status_code == 303
+    assert db["listings"].find_one({"_id": lid})["status"] == "on_sale"
+
+
+def test_listing_offline_guard_non_on_sale(client):
+    """交易中房源不可被手动下架(状态守卫)"""
+    lid = _seed_listing(status="deposit_paid")
+    _login(client)
+    client.post(f"/admin/listings/{lid}/offline", data={"reason": "x"}, follow_redirects=False)
+    assert db["listings"].find_one({"_id": lid})["status"] == "deposit_paid"  # 未变
