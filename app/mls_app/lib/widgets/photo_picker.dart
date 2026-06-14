@@ -40,12 +40,20 @@ class PhotoPicker extends StatefulWidget {
   final ValueChanged<List<PickedPhoto>> onChanged;
   final ValueChanged<String?> onCoverThumbnailChanged;
 
+  /// 复用为凭证上传时可改文案/隐藏封面徽章(默认保持"房源照片"行为)
+  final String label;
+  final bool showCoverBadge;
+  final String hintText;
+
   const PhotoPicker({
     super.key,
     this.initialPhotos = const [],
     this.maxCount = 6,
     required this.onChanged,
     required this.onCoverThumbnailChanged,
+    this.label = '房源照片',
+    this.showCoverBadge = true,
+    this.hintText = '首张自动作为封面,长按可删除',
   });
 
   @override
@@ -223,9 +231,9 @@ class _PhotoPickerState extends State<PhotoPicker> {
       children: [
         Row(
           children: [
-            const Text(
-              '房源照片',
-              style: TextStyle(
+            Text(
+              widget.label,
+              style: const TextStyle(
                   fontSize: 12.0,
                   fontWeight: FontWeight.bold,
                   color: Colors.grey),
@@ -265,9 +273,9 @@ class _PhotoPickerState extends State<PhotoPicker> {
           ),
         ],
         const SizedBox(height: 4),
-        const Text(
-          '首张自动作为封面,长按可删除',
-          style: TextStyle(color: Colors.grey, fontSize: 11.0),
+        Text(
+          widget.hintText,
+          style: const TextStyle(color: Colors.grey, fontSize: 11.0),
         ),
       ],
     );
@@ -298,7 +306,7 @@ class _PhotoPickerState extends State<PhotoPicker> {
                   : Container(color: MlsColors.borderLight),
             ),
           ),
-          if (index == 0)
+          if (index == 0 && widget.showCoverBadge)
             Positioned(
               top: 2,
               left: 2,

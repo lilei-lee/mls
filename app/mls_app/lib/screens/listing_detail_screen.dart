@@ -9,7 +9,9 @@ import '../models/listing_showing_summary.dart';
 import '../models/qna_thread.dart';
 import '../services/api_client.dart';
 import '../services/qna_service.dart';
+import '../services/transaction_service.dart';
 import '../widgets/base64_image.dart';
+import '../widgets/photo_picker.dart';
 import '../widgets/mls/mls_avatar.dart';
 import '../widgets/mls/mls_card.dart';
 import '../widgets/mls/mls_nav_bar.dart';
@@ -229,7 +231,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         ),
 
         // ═══ sticky 底部操作栏 ═══
-        _buildBottomBar(listingFullName, ownerName, _userRole),
+        _buildBottomBar(listingFullName, ownerName, _userRole,
+            item['_is_owner'] == true, status),
       ],
     );
   }
@@ -1029,11 +1032,159 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     return '刚刚';
   }
 
+  // ──── 标记定金已付(含凭证上传) ────
+  Future<void> _showMarkDepositSheet(String listingName) async {
+    final amountCtrl = TextEditingController();
+    final noteCtrl = TextEditingController();
+    List<PickedPhoto> proof = [];
+    bool submitting = false;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) => Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: MlsColors.borderStrong,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text('标记「$listingName」定金已付', style: MlsTypography.sectionTitle),
+                  const SizedBox(height: 8),
+                  Text('填写定金金额并上传转账/收据凭证(凭证仅你与平台可见)',
+                      style: MlsTypography.caption1
+                          .copyWith(color: MlsColors.textSecondary)),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: amountCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: '定金金额(元)',
+                      hintText: '如 50000',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  PhotoPicker(
+                    initialPhotos: proof,
+                    maxCount: 1,
+                    label: '定金凭证',
+                    showCoverBadge: false,
+                    hintText: '上传转账/收据照片,长按可删除',
+                    onChanged: (p) => proof = p,
+                    onCoverThumbnailChanged: (_) {},
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: noteCtrl,
+                    maxLength: 100,
+                    decoration: const InputDecoration(
+                      labelText: '备注(选填)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: submitting ? null : () => Navigator.pop(ctx),
+                          child: const Text('取消'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: submitting
+                              ? null
+                              : () async {
+                                  setSheet(() => submitting = true);
+                                  try {
+                                    await TransactionService.instance.markDepositPaid(
+                                      widget.listingId,
+                                      depositAmountYuan:
+                                          int.tryParse(amountCtrl.text.trim()),
+                                      note: noteCtrl.text.trim(),
+                                      depositProofDataUrl:
+                                          proof.isNotEmpty ? proof.first.dataUrl : null,
+                                    );
+                                    if (ctx.mounted) Navigator.pop(ctx);
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('已标记定金已付')),
+                                      );
+                                      _reload();
+                                    }
+                                  } catch (e) {
+                                    setSheet(() => submitting = false);
+                                    if (ctx.mounted) {
+                                      ScaffoldMessenger.of(ctx).showSnackBar(
+                                        SnackBar(content: Text('操作失败:$e')),
+                                      );
+                                    }
+                                  }
+                                },
+                          child: submitting
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: Colors.white))
+                              : const Text('确认'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   // ──── sticky 底部操作栏 ────
-  Widget _buildBottomBar(String listingName, String laName, String myRole) {
+  Widget _buildBottomBar(String listingName, String laName, String myRole,
+      bool isOwner, String status) {
     // 当前用户是 BA 则伙伴是 LA，反之亦然
     final isBA = myRole == 'BA';
     final partnerRole = isBA ? 'LA' : 'BA';
+
+    // owner 视角 + 在售：显示「标记定金已付」(含凭证上传)
+    if (isOwner && status == 'on_sale') {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: MlsColors.bgPageEnd.withValues(alpha: 0.88),
+          border: const Border(top: BorderSide(color: MlsColors.borderLight, width: 0.5)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: MlsPrimaryButton(
+            text: '标记定金已付',
+            variant: MlsButtonVariant.primary,
+            leadingIcon: LucideIcons.banknote,
+            fullWidth: true,
+            onPressed: () => _showMarkDepositSheet(listingName),
+          ),
+        ),
+      );
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

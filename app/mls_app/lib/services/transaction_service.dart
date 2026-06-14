@@ -139,12 +139,15 @@ class ListingStatusService {
     String listingId, {
     int? depositAmountYuan,
     String? note,
+    String? depositProofDataUrl,
   }) async {
     final resp = await _dio.post(
       '/listings/$listingId/mark-deposit-paid',
       data: {
         'deposit_amount_yuan': ?depositAmountYuan,
         if (note != null && note.isNotEmpty) 'note': note,
+        if (depositProofDataUrl != null && depositProofDataUrl.isNotEmpty)
+          'deposit_proof_url': depositProofDataUrl,
       },
     );
     return Map<String, dynamic>.from(resp.data['data']);
